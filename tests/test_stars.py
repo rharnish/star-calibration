@@ -1,12 +1,15 @@
 """The star-calibration primitives that need no archive: catalog geometry, the fisheye
-projection, and the predictive track linker."""
+projection, and the predictive track linker.
+
+CI installs only numpy and pytest (requirements-dev.txt), so the linker test, which lives
+beside the OpenCV detector and uses scipy's KD-tree, skips where those are absent."""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from src.figlib.stars import catalog, fisheye, tracks
+from src.figlib.stars import catalog, fisheye
 from src.figlib.stars.sun import sun
 
 PALOMAR = (33.36302, -116.83622)
@@ -37,6 +40,10 @@ def test_fisheye_puts_the_boresight_at_frame_center_and_is_equidistant():
 
 
 def test_predictive_linker_follows_a_moving_star_through_noise():
+    pytest.importorskip("cv2")
+    pytest.importorskip("scipy")
+    from src.figlib.stars import tracks
+
     rng = np.random.default_rng(0)
     frames = []
     for i in range(30):
