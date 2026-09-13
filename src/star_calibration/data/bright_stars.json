@@ -1,0 +1,3663 @@
+[
+ {
+  "name": "Sirius",
+  "ra_deg": 101.287215,
+  "dec_deg": -16.716116,
+  "mag": -1.44,
+  "con": "CMa"
+ },
+ {
+  "name": "Canopus",
+  "ra_deg": 95.98792499999999,
+  "dec_deg": -52.69566,
+  "mag": -0.62,
+  "con": "Car"
+ },
+ {
+  "name": "Arcturus",
+  "ra_deg": 213.91545,
+  "dec_deg": 19.18241,
+  "mag": -0.05,
+  "con": "Boo"
+ },
+ {
+  "name": "Rigil Kentaurus",
+  "ra_deg": 219.911475,
+  "dec_deg": -60.833976,
+  "mag": -0.01,
+  "con": "Cen"
+ },
+ {
+  "name": "Vega",
+  "ra_deg": 279.2346,
+  "dec_deg": 38.783692,
+  "mag": 0.03,
+  "con": "Lyr"
+ },
+ {
+  "name": "Capella",
+  "ra_deg": 79.17225,
+  "dec_deg": 45.997991,
+  "mag": 0.08,
+  "con": "Aur"
+ },
+ {
+  "name": "Rigel",
+  "ra_deg": 78.63447,
+  "dec_deg": -8.20164,
+  "mag": 0.18,
+  "con": "Ori"
+ },
+ {
+  "name": "Procyon",
+  "ra_deg": 114.825495,
+  "dec_deg": 5.224993,
+  "mag": 0.4,
+  "con": "CMi"
+ },
+ {
+  "name": "Achernar",
+  "ra_deg": 24.42834,
+  "dec_deg": -57.236757,
+  "mag": 0.45,
+  "con": "Eri"
+ },
+ {
+  "name": "Betelgeuse",
+  "ra_deg": 88.792935,
+  "dec_deg": 7.407063,
+  "mag": 0.45,
+  "con": "Ori"
+ },
+ {
+  "name": "Hadar",
+  "ra_deg": 210.955935,
+  "dec_deg": -60.373039,
+  "mag": 0.61,
+  "con": "Cen"
+ },
+ {
+  "name": "Altair",
+  "ra_deg": 297.69582,
+  "dec_deg": 8.868322,
+  "mag": 0.76,
+  "con": "Aql"
+ },
+ {
+  "name": "Acrux",
+  "ra_deg": 186.649665,
+  "dec_deg": -63.099092,
+  "mag": 0.77,
+  "con": "Cru"
+ },
+ {
+  "name": "Aldebaran",
+  "ra_deg": 68.98015500000001,
+  "dec_deg": 16.509301,
+  "mag": 0.87,
+  "con": "Tau"
+ },
+ {
+  "name": "HR",
+  "ra_deg": 79.16889,
+  "dec_deg": 46.000842,
+  "mag": 0.96,
+  "con": "Aur"
+ },
+ {
+  "name": "Spica",
+  "ra_deg": 201.298245,
+  "dec_deg": -11.161322,
+  "mag": 0.98,
+  "con": "Vir"
+ },
+ {
+  "name": "Antares",
+  "ra_deg": 247.35191999999998,
+  "dec_deg": -26.432002,
+  "mag": 1.06,
+  "con": "Sco"
+ },
+ {
+  "name": "Pollux",
+  "ra_deg": 116.329155,
+  "dec_deg": 28.026199,
+  "mag": 1.16,
+  "con": "Gem"
+ },
+ {
+  "name": "Fomalhaut",
+  "ra_deg": 344.41256999999996,
+  "dec_deg": -29.622236,
+  "mag": 1.17,
+  "con": "PsA"
+ },
+ {
+  "name": "Becrux",
+  "ra_deg": 191.930385,
+  "dec_deg": -59.688764,
+  "mag": 1.25,
+  "con": "Cru"
+ },
+ {
+  "name": "Deneb",
+  "ra_deg": 310.35798,
+  "dec_deg": 45.280338,
+  "mag": 1.25,
+  "con": "Cyg"
+ },
+ {
+  "name": "Alp-2 Cen",
+  "ra_deg": 219.90519,
+  "dec_deg": -60.8383,
+  "mag": 1.35,
+  "con": "Cen"
+ },
+ {
+  "name": "Regulus",
+  "ra_deg": 152.09298,
+  "dec_deg": 11.967207,
+  "mag": 1.36,
+  "con": "Leo"
+ },
+ {
+  "name": "Adhara",
+  "ra_deg": 104.656455,
+  "dec_deg": -28.972084,
+  "mag": 1.5,
+  "con": "CMa"
+ },
+ {
+  "name": "Castor",
+  "ra_deg": 113.64951,
+  "dec_deg": 31.888276,
+  "mag": 1.58,
+  "con": "Gem"
+ },
+ {
+  "name": "Gacrux",
+  "ra_deg": 187.791435,
+  "dec_deg": -57.113212,
+  "mag": 1.59,
+  "con": "Cru"
+ },
+ {
+  "name": "Shaula",
+  "ra_deg": 263.402175,
+  "dec_deg": -37.103821,
+  "mag": 1.62,
+  "con": "Sco"
+ },
+ {
+  "name": "Bellatrix",
+  "ra_deg": 81.282765,
+  "dec_deg": 6.349702,
+  "mag": 1.64,
+  "con": "Ori"
+ },
+ {
+  "name": "Alnath",
+  "ra_deg": 81.57297,
+  "dec_deg": 28.60745,
+  "mag": 1.65,
+  "con": "Tau"
+ },
+ {
+  "name": "Miaplacidus",
+  "ra_deg": 138.300615,
+  "dec_deg": -69.717208,
+  "mag": 1.67,
+  "con": "Car"
+ },
+ {
+  "name": "Alnilam",
+  "ra_deg": 84.05338499999999,
+  "dec_deg": -1.20192,
+  "mag": 1.69,
+  "con": "Ori"
+ },
+ {
+  "name": "Alnair",
+  "ra_deg": 332.058135,
+  "dec_deg": -46.960975,
+  "mag": 1.73,
+  "con": "Gru"
+ },
+ {
+  "name": "Alnitak",
+  "ra_deg": 85.189695,
+  "dec_deg": -1.942572,
+  "mag": 1.74,
+  "con": "Ori"
+ },
+ {
+  "name": "Gam-2 Vel",
+  "ra_deg": 122.38314,
+  "dec_deg": -47.336588,
+  "mag": 1.75,
+  "con": "Vel"
+ },
+ {
+  "name": "Alioth",
+  "ra_deg": 193.50708,
+  "dec_deg": 55.959821,
+  "mag": 1.76,
+  "con": "UMa"
+ },
+ {
+  "name": "Mirphak",
+  "ra_deg": 51.08067,
+  "dec_deg": 49.86118,
+  "mag": 1.79,
+  "con": "Per"
+ },
+ {
+  "name": "Kaus Australis",
+  "ra_deg": 276.04302,
+  "dec_deg": -34.384616,
+  "mag": 1.79,
+  "con": "Sgr"
+ },
+ {
+  "name": "Dubhe",
+  "ra_deg": 165.93232500000002,
+  "dec_deg": 61.751033,
+  "mag": 1.81,
+  "con": "UMa"
+ },
+ {
+  "name": "Wezen",
+  "ra_deg": 107.097855,
+  "dec_deg": -26.3932,
+  "mag": 1.83,
+  "con": "CMa"
+ },
+ {
+  "name": "Alkaid",
+  "ra_deg": 206.88531,
+  "dec_deg": 49.313265,
+  "mag": 1.85,
+  "con": "UMa"
+ },
+ {
+  "name": "Avior",
+  "ra_deg": 125.62853999999999,
+  "dec_deg": -59.509483,
+  "mag": 1.86,
+  "con": "Car"
+ },
+ {
+  "name": "Sargas",
+  "ra_deg": 264.3297,
+  "dec_deg": -42.997824,
+  "mag": 1.86,
+  "con": "Sco"
+ },
+ {
+  "name": "Menkalinan",
+  "ra_deg": 89.88223500000001,
+  "dec_deg": 44.947433,
+  "mag": 1.9,
+  "con": "Aur"
+ },
+ {
+  "name": "Atria",
+  "ra_deg": 252.166155,
+  "dec_deg": -69.027715,
+  "mag": 1.91,
+  "con": "TrA"
+ },
+ {
+  "name": "Alhena",
+  "ra_deg": 99.42792,
+  "dec_deg": 16.399252,
+  "mag": 1.93,
+  "con": "Gem"
+ },
+ {
+  "name": "Del Vel",
+  "ra_deg": 131.175885,
+  "dec_deg": -54.708821,
+  "mag": 1.93,
+  "con": "Vel"
+ },
+ {
+  "name": "Peacock",
+  "ra_deg": 306.411885,
+  "dec_deg": -56.73509,
+  "mag": 1.94,
+  "con": "Pav"
+ },
+ {
+  "name": "Polaris",
+  "ra_deg": 37.94625,
+  "dec_deg": 89.264109,
+  "mag": 1.97,
+  "con": "UMi"
+ },
+ {
+  "name": "Mirzam",
+  "ra_deg": 95.674935,
+  "dec_deg": -17.955918,
+  "mag": 1.98,
+  "con": "CMa"
+ },
+ {
+  "name": "Alphard",
+  "ra_deg": 141.89685,
+  "dec_deg": -8.658603,
+  "mag": 1.99,
+  "con": "Hya"
+ },
+ {
+  "name": "Hamal",
+  "ra_deg": 31.793325000000003,
+  "dec_deg": 23.462423,
+  "mag": 2.01,
+  "con": "Ari"
+ },
+ {
+  "name": "Algieba",
+  "ra_deg": 154.99309499999998,
+  "dec_deg": 19.841489,
+  "mag": 2.01,
+  "con": "Leo"
+ },
+ {
+  "name": "Diphda",
+  "ra_deg": 10.89735,
+  "dec_deg": -17.986605,
+  "mag": 2.04,
+  "con": "Cet"
+ },
+ {
+  "name": "Nunki",
+  "ra_deg": 283.81635,
+  "dec_deg": -26.296722,
+  "mag": 2.05,
+  "con": "Sgr"
+ },
+ {
+  "name": "Menkent",
+  "ra_deg": 211.670925,
+  "dec_deg": -36.369954,
+  "mag": 2.06,
+  "con": "Cen"
+ },
+ {
+  "name": "Alpheratz",
+  "ra_deg": 2.096865,
+  "dec_deg": 29.090432,
+  "mag": 2.07,
+  "con": "And"
+ },
+ {
+  "name": "Mirach",
+  "ra_deg": 17.43291,
+  "dec_deg": 35.620558,
+  "mag": 2.07,
+  "con": "And"
+ },
+ {
+  "name": "Saiph",
+  "ra_deg": 86.939115,
+  "dec_deg": -9.669605,
+  "mag": 2.07,
+  "con": "Ori"
+ },
+ {
+  "name": "Kochab",
+  "ra_deg": 222.676575,
+  "dec_deg": 74.155505,
+  "mag": 2.07,
+  "con": "UMi"
+ },
+ {
+  "name": "Bet Gru",
+  "ra_deg": 340.666725,
+  "dec_deg": -46.884577,
+  "mag": 2.07,
+  "con": "Gru"
+ },
+ {
+  "name": "Rasalhague",
+  "ra_deg": 263.733615,
+  "dec_deg": 12.560035,
+  "mag": 2.08,
+  "con": "Oph"
+ },
+ {
+  "name": "Algol",
+  "ra_deg": 47.04222,
+  "dec_deg": 40.955648,
+  "mag": 2.09,
+  "con": "Per"
+ },
+ {
+  "name": "Almaak",
+  "ra_deg": 30.97476,
+  "dec_deg": 42.329725,
+  "mag": 2.1,
+  "con": "And"
+ },
+ {
+  "name": "Denebola",
+  "ra_deg": 177.26494499999998,
+  "dec_deg": 14.57206,
+  "mag": 2.14,
+  "con": "Leo"
+ },
+ {
+  "name": "Cih",
+  "ra_deg": 14.177145,
+  "dec_deg": 60.71674,
+  "mag": 2.15,
+  "con": "Cas"
+ },
+ {
+  "name": "Gam Cen",
+  "ra_deg": 190.379565,
+  "dec_deg": -48.959888,
+  "mag": 2.2,
+  "con": "Cen"
+ },
+ {
+  "name": "Naos",
+  "ra_deg": 120.896055,
+  "dec_deg": -40.003148,
+  "mag": 2.21,
+  "con": "Pup"
+ },
+ {
+  "name": "Tureis",
+  "ra_deg": 139.27257,
+  "dec_deg": -59.275229,
+  "mag": 2.21,
+  "con": "Car"
+ },
+ {
+  "name": "Alphekka",
+  "ra_deg": 233.67192,
+  "dec_deg": 26.714693,
+  "mag": 2.22,
+  "con": "CrB"
+ },
+ {
+  "name": "Lam Vel",
+  "ra_deg": 136.99902,
+  "dec_deg": -43.432589,
+  "mag": 2.23,
+  "con": "Vel"
+ },
+ {
+  "name": "Mizar",
+  "ra_deg": 200.981205,
+  "dec_deg": 54.925362,
+  "mag": 2.23,
+  "con": "UMa"
+ },
+ {
+  "name": "Sadr",
+  "ra_deg": 305.557095,
+  "dec_deg": 40.256679,
+  "mag": 2.23,
+  "con": "Cyg"
+ },
+ {
+  "name": "Shedir",
+  "ra_deg": 10.126740000000002,
+  "dec_deg": 56.537331,
+  "mag": 2.24,
+  "con": "Cas"
+ },
+ {
+  "name": "Etamin",
+  "ra_deg": 269.151555,
+  "dec_deg": 51.488895,
+  "mag": 2.24,
+  "con": "Dra"
+ },
+ {
+  "name": "Mintaka",
+  "ra_deg": 83.001675,
+  "dec_deg": -0.299092,
+  "mag": 2.25,
+  "con": "Ori"
+ },
+ {
+  "name": "Caph",
+  "ra_deg": 2.293305,
+  "dec_deg": 59.14978,
+  "mag": 2.28,
+  "con": "Cas"
+ },
+ {
+  "name": "Eps Cen",
+  "ra_deg": 204.97194000000002,
+  "dec_deg": -53.466394,
+  "mag": 2.29,
+  "con": "Cen"
+ },
+ {
+  "name": "Dschubba",
+  "ra_deg": 240.08335499999998,
+  "dec_deg": -22.62171,
+  "mag": 2.29,
+  "con": "Sco"
+ },
+ {
+  "name": "Eps Sco",
+  "ra_deg": 252.54119999999998,
+  "dec_deg": -34.293232,
+  "mag": 2.29,
+  "con": "Sco"
+ },
+ {
+  "name": "Alp Lup",
+  "ra_deg": 220.482345,
+  "dec_deg": -47.3882,
+  "mag": 2.3,
+  "con": "Lup"
+ },
+ {
+  "name": "Eta Cen",
+  "ra_deg": 218.87679,
+  "dec_deg": -42.157824,
+  "mag": 2.33,
+  "con": "Cen"
+ },
+ {
+  "name": "Merak",
+  "ra_deg": 165.46015500000001,
+  "dec_deg": 56.382427,
+  "mag": 2.34,
+  "con": "UMa"
+ },
+ {
+  "name": "Izar",
+  "ra_deg": 221.24676,
+  "dec_deg": 27.074222,
+  "mag": 2.35,
+  "con": "Boo"
+ },
+ {
+  "name": "Enif",
+  "ra_deg": 326.04649500000005,
+  "dec_deg": 9.875011,
+  "mag": 2.38,
+  "con": "Peg"
+ },
+ {
+  "name": "Kap Sco",
+  "ra_deg": 265.62198,
+  "dec_deg": -39.029983,
+  "mag": 2.39,
+  "con": "Sco"
+ },
+ {
+  "name": "Ankaa",
+  "ra_deg": 6.5708400000000005,
+  "dec_deg": -42.305981,
+  "mag": 2.4,
+  "con": "Phe"
+ },
+ {
+  "name": "Phad",
+  "ra_deg": 178.45752000000002,
+  "dec_deg": 53.69476,
+  "mag": 2.41,
+  "con": "UMa"
+ },
+ {
+  "name": "Eta Oph",
+  "ra_deg": 257.59452,
+  "dec_deg": -15.72491,
+  "mag": 2.43,
+  "con": "Oph"
+ },
+ {
+  "name": "Scheat",
+  "ra_deg": 345.943515,
+  "dec_deg": 28.082789,
+  "mag": 2.44,
+  "con": "Peg"
+ },
+ {
+  "name": "Aludra",
+  "ra_deg": 111.02376,
+  "dec_deg": -29.303104,
+  "mag": 2.45,
+  "con": "CMa"
+ },
+ {
+  "name": "Alderamin",
+  "ra_deg": 319.64445,
+  "dec_deg": 62.585573,
+  "mag": 2.45,
+  "con": "Cep"
+ },
+ {
+  "name": "Kap Vel",
+  "ra_deg": 140.52843000000001,
+  "dec_deg": -55.010668,
+  "mag": 2.47,
+  "con": "Vel"
+ },
+ {
+  "name": "Gienah",
+  "ra_deg": 311.55267000000003,
+  "dec_deg": 33.970256,
+  "mag": 2.48,
+  "con": "Cyg"
+ },
+ {
+  "name": "Markab",
+  "ra_deg": 346.19022,
+  "dec_deg": 15.205264,
+  "mag": 2.49,
+  "con": "Peg"
+ },
+ {
+  "name": "Menkar",
+  "ra_deg": 45.56988,
+  "dec_deg": 4.089734,
+  "mag": 2.54,
+  "con": "Cet"
+ },
+ {
+  "name": "Zet Oph",
+  "ra_deg": 249.28974000000002,
+  "dec_deg": -10.56709,
+  "mag": 2.54,
+  "con": "Oph"
+ },
+ {
+  "name": "Zet Cen",
+  "ra_deg": 208.885005,
+  "dec_deg": -47.288375,
+  "mag": 2.55,
+  "con": "Cen"
+ },
+ {
+  "name": "Zosma",
+  "ra_deg": 168.52706999999998,
+  "dec_deg": 20.523717,
+  "mag": 2.56,
+  "con": "Leo"
+ },
+ {
+  "name": "Graffias",
+  "ra_deg": 241.35930000000002,
+  "dec_deg": -19.805453,
+  "mag": 2.56,
+  "con": "Sco"
+ },
+ {
+  "name": "Arneb",
+  "ra_deg": 83.18256000000001,
+  "dec_deg": -17.822289,
+  "mag": 2.58,
+  "con": "Lep"
+ },
+ {
+  "name": "Del Cen",
+  "ra_deg": 182.08965,
+  "dec_deg": -50.722425,
+  "mag": 2.58,
+  "con": "Cen"
+ },
+ {
+  "name": "Gienah Ghurab",
+  "ra_deg": 183.95155499999998,
+  "dec_deg": -17.541929,
+  "mag": 2.58,
+  "con": "Crv"
+ },
+ {
+  "name": "Zet Sgr",
+  "ra_deg": 285.65297999999996,
+  "dec_deg": -29.880105,
+  "mag": 2.6,
+  "con": "Sgr"
+ },
+ {
+  "name": "Zubeneschemali",
+  "ra_deg": 229.251735,
+  "dec_deg": -9.382917,
+  "mag": 2.61,
+  "con": "Lib"
+ },
+ {
+  "name": "Unukalhai",
+  "ra_deg": 236.06697,
+  "dec_deg": 6.425627,
+  "mag": 2.63,
+  "con": "Ser"
+ },
+ {
+  "name": "Sheratan",
+  "ra_deg": 28.66002,
+  "dec_deg": 20.808035,
+  "mag": 2.64,
+  "con": "Ari"
+ },
+ {
+  "name": "Phakt",
+  "ra_deg": 84.912255,
+  "dec_deg": -34.074108,
+  "mag": 2.65,
+  "con": "Col"
+ },
+ {
+  "name": "The Aur",
+  "ra_deg": 89.930265,
+  "dec_deg": 37.212585,
+  "mag": 2.65,
+  "con": "Aur"
+ },
+ {
+  "name": "Kraz",
+  "ra_deg": 188.596815,
+  "dec_deg": -23.396759,
+  "mag": 2.65,
+  "con": "Crv"
+ },
+ {
+  "name": "Ruchbah",
+  "ra_deg": 21.453239999999997,
+  "dec_deg": 60.235283,
+  "mag": 2.66,
+  "con": "Cas"
+ },
+ {
+  "name": "Mufrid",
+  "ra_deg": 208.671165,
+  "dec_deg": 18.397717,
+  "mag": 2.68,
+  "con": "Boo"
+ },
+ {
+  "name": "Bet Lup",
+  "ra_deg": 224.63305499999998,
+  "dec_deg": -43.13396,
+  "mag": 2.68,
+  "con": "Lup"
+ },
+ {
+  "name": "Hassaleh",
+  "ra_deg": 74.24840999999999,
+  "dec_deg": 33.16609,
+  "mag": 2.69,
+  "con": "Aur"
+ },
+ {
+  "name": "Mu Vel",
+  "ra_deg": 161.69232,
+  "dec_deg": -49.420255,
+  "mag": 2.69,
+  "con": "Vel"
+ },
+ {
+  "name": "Alp Mus",
+  "ra_deg": 189.29608499999998,
+  "dec_deg": -69.135564,
+  "mag": 2.69,
+  "con": "Mus"
+ },
+ {
+  "name": "Ups Sco",
+  "ra_deg": 262.69097999999997,
+  "dec_deg": -37.295811,
+  "mag": 2.7,
+  "con": "Sco"
+ },
+ {
+  "name": "Pi Pup",
+  "ra_deg": 109.285665,
+  "dec_deg": -37.09747,
+  "mag": 2.71,
+  "con": "Pup"
+ },
+ {
+  "name": "Kaus Meridionalis",
+  "ra_deg": 275.24850000000004,
+  "dec_deg": -29.828103,
+  "mag": 2.72,
+  "con": "Sgr"
+ },
+ {
+  "name": "Tarazed",
+  "ra_deg": 296.56491000000005,
+  "dec_deg": 10.613261,
+  "mag": 2.72,
+  "con": "Aql"
+ },
+ {
+  "name": "Del Oph",
+  "ra_deg": 243.58641000000003,
+  "dec_deg": -3.694323,
+  "mag": 2.73,
+  "con": "Oph"
+ },
+ {
+  "name": "Eta Dra",
+  "ra_deg": 245.99790000000002,
+  "dec_deg": 61.514213,
+  "mag": 2.73,
+  "con": "Dra"
+ },
+ {
+  "name": "The Car",
+  "ra_deg": 160.739235,
+  "dec_deg": -64.39445,
+  "mag": 2.74,
+  "con": "Car"
+ },
+ {
+  "name": "Porrima",
+  "ra_deg": 190.415175,
+  "dec_deg": -1.449375,
+  "mag": 2.74,
+  "con": "Vir"
+ },
+ {
+  "name": "Hatsya",
+  "ra_deg": 83.85826499999999,
+  "dec_deg": -5.909901,
+  "mag": 2.75,
+  "con": "Ori"
+ },
+ {
+  "name": "Iot Cen",
+  "ra_deg": 200.14944,
+  "dec_deg": -36.712295,
+  "mag": 2.75,
+  "con": "Cen"
+ },
+ {
+  "name": "Zubenelgenubi",
+  "ra_deg": 222.719655,
+  "dec_deg": -16.041778,
+  "mag": 2.75,
+  "con": "Lib"
+ },
+ {
+  "name": "Cebalrai",
+  "ra_deg": 265.868145,
+  "dec_deg": 4.567303,
+  "mag": 2.76,
+  "con": "Oph"
+ },
+ {
+  "name": "Cursa",
+  "ra_deg": 76.962435,
+  "dec_deg": -5.086446,
+  "mag": 2.78,
+  "con": "Eri"
+ },
+ {
+  "name": "Kornephoros",
+  "ra_deg": 247.55502,
+  "dec_deg": 21.489613,
+  "mag": 2.78,
+  "con": "Her"
+ },
+ {
+  "name": "Rasalgethi",
+  "ra_deg": 258.661905,
+  "dec_deg": 14.390333,
+  "mag": 2.78,
+  "con": "Her"
+ },
+ {
+  "name": "Del Cru",
+  "ra_deg": 183.786405,
+  "dec_deg": -58.748928,
+  "mag": 2.79,
+  "con": "Cru"
+ },
+ {
+  "name": "Rastaban",
+  "ra_deg": 262.608195,
+  "dec_deg": 52.301387,
+  "mag": 2.79,
+  "con": "Dra"
+ },
+ {
+  "name": "Gam Lup",
+  "ra_deg": 233.785215,
+  "dec_deg": -41.166757,
+  "mag": 2.8,
+  "con": "Lup"
+ },
+ {
+  "name": "Nihal",
+  "ra_deg": 82.06134,
+  "dec_deg": -20.759441,
+  "mag": 2.81,
+  "con": "Lep"
+ },
+ {
+  "name": "Zet Her",
+  "ra_deg": 250.32169500000003,
+  "dec_deg": 31.602726,
+  "mag": 2.81,
+  "con": "Her"
+ },
+ {
+  "name": "Bet Hyi",
+  "ra_deg": 6.418740000000001,
+  "dec_deg": -77.254247,
+  "mag": 2.82,
+  "con": "Hyi"
+ },
+ {
+  "name": "Tau Sco",
+  "ra_deg": 248.97064500000002,
+  "dec_deg": -28.216016,
+  "mag": 2.82,
+  "con": "Sco"
+ },
+ {
+  "name": "Kaus Borealis",
+  "ra_deg": 276.992685,
+  "dec_deg": -25.4217,
+  "mag": 2.82,
+  "con": "Sgr"
+ },
+ {
+  "name": "Algenib",
+  "ra_deg": 3.30897,
+  "dec_deg": 15.183596,
+  "mag": 2.83,
+  "con": "Peg"
+ },
+ {
+  "name": "Rho Pup",
+  "ra_deg": 121.88605500000001,
+  "dec_deg": -24.304324,
+  "mag": 2.83,
+  "con": "Pup"
+ },
+ {
+  "name": "Bet TrA",
+  "ra_deg": 238.786245,
+  "dec_deg": -63.430727,
+  "mag": 2.83,
+  "con": "TrA"
+ },
+ {
+  "name": "Zet Per",
+  "ra_deg": 58.533,
+  "dec_deg": 31.883635,
+  "mag": 2.84,
+  "con": "Per"
+ },
+ {
+  "name": "Bet Ara",
+  "ra_deg": 261.324975,
+  "dec_deg": -55.529884,
+  "mag": 2.84,
+  "con": "Ara"
+ },
+ {
+  "name": "Alp Ara",
+  "ra_deg": 262.96042500000004,
+  "dec_deg": -49.876145,
+  "mag": 2.84,
+  "con": "Ara"
+ },
+ {
+  "name": "Alcyone",
+  "ra_deg": 56.87115,
+  "dec_deg": 24.105137,
+  "mag": 2.85,
+  "con": "Tau"
+ },
+ {
+  "name": "Vindemiatrix",
+  "ra_deg": 195.54416999999998,
+  "dec_deg": 10.95915,
+  "mag": 2.85,
+  "con": "Vir"
+ },
+ {
+  "name": "Del Cap",
+  "ra_deg": 326.760165,
+  "dec_deg": -16.127286,
+  "mag": 2.85,
+  "con": "Cap"
+ },
+ {
+  "name": "Alp Gem",
+  "ra_deg": 113.652405,
+  "dec_deg": 31.89052,
+  "mag": 2.85,
+  "con": "Gem"
+ },
+ {
+  "name": "Alp Hyi",
+  "ra_deg": 29.691765,
+  "dec_deg": -61.569859,
+  "mag": 2.86,
+  "con": "Hyi"
+ },
+ {
+  "name": "Del Cyg",
+  "ra_deg": 296.24361,
+  "dec_deg": 45.13081,
+  "mag": 2.86,
+  "con": "Cyg"
+ },
+ {
+  "name": "Mu Gem",
+  "ra_deg": 95.740095,
+  "dec_deg": 22.513586,
+  "mag": 2.87,
+  "con": "Gem"
+ },
+ {
+  "name": "Gam TrA",
+  "ra_deg": 229.72771500000002,
+  "dec_deg": -68.679545,
+  "mag": 2.87,
+  "con": "TrA"
+ },
+ {
+  "name": "Alp Tuc",
+  "ra_deg": 334.625565,
+  "dec_deg": -60.259587,
+  "mag": 2.87,
+  "con": "Tuc"
+ },
+ {
+  "name": "Acamar",
+  "ra_deg": 44.565345,
+  "dec_deg": -40.304672,
+  "mag": 2.88,
+  "con": "Eri"
+ },
+ {
+  "name": "Albaldah",
+  "ra_deg": 287.440965,
+  "dec_deg": -21.023615,
+  "mag": 2.88,
+  "con": "Sgr"
+ },
+ {
+  "name": "Gomeisa",
+  "ra_deg": 111.78768,
+  "dec_deg": 8.289315,
+  "mag": 2.89,
+  "con": "CMi"
+ },
+ {
+  "name": "Cor Caroli",
+  "ra_deg": 194.007105,
+  "dec_deg": 38.31838,
+  "mag": 2.89,
+  "con": "CVn"
+ },
+ {
+  "name": "Pi Sco",
+  "ra_deg": 239.712975,
+  "dec_deg": -26.114105,
+  "mag": 2.89,
+  "con": "Sco"
+ },
+ {
+  "name": "Eps Per",
+  "ra_deg": 59.46345,
+  "dec_deg": 40.010215,
+  "mag": 2.9,
+  "con": "Per"
+ },
+ {
+  "name": "Sig Sco",
+  "ra_deg": 245.297145,
+  "dec_deg": -25.592796,
+  "mag": 2.9,
+  "con": "Sco"
+ },
+ {
+  "name": "Sadalsuud",
+  "ra_deg": 322.88973,
+  "dec_deg": -5.571172,
+  "mag": 2.9,
+  "con": "Aqr"
+ },
+ {
+  "name": "Gam Per",
+  "ra_deg": 46.19913,
+  "dec_deg": 53.50644,
+  "mag": 2.91,
+  "con": "Per"
+ },
+ {
+  "name": "Ups Car",
+  "ra_deg": 146.77554,
+  "dec_deg": -65.072007,
+  "mag": 2.92,
+  "con": "Car"
+ },
+ {
+  "name": "Matar",
+  "ra_deg": 340.75056,
+  "dec_deg": 30.221245,
+  "mag": 2.93,
+  "con": "Peg"
+ },
+ {
+  "name": "Tau Pup",
+  "ra_deg": 102.48398999999999,
+  "dec_deg": -50.61456,
+  "mag": 2.94,
+  "con": "Pup"
+ },
+ {
+  "name": "Algorab",
+  "ra_deg": 187.466085,
+  "dec_deg": -16.515432,
+  "mag": 2.94,
+  "con": "Crv"
+ },
+ {
+  "name": "Sadalmelik",
+  "ra_deg": 331.445985,
+  "dec_deg": -0.319851,
+  "mag": 2.95,
+  "con": "Aqr"
+ },
+ {
+  "name": "Zaurak",
+  "ra_deg": 59.507355,
+  "dec_deg": -13.508515,
+  "mag": 2.97,
+  "con": "Eri"
+ },
+ {
+  "name": "Zet Tau",
+  "ra_deg": 84.41119499999999,
+  "dec_deg": 21.142549,
+  "mag": 2.97,
+  "con": "Tau"
+ },
+ {
+  "name": "Ras Elased Australis",
+  "ra_deg": 146.46282000000002,
+  "dec_deg": 23.774255,
+  "mag": 2.97,
+  "con": "Leo"
+ },
+ {
+  "name": "Nash",
+  "ra_deg": 271.452045,
+  "dec_deg": -30.424091,
+  "mag": 2.98,
+  "con": "Sgr"
+ },
+ {
+  "name": "Gam Hya",
+  "ra_deg": 199.730385,
+  "dec_deg": -23.171512,
+  "mag": 2.99,
+  "con": "Hya"
+ },
+ {
+  "name": "Iot-1 Sco",
+  "ra_deg": 266.89617000000004,
+  "dec_deg": -40.126997,
+  "mag": 2.99,
+  "con": "Sco"
+ },
+ {
+  "name": "Zet Aql",
+  "ra_deg": 286.352535,
+  "dec_deg": 13.863478,
+  "mag": 2.99,
+  "con": "Aql"
+ },
+ {
+  "name": "Bet Tri",
+  "ra_deg": 32.38587,
+  "dec_deg": 34.987297,
+  "mag": 3.0,
+  "con": "Tri"
+ },
+ {
+  "name": "Psi UMa",
+  "ra_deg": 167.41593,
+  "dec_deg": 44.498487,
+  "mag": 3.0,
+  "con": "UMa"
+ },
+ {
+  "name": "Gam UMi",
+  "ra_deg": 230.182245,
+  "dec_deg": 71.834016,
+  "mag": 3.0,
+  "con": "UMi"
+ },
+ {
+  "name": "Mu-1 Sco",
+  "ra_deg": 252.96763500000003,
+  "dec_deg": -38.04738,
+  "mag": 3.0,
+  "con": "Sco"
+ },
+ {
+  "name": "Gam Gru",
+  "ra_deg": 328.48212,
+  "dec_deg": -37.364852,
+  "mag": 3.0,
+  "con": "Gru"
+ },
+ {
+  "name": "Del Per",
+  "ra_deg": 55.73124,
+  "dec_deg": 47.787551,
+  "mag": 3.01,
+  "con": "Per"
+ },
+ {
+  "name": "Zet CMa",
+  "ra_deg": 95.078295,
+  "dec_deg": -30.063367,
+  "mag": 3.02,
+  "con": "CMa"
+ },
+ {
+  "name": "Omi-2 CMa",
+  "ra_deg": 105.756135,
+  "dec_deg": -23.833291,
+  "mag": 3.02,
+  "con": "CMa"
+ },
+ {
+  "name": "Eps Crv",
+  "ra_deg": 182.53119,
+  "dec_deg": -22.619766,
+  "mag": 3.02,
+  "con": "Crv"
+ },
+ {
+  "name": "Eps Aur",
+  "ra_deg": 75.492225,
+  "dec_deg": 43.823308,
+  "mag": 3.03,
+  "con": "Aur"
+ },
+ {
+  "name": "Bet Mus",
+  "ra_deg": 191.57019,
+  "dec_deg": -68.108119,
+  "mag": 3.04,
+  "con": "Mus"
+ },
+ {
+  "name": "Gam Boo",
+  "ra_deg": 218.01954,
+  "dec_deg": 38.308253,
+  "mag": 3.04,
+  "con": "Boo"
+ },
+ {
+  "name": "Albireo",
+  "ra_deg": 292.680345,
+  "dec_deg": 27.959681,
+  "mag": 3.05,
+  "con": "Cyg"
+ },
+ {
+  "name": "Bet Cap",
+  "ra_deg": 305.25280499999997,
+  "dec_deg": -14.781367,
+  "mag": 3.05,
+  "con": "Cap"
+ },
+ {
+  "name": "Eps Gem",
+  "ra_deg": 100.98303,
+  "dec_deg": 25.131124,
+  "mag": 3.06,
+  "con": "Gem"
+ },
+ {
+  "name": "Mu UMa",
+  "ra_deg": 155.582325,
+  "dec_deg": 41.499516,
+  "mag": 3.06,
+  "con": "UMa"
+ },
+ {
+  "name": "Del Dra",
+  "ra_deg": 288.138375,
+  "dec_deg": 67.661541,
+  "mag": 3.07,
+  "con": "Dra"
+ },
+ {
+  "name": "Eta Sgr",
+  "ra_deg": 274.406895,
+  "dec_deg": -36.761686,
+  "mag": 3.1,
+  "con": "Sgr"
+ },
+ {
+  "name": "Zet Hya",
+  "ra_deg": 133.84845,
+  "dec_deg": 5.945563,
+  "mag": 3.11,
+  "con": "Hya"
+ },
+ {
+  "name": "Nu Hya",
+  "ra_deg": 162.406185,
+  "dec_deg": -16.193648,
+  "mag": 3.11,
+  "con": "Hya"
+ },
+ {
+  "name": "Lam Cen",
+  "ra_deg": 173.945445,
+  "dec_deg": -63.019841,
+  "mag": 3.11,
+  "con": "Cen"
+ },
+ {
+  "name": "Alp Ind",
+  "ra_deg": 309.39173999999997,
+  "dec_deg": -47.291502,
+  "mag": 3.11,
+  "con": "Ind"
+ },
+ {
+  "name": "Bet Col",
+  "ra_deg": 87.739935,
+  "dec_deg": -35.768309,
+  "mag": 3.12,
+  "con": "Col"
+ },
+ {
+  "name": "Iot UMa",
+  "ra_deg": 134.80241999999998,
+  "dec_deg": 48.041826,
+  "mag": 3.12,
+  "con": "UMa"
+ },
+ {
+  "name": "Zet Ara",
+  "ra_deg": 254.65509,
+  "dec_deg": -55.990141,
+  "mag": 3.12,
+  "con": "Ara"
+ },
+ {
+  "name": "Del Her",
+  "ra_deg": 258.75796499999996,
+  "dec_deg": 24.839204,
+  "mag": 3.12,
+  "con": "Her"
+ },
+ {
+  "name": "Kap Cen",
+  "ra_deg": 224.79037499999998,
+  "dec_deg": -42.104194,
+  "mag": 3.13,
+  "con": "Cen"
+ },
+ {
+  "name": "Alp Lyn",
+  "ra_deg": 140.263875,
+  "dec_deg": 34.392562,
+  "mag": 3.14,
+  "con": "Lyn"
+ },
+ {
+  "name": "HR3803",
+  "ra_deg": 142.805565,
+  "dec_deg": -57.034377,
+  "mag": 3.16,
+  "con": "Vel"
+ },
+ {
+  "name": "Pi Her",
+  "ra_deg": 258.76182,
+  "dec_deg": 36.809162,
+  "mag": 3.16,
+  "con": "Her"
+ },
+ {
+  "name": "Nu Pup",
+  "ra_deg": 99.440295,
+  "dec_deg": -43.195934,
+  "mag": 3.17,
+  "con": "Pup"
+ },
+ {
+  "name": "The UMa",
+  "ra_deg": 143.215725,
+  "dec_deg": 51.6773,
+  "mag": 3.17,
+  "con": "UMa"
+ },
+ {
+  "name": "Zet Dra",
+  "ra_deg": 257.19671999999997,
+  "dec_deg": 65.714683,
+  "mag": 3.17,
+  "con": "Dra"
+ },
+ {
+  "name": "Phi Sgr",
+  "ra_deg": 281.4141,
+  "dec_deg": -26.990778,
+  "mag": 3.17,
+  "con": "Sgr"
+ },
+ {
+  "name": "Eta Aur",
+  "ra_deg": 76.6287,
+  "dec_deg": 41.234474,
+  "mag": 3.18,
+  "con": "Aur"
+ },
+ {
+  "name": "Alp Cir",
+  "ra_deg": 220.62738,
+  "dec_deg": -64.975138,
+  "mag": 3.18,
+  "con": "Cir"
+ },
+ {
+  "name": "Pi-3 Ori",
+  "ra_deg": 72.460035,
+  "dec_deg": 6.961276,
+  "mag": 3.19,
+  "con": "Ori"
+ },
+ {
+  "name": "Eps Lep",
+  "ra_deg": 76.36527,
+  "dec_deg": -22.371032,
+  "mag": 3.19,
+  "con": "Lep"
+ },
+ {
+  "name": "Kap Oph",
+  "ra_deg": 254.417085,
+  "dec_deg": 9.375033,
+  "mag": 3.19,
+  "con": "Oph"
+ },
+ {
+  "name": "HR6630",
+  "ra_deg": 267.464475,
+  "dec_deg": -37.043304,
+  "mag": 3.19,
+  "con": "Sco"
+ },
+ {
+  "name": "Zet Cyg",
+  "ra_deg": 318.234105,
+  "dec_deg": 30.226916,
+  "mag": 3.21,
+  "con": "Cyg"
+ },
+ {
+  "name": "Gam Cep",
+  "ra_deg": 354.83729999999997,
+  "dec_deg": 77.632276,
+  "mag": 3.21,
+  "con": "Cep"
+ },
+ {
+  "name": "Del Lup",
+  "ra_deg": 230.343015,
+  "dec_deg": -40.647518,
+  "mag": 3.22,
+  "con": "Lup"
+ },
+ {
+  "name": "Eps Oph",
+  "ra_deg": 244.58036999999996,
+  "dec_deg": -4.692511,
+  "mag": 3.23,
+  "con": "Oph"
+ },
+ {
+  "name": "Eta Ser",
+  "ra_deg": 275.32750500000003,
+  "dec_deg": -2.898825,
+  "mag": 3.23,
+  "con": "Ser"
+ },
+ {
+  "name": "Bet Cep",
+  "ra_deg": 322.16492999999997,
+  "dec_deg": 70.560716,
+  "mag": 3.23,
+  "con": "Cep"
+ },
+ {
+  "name": "Alp Pic",
+  "ra_deg": 102.04791,
+  "dec_deg": -61.941391,
+  "mag": 3.24,
+  "con": "Pic"
+ },
+ {
+  "name": "The Aql",
+  "ra_deg": 302.826195,
+  "dec_deg": -0.821461,
+  "mag": 3.24,
+  "con": "Aql"
+ },
+ {
+  "name": "Sig Pup",
+  "ra_deg": 112.307685,
+  "dec_deg": -43.301432,
+  "mag": 3.25,
+  "con": "Pup"
+ },
+ {
+  "name": "Pi Hya",
+  "ra_deg": 211.592895,
+  "dec_deg": -26.682361,
+  "mag": 3.25,
+  "con": "Hya"
+ },
+ {
+  "name": "Sig Lib",
+  "ra_deg": 226.017585,
+  "dec_deg": -25.281965,
+  "mag": 3.25,
+  "con": "Lib"
+ },
+ {
+  "name": "Gam Lyr",
+  "ra_deg": 284.735925,
+  "dec_deg": 32.689557,
+  "mag": 3.25,
+  "con": "Lyr"
+ },
+ {
+  "name": "Gam Hyi",
+  "ra_deg": 56.809425,
+  "dec_deg": -74.238962,
+  "mag": 3.26,
+  "con": "Hyi"
+ },
+ {
+  "name": "Del And",
+  "ra_deg": 9.83193,
+  "dec_deg": 30.861024,
+  "mag": 3.27,
+  "con": "And"
+ },
+ {
+  "name": "The Oph",
+  "ra_deg": 260.502405,
+  "dec_deg": -24.999545,
+  "mag": 3.27,
+  "con": "Oph"
+ },
+ {
+  "name": "Del Aqr",
+  "ra_deg": 343.662555,
+  "dec_deg": -15.82082,
+  "mag": 3.27,
+  "con": "Aqr"
+ },
+ {
+  "name": "Mu Lep",
+  "ra_deg": 78.23292,
+  "dec_deg": -16.205468,
+  "mag": 3.29,
+  "con": "Lep"
+ },
+ {
+  "name": "Ome Car",
+  "ra_deg": 153.434415,
+  "dec_deg": -70.037903,
+  "mag": 3.29,
+  "con": "Car"
+ },
+ {
+  "name": "Iot Dra",
+  "ra_deg": 231.23241000000002,
+  "dec_deg": 58.966065,
+  "mag": 3.29,
+  "con": "Dra"
+ },
+ {
+  "name": "Alp Dor",
+  "ra_deg": 68.49897,
+  "dec_deg": -55.044975,
+  "mag": 3.3,
+  "con": "Dor"
+ },
+ {
+  "name": "HR4140",
+  "ra_deg": 158.006145,
+  "dec_deg": -61.685332,
+  "mag": 3.3,
+  "con": "Car"
+ },
+ {
+  "name": "Eta Gem",
+  "ra_deg": 93.719415,
+  "dec_deg": 22.506799,
+  "mag": 3.31,
+  "con": "Gem"
+ },
+ {
+  "name": "Gam Ara",
+  "ra_deg": 261.34858499999996,
+  "dec_deg": -56.377727,
+  "mag": 3.31,
+  "con": "Ara"
+ },
+ {
+  "name": "Bet Phe",
+  "ra_deg": 16.521105,
+  "dec_deg": -46.718414,
+  "mag": 3.32,
+  "con": "Phe"
+ },
+ {
+  "name": "Rho Per",
+  "ra_deg": 46.29405,
+  "dec_deg": 38.840274,
+  "mag": 3.32,
+  "con": "Per"
+ },
+ {
+  "name": "Megrez",
+  "ra_deg": 183.85629,
+  "dec_deg": 57.032617,
+  "mag": 3.32,
+  "con": "UMa"
+ },
+ {
+  "name": "Eta Sco",
+  "ra_deg": 258.03828,
+  "dec_deg": -43.239189,
+  "mag": 3.32,
+  "con": "Sco"
+ },
+ {
+  "name": "Nu Oph",
+  "ra_deg": 269.75662500000004,
+  "dec_deg": -9.773632,
+  "mag": 3.32,
+  "con": "Oph"
+ },
+ {
+  "name": "Tau Sgr",
+  "ra_deg": 286.73505,
+  "dec_deg": -27.670423,
+  "mag": 3.32,
+  "con": "Sgr"
+ },
+ {
+  "name": "Alp Ret",
+  "ra_deg": 63.60606,
+  "dec_deg": -62.473858,
+  "mag": 3.33,
+  "con": "Ret"
+ },
+ {
+  "name": "The Leo",
+  "ra_deg": 168.560025,
+  "dec_deg": 15.42957,
+  "mag": 3.33,
+  "con": "Leo"
+ },
+ {
+  "name": "Xi Pup",
+  "ra_deg": 117.32356499999999,
+  "dec_deg": -24.859786,
+  "mag": 3.34,
+  "con": "Pup"
+ },
+ {
+  "name": "Eps Cas",
+  "ra_deg": 28.598760000000002,
+  "dec_deg": 63.670101,
+  "mag": 3.35,
+  "con": "Cas"
+ },
+ {
+  "name": "Eta Ori",
+  "ra_deg": 81.119235,
+  "dec_deg": -2.397146,
+  "mag": 3.35,
+  "con": "Ori"
+ },
+ {
+  "name": "Xi Gem",
+  "ra_deg": 101.32236,
+  "dec_deg": 12.895591,
+  "mag": 3.35,
+  "con": "Gem"
+ },
+ {
+  "name": "Omi UMa",
+  "ra_deg": 127.56646500000001,
+  "dec_deg": 60.718169,
+  "mag": 3.35,
+  "con": "UMa"
+ },
+ {
+  "name": "Del Aql",
+  "ra_deg": 291.37458,
+  "dec_deg": 3.114775,
+  "mag": 3.36,
+  "con": "Aql"
+ },
+ {
+  "name": "Eps Lup",
+  "ra_deg": 230.67031500000002,
+  "dec_deg": -44.689622,
+  "mag": 3.37,
+  "con": "Lup"
+ },
+ {
+  "name": "Eps Hya",
+  "ra_deg": 131.693805,
+  "dec_deg": 6.418809,
+  "mag": 3.38,
+  "con": "Hya"
+ },
+ {
+  "name": "Zet Vir",
+  "ra_deg": 203.6733,
+  "dec_deg": -0.59582,
+  "mag": 3.38,
+  "con": "Vir"
+ },
+ {
+  "name": "Lam Ori",
+  "ra_deg": 83.78449499999999,
+  "dec_deg": 9.934158,
+  "mag": 3.39,
+  "con": "Ori"
+ },
+ {
+  "name": "HR4050",
+  "ra_deg": 154.2708,
+  "dec_deg": -61.332304,
+  "mag": 3.39,
+  "con": "Car"
+ },
+ {
+  "name": "Del Vir",
+  "ra_deg": 193.90087499999998,
+  "dec_deg": 3.39747,
+  "mag": 3.39,
+  "con": "Vir"
+ },
+ {
+  "name": "Zet Cep",
+  "ra_deg": 332.71362,
+  "dec_deg": 58.201261,
+  "mag": 3.39,
+  "con": "Cep"
+ },
+ {
+  "name": "The-2 Tau",
+  "ra_deg": 67.165575,
+  "dec_deg": 15.870883,
+  "mag": 3.4,
+  "con": "Tau"
+ },
+ {
+  "name": "HR",
+  "ra_deg": 257.591745,
+  "dec_deg": -15.726921,
+  "mag": 3.4,
+  "con": "Oph"
+ },
+ {
+  "name": "Gam Phe",
+  "ra_deg": 22.091385,
+  "dec_deg": -43.318234,
+  "mag": 3.41,
+  "con": "Phe"
+ },
+ {
+  "name": "Lam Tau",
+  "ra_deg": 60.17007,
+  "dec_deg": 12.490347,
+  "mag": 3.41,
+  "con": "Tau"
+ },
+ {
+  "name": "Nu Cen",
+  "ra_deg": 207.37617,
+  "dec_deg": -41.687709,
+  "mag": 3.41,
+  "con": "Cen"
+ },
+ {
+  "name": "Zet Lup",
+  "ra_deg": 228.0714,
+  "dec_deg": -52.099247,
+  "mag": 3.41,
+  "con": "Lup"
+ },
+ {
+  "name": "Eta Cep",
+  "ra_deg": 311.322165,
+  "dec_deg": 61.838782,
+  "mag": 3.41,
+  "con": "Cep"
+ },
+ {
+  "name": "Zet Peg",
+  "ra_deg": 340.365495,
+  "dec_deg": 10.831364,
+  "mag": 3.41,
+  "con": "Peg"
+ },
+ {
+  "name": "Alp Tri",
+  "ra_deg": 28.27044,
+  "dec_deg": 29.578829,
+  "mag": 3.42,
+  "con": "Tri"
+ },
+ {
+  "name": "Eta Lup",
+  "ra_deg": 240.03054,
+  "dec_deg": -38.396706,
+  "mag": 3.42,
+  "con": "Lup"
+ },
+ {
+  "name": "Mu Her",
+  "ra_deg": 266.614785,
+  "dec_deg": 27.720676,
+  "mag": 3.42,
+  "con": "Her"
+ },
+ {
+  "name": "Bet Pav",
+  "ra_deg": 311.23970999999995,
+  "dec_deg": -66.203212,
+  "mag": 3.42,
+  "con": "Pav"
+ },
+ {
+  "name": "HR3659",
+  "ra_deg": 137.74206,
+  "dec_deg": -58.966896,
+  "mag": 3.43,
+  "con": "Car"
+ },
+ {
+  "name": "Zet Leo",
+  "ra_deg": 154.17256500000002,
+  "dec_deg": 23.417311,
+  "mag": 3.43,
+  "con": "Leo"
+ },
+ {
+  "name": "Lam Aql",
+  "ra_deg": 286.56225,
+  "dec_deg": -4.882554,
+  "mag": 3.43,
+  "con": "Aql"
+ },
+ {
+  "name": "Lam UMa",
+  "ra_deg": 154.27428,
+  "dec_deg": 42.914365,
+  "mag": 3.45,
+  "con": "UMa"
+ },
+ {
+  "name": "Eta Cas",
+  "ra_deg": 12.2739,
+  "dec_deg": 57.815187,
+  "mag": 3.46,
+  "con": "Cas"
+ },
+ {
+  "name": "Eta Cet",
+  "ra_deg": 17.147460000000002,
+  "dec_deg": -10.182264,
+  "mag": 3.46,
+  "con": "Cet"
+ },
+ {
+  "name": "Chi Car",
+  "ra_deg": 119.194695,
+  "dec_deg": -52.98236,
+  "mag": 3.46,
+  "con": "Car"
+ },
+ {
+  "name": "Del Boo",
+  "ra_deg": 228.87564,
+  "dec_deg": 33.314833,
+  "mag": 3.46,
+  "con": "Boo"
+ },
+ {
+  "name": "Gam Cet",
+  "ra_deg": 40.82517,
+  "dec_deg": 3.235818,
+  "mag": 3.47,
+  "con": "Cet"
+ },
+ {
+  "name": "Mu Cen",
+  "ra_deg": 207.404145,
+  "dec_deg": -42.473732,
+  "mag": 3.47,
+  "con": "Cen"
+ },
+ {
+  "name": "Eta Leo",
+  "ra_deg": 151.833135,
+  "dec_deg": 16.762664,
+  "mag": 3.48,
+  "con": "Leo"
+ },
+ {
+  "name": "Eta Her",
+  "ra_deg": 250.72399499999997,
+  "dec_deg": 38.922254,
+  "mag": 3.48,
+  "con": "Her"
+ },
+ {
+  "name": "Tau Cet",
+  "ra_deg": 26.017185,
+  "dec_deg": -15.93748,
+  "mag": 3.49,
+  "con": "Cet"
+ },
+ {
+  "name": "Sig CMa",
+  "ra_deg": 105.42978000000001,
+  "dec_deg": -27.93483,
+  "mag": 3.49,
+  "con": "CMa"
+ },
+ {
+  "name": "Nu UMa",
+  "ra_deg": 169.619745,
+  "dec_deg": 33.094306,
+  "mag": 3.49,
+  "con": "UMa"
+ },
+ {
+  "name": "Bet Boo",
+  "ra_deg": 225.48654000000002,
+  "dec_deg": 40.390566,
+  "mag": 3.49,
+  "con": "Boo"
+ },
+ {
+  "name": "Alp Tel",
+  "ra_deg": 276.74341499999997,
+  "dec_deg": -45.968459,
+  "mag": 3.49,
+  "con": "Tel"
+ },
+ {
+  "name": "Eps Gru",
+  "ra_deg": 342.13858500000003,
+  "dec_deg": -51.316864,
+  "mag": 3.49,
+  "con": "Gru"
+ },
+ {
+  "name": "Kap CMa",
+  "ra_deg": 102.460245,
+  "dec_deg": -32.508478,
+  "mag": 3.5,
+  "con": "CMa"
+ },
+ {
+  "name": "Del Gem",
+  "ra_deg": 110.030745,
+  "dec_deg": 21.98232,
+  "mag": 3.5,
+  "con": "Gem"
+ },
+ {
+  "name": "Iot Cep",
+  "ra_deg": 342.4203,
+  "dec_deg": 66.200408,
+  "mag": 3.5,
+  "con": "Cep"
+ },
+ {
+  "name": "Gam Sge",
+  "ra_deg": 299.689275,
+  "dec_deg": 19.492148,
+  "mag": 3.51,
+  "con": "Sge"
+ },
+ {
+  "name": "Mu Peg",
+  "ra_deg": 342.500775,
+  "dec_deg": 24.601579,
+  "mag": 3.51,
+  "con": "Peg"
+ },
+ {
+  "name": "Del Eri",
+  "ra_deg": 55.81209,
+  "dec_deg": -9.763395,
+  "mag": 3.52,
+  "con": "Eri"
+ },
+ {
+  "name": "Omi Leo",
+  "ra_deg": 145.287645,
+  "dec_deg": 9.892308,
+  "mag": 3.52,
+  "con": "Leo"
+ },
+ {
+  "name": "Phi Vel",
+  "ra_deg": 149.21562,
+  "dec_deg": -54.56779,
+  "mag": 3.52,
+  "con": "Vel"
+ },
+ {
+  "name": "Sheliak",
+  "ra_deg": 282.51997500000004,
+  "dec_deg": 33.362667,
+  "mag": 3.52,
+  "con": "Lyr"
+ },
+ {
+  "name": "Xi-2 Sgr",
+  "ra_deg": 284.432505,
+  "dec_deg": -21.106654,
+  "mag": 3.52,
+  "con": "Sgr"
+ },
+ {
+  "name": "The Peg",
+  "ra_deg": 332.54994,
+  "dec_deg": 6.197865,
+  "mag": 3.52,
+  "con": "Peg"
+ },
+ {
+  "name": "Gam Vir",
+  "ra_deg": 190.412565,
+  "dec_deg": -1.449235,
+  "mag": 3.52,
+  "con": "Vir"
+ },
+ {
+  "name": "Eps Tau",
+  "ra_deg": 67.154145,
+  "dec_deg": 19.180431,
+  "mag": 3.53,
+  "con": "Tau"
+ },
+ {
+  "name": "Bet Cnc",
+  "ra_deg": 124.12884000000001,
+  "dec_deg": 9.185545,
+  "mag": 3.53,
+  "con": "Cnc"
+ },
+ {
+  "name": "Xi Hya",
+  "ra_deg": 173.25057,
+  "dec_deg": -31.857625,
+  "mag": 3.54,
+  "con": "Hya"
+ },
+ {
+  "name": "Mu Ser",
+  "ra_deg": 237.40503,
+  "dec_deg": -3.430208,
+  "mag": 3.54,
+  "con": "Ser"
+ },
+ {
+  "name": "Xi Ser",
+  "ra_deg": 264.396675,
+  "dec_deg": -15.398557,
+  "mag": 3.54,
+  "con": "Ser"
+ },
+ {
+  "name": "Ups-4 Eri",
+  "ra_deg": 64.473555,
+  "dec_deg": -33.798348,
+  "mag": 3.55,
+  "con": "Eri"
+ },
+ {
+  "name": "Zet Lep",
+  "ra_deg": 86.738925,
+  "dec_deg": -14.82195,
+  "mag": 3.55,
+  "con": "Lep"
+ },
+ {
+  "name": "Iot Lup",
+  "ra_deg": 214.85094,
+  "dec_deg": -46.058093,
+  "mag": 3.55,
+  "con": "Lup"
+ },
+ {
+  "name": "Chi Dra",
+  "ra_deg": 275.26104000000004,
+  "dec_deg": 72.732843,
+  "mag": 3.55,
+  "con": "Dra"
+ },
+ {
+  "name": "Del Pav",
+  "ra_deg": 302.17735500000003,
+  "dec_deg": -66.182068,
+  "mag": 3.55,
+  "con": "Pav"
+ },
+ {
+  "name": "Iot Cet",
+  "ra_deg": 4.856985,
+  "dec_deg": -8.823921,
+  "mag": 3.56,
+  "con": "Cet"
+ },
+ {
+  "name": "Phi Eri",
+  "ra_deg": 34.12731,
+  "dec_deg": -51.512165,
+  "mag": 3.56,
+  "con": "Eri"
+ },
+ {
+  "name": "Del Crt",
+  "ra_deg": 169.835205,
+  "dec_deg": -14.778541,
+  "mag": 3.56,
+  "con": "Crt"
+ },
+ {
+  "name": "Mu-2 Sco",
+  "ra_deg": 253.083945,
+  "dec_deg": -38.017536,
+  "mag": 3.56,
+  "con": "Sco"
+ },
+ {
+  "name": "Kap Gem",
+  "ra_deg": 116.111895,
+  "dec_deg": 24.397993,
+  "mag": 3.57,
+  "con": "Gem"
+ },
+ {
+  "name": "Kap UMa",
+  "ra_deg": 135.906405,
+  "dec_deg": 47.156525,
+  "mag": 3.57,
+  "con": "UMa"
+ },
+ {
+  "name": "Rho Boo",
+  "ra_deg": 217.9575,
+  "dec_deg": 30.371437,
+  "mag": 3.57,
+  "con": "Boo"
+ },
+ {
+  "name": "Phi-1 Lup",
+  "ra_deg": 230.4516,
+  "dec_deg": -36.261376,
+  "mag": 3.57,
+  "con": "Lup"
+ },
+ {
+  "name": "Lam Gem",
+  "ra_deg": 109.52324999999999,
+  "dec_deg": 16.540383,
+  "mag": 3.58,
+  "con": "Gem"
+ },
+ {
+  "name": "Alp-2 Cap",
+  "ra_deg": 304.51356,
+  "dec_deg": -12.544852,
+  "mag": 3.58,
+  "con": "Cap"
+ },
+ {
+  "name": "HR464",
+  "ra_deg": 24.498075,
+  "dec_deg": 48.628213,
+  "mag": 3.59,
+  "con": "And"
+ },
+ {
+  "name": "Tau Ori",
+  "ra_deg": 79.40163,
+  "dec_deg": -6.844409,
+  "mag": 3.59,
+  "con": "Ori"
+ },
+ {
+  "name": "Gam Lep",
+  "ra_deg": 86.115855,
+  "dec_deg": -22.448382,
+  "mag": 3.59,
+  "con": "Lep"
+ },
+ {
+  "name": "Bet Vir",
+  "ra_deg": 177.67383,
+  "dec_deg": 1.764718,
+  "mag": 3.59,
+  "con": "Vir"
+ },
+ {
+  "name": "Eps Cru",
+  "ra_deg": 185.340465,
+  "dec_deg": -60.401147,
+  "mag": 3.59,
+  "con": "Cru"
+ },
+ {
+  "name": "The Cet",
+  "ra_deg": 21.00585,
+  "dec_deg": -8.183257,
+  "mag": 3.6,
+  "con": "Cet"
+ },
+ {
+  "name": "The Gem",
+  "ra_deg": 103.19724,
+  "dec_deg": 33.961254,
+  "mag": 3.6,
+  "con": "Gem"
+ },
+ {
+  "name": "Omi Vel",
+  "ra_deg": 130.07331,
+  "dec_deg": -52.921887,
+  "mag": 3.6,
+  "con": "Vel"
+ },
+ {
+  "name": "Psi Vel",
+  "ra_deg": 142.67511,
+  "dec_deg": -40.466769,
+  "mag": 3.6,
+  "con": "Vel"
+ },
+ {
+  "name": "Ups Lib",
+  "ra_deg": 234.25605,
+  "dec_deg": -28.135079,
+  "mag": 3.6,
+  "con": "Lib"
+ },
+ {
+  "name": "Del Ara",
+  "ra_deg": 262.77477,
+  "dec_deg": -60.683848,
+  "mag": 3.6,
+  "con": "Ara"
+ },
+ {
+  "name": "HR838",
+  "ra_deg": 42.495945,
+  "dec_deg": 27.260507,
+  "mag": 3.61,
+  "con": "Ari"
+ },
+ {
+  "name": "Omi Tau",
+  "ra_deg": 51.20331,
+  "dec_deg": 9.02887,
+  "mag": 3.61,
+  "con": "Tau"
+ },
+ {
+  "name": "Lam Hya",
+  "ra_deg": 152.647005,
+  "dec_deg": -12.354083,
+  "mag": 3.61,
+  "con": "Hya"
+ },
+ {
+  "name": "Del Mus",
+  "ra_deg": 195.566385,
+  "dec_deg": -71.548855,
+  "mag": 3.61,
+  "con": "Mus"
+ },
+ {
+  "name": "Eta Pav",
+  "ra_deg": 266.433315,
+  "dec_deg": -64.723871,
+  "mag": 3.61,
+  "con": "Pav"
+ },
+ {
+  "name": "Eta Psc",
+  "ra_deg": 22.870875,
+  "dec_deg": 15.345823,
+  "mag": 3.62,
+  "con": "Psc"
+ },
+ {
+  "name": "HR1178",
+  "ra_deg": 57.290595,
+  "dec_deg": 24.053415,
+  "mag": 3.62,
+  "con": "Tau"
+ },
+ {
+  "name": "HR3017",
+  "ra_deg": 116.313735,
+  "dec_deg": -37.968584,
+  "mag": 3.62,
+  "con": "Pup"
+ },
+ {
+  "name": "Zet-2 Sco",
+  "ra_deg": 253.64596500000002,
+  "dec_deg": -42.361313,
+  "mag": 3.62,
+  "con": "Sco"
+ },
+ {
+  "name": "Omi And",
+  "ra_deg": 345.480255,
+  "dec_deg": 42.325979,
+  "mag": 3.62,
+  "con": "And"
+ },
+ {
+  "name": "Lam Mus",
+  "ra_deg": 176.402115,
+  "dec_deg": -66.728763,
+  "mag": 3.63,
+  "con": "Mus"
+ },
+ {
+  "name": "Bet Del",
+  "ra_deg": 309.38724,
+  "dec_deg": 14.595087,
+  "mag": 3.64,
+  "con": "Del"
+ },
+ {
+  "name": "Gam Tau",
+  "ra_deg": 64.948335,
+  "dec_deg": 15.627642,
+  "mag": 3.65,
+  "con": "Tau"
+ },
+ {
+  "name": "HR3757",
+  "ra_deg": 142.881795,
+  "dec_deg": 63.061861,
+  "mag": 3.65,
+  "con": "UMa"
+ },
+ {
+  "name": "Bet Ser",
+  "ra_deg": 236.546895,
+  "dec_deg": 15.421826,
+  "mag": 3.65,
+  "con": "Ser"
+ },
+ {
+  "name": "The Ara",
+  "ra_deg": 271.6578,
+  "dec_deg": -50.091477,
+  "mag": 3.65,
+  "con": "Ara"
+ },
+ {
+  "name": "Zet-1 Aqr",
+  "ra_deg": 337.207965,
+  "dec_deg": -0.019972,
+  "mag": 3.65,
+  "con": "Aqr"
+ },
+ {
+  "name": "Bet CrB",
+  "ra_deg": 231.95727,
+  "dec_deg": 29.105703,
+  "mag": 3.66,
+  "con": "CrB"
+ },
+ {
+  "name": "Tau Lib",
+  "ra_deg": 234.66405,
+  "dec_deg": -29.777754,
+  "mag": 3.66,
+  "con": "Lib"
+ },
+ {
+  "name": "Thuban",
+  "ra_deg": 211.097475,
+  "dec_deg": 64.37585,
+  "mag": 3.67,
+  "con": "Dra"
+ },
+ {
+  "name": "Bet Ind",
+  "ra_deg": 313.70247,
+  "dec_deg": -58.454155,
+  "mag": 3.67,
+  "con": "Ind"
+ },
+ {
+  "name": "Pi-4 Ori",
+  "ra_deg": 72.80151000000001,
+  "dec_deg": 5.605104,
+  "mag": 3.68,
+  "con": "Ori"
+ },
+ {
+  "name": "Alp Pyx",
+  "ra_deg": 130.898085,
+  "dec_deg": -33.186385,
+  "mag": 3.68,
+  "con": "Pyx"
+ },
+ {
+  "name": "Del Sge",
+  "ra_deg": 296.846925,
+  "dec_deg": 18.534286,
+  "mag": 3.68,
+  "con": "Sge"
+ },
+ {
+  "name": "HR8812",
+  "ra_deg": 347.361645,
+  "dec_deg": -21.17241,
+  "mag": 3.68,
+  "con": "Aqr"
+ },
+ {
+  "name": "Zet Cas",
+  "ra_deg": 9.24282,
+  "dec_deg": 53.896909,
+  "mag": 3.69,
+  "con": "Cas"
+ },
+ {
+  "name": "Chi Eri",
+  "ra_deg": 28.98846,
+  "dec_deg": -51.608896,
+  "mag": 3.69,
+  "con": "Eri"
+ },
+ {
+  "name": "Zet Aur",
+  "ra_deg": 75.61951499999999,
+  "dec_deg": 41.075837,
+  "mag": 3.69,
+  "con": "Aur"
+ },
+ {
+  "name": "HR3884",
+  "ra_deg": 146.311755,
+  "dec_deg": -62.507903,
+  "mag": 3.69,
+  "con": "Car"
+ },
+ {
+  "name": "Chi UMa",
+  "ra_deg": 176.512725,
+  "dec_deg": 47.779406,
+  "mag": 3.69,
+  "con": "UMa"
+ },
+ {
+  "name": "Gam Cap",
+  "ra_deg": 325.022715,
+  "dec_deg": -16.662308,
+  "mag": 3.69,
+  "con": "Cap"
+ },
+ {
+  "name": "Tau-4 Eri",
+  "ra_deg": 49.87917,
+  "dec_deg": -21.757864,
+  "mag": 3.7,
+  "con": "Eri"
+ },
+ {
+  "name": "Xi Her",
+  "ra_deg": 269.44116,
+  "dec_deg": 29.24788,
+  "mag": 3.7,
+  "con": "Her"
+ },
+ {
+  "name": "Gam Psc",
+  "ra_deg": 349.29141,
+  "dec_deg": 3.282289,
+  "mag": 3.7,
+  "con": "Psc"
+ },
+ {
+  "name": "Pi-5 Ori",
+  "ra_deg": 73.562895,
+  "dec_deg": 2.440672,
+  "mag": 3.71,
+  "con": "Ori"
+ },
+ {
+  "name": "Eta Lep",
+  "ra_deg": 89.10123,
+  "dec_deg": -14.1677,
+  "mag": 3.71,
+  "con": "Lep"
+ },
+ {
+  "name": "HR3080",
+  "ra_deg": 118.05432,
+  "dec_deg": -40.575786,
+  "mag": 3.71,
+  "con": "Pup"
+ },
+ {
+  "name": "Eps Ser",
+  "ra_deg": 237.704025,
+  "dec_deg": 4.47773,
+  "mag": 3.71,
+  "con": "Ser"
+ },
+ {
+  "name": "HR6771",
+  "ra_deg": 271.83744,
+  "dec_deg": 9.563847,
+  "mag": 3.71,
+  "con": "Oph"
+ },
+ {
+  "name": "Alshain",
+  "ra_deg": 298.828305,
+  "dec_deg": 6.406763,
+  "mag": 3.71,
+  "con": "Aql"
+ },
+ {
+  "name": "Eps Eri",
+  "ra_deg": 53.23272,
+  "dec_deg": -9.458262,
+  "mag": 3.72,
+  "con": "Eri"
+ },
+ {
+  "name": "HR1142",
+  "ra_deg": 56.218905,
+  "dec_deg": 24.113339,
+  "mag": 3.72,
+  "con": "Tau"
+ },
+ {
+  "name": "Del Aur",
+  "ra_deg": 89.88166500000001,
+  "dec_deg": 54.284656,
+  "mag": 3.72,
+  "con": "Aur"
+ },
+ {
+  "name": "Xi Cyg",
+  "ra_deg": 316.23276000000004,
+  "dec_deg": 43.927852,
+  "mag": 3.72,
+  "con": "Cyg"
+ },
+ {
+  "name": "Xi Tau",
+  "ra_deg": 51.7923,
+  "dec_deg": 9.73268,
+  "mag": 3.73,
+  "con": "Tau"
+ },
+ {
+  "name": "HR5511",
+  "ra_deg": 221.56217999999998,
+  "dec_deg": 1.892885,
+  "mag": 3.73,
+  "con": "Vir"
+ },
+ {
+  "name": "Xi Dra",
+  "ra_deg": 268.38201,
+  "dec_deg": 56.872643,
+  "mag": 3.73,
+  "con": "Dra"
+ },
+ {
+  "name": "Nu Oct",
+  "ra_deg": 325.368795,
+  "dec_deg": -77.390046,
+  "mag": 3.73,
+  "con": "Oct"
+ },
+ {
+  "name": "Lam Aqr",
+  "ra_deg": 343.15364999999997,
+  "dec_deg": -7.579599,
+  "mag": 3.73,
+  "con": "Aqr"
+ },
+ {
+  "name": "Zet Cet",
+  "ra_deg": 27.86514,
+  "dec_deg": -10.335038,
+  "mag": 3.74,
+  "con": "Cet"
+ },
+ {
+  "name": "Gam Her",
+  "ra_deg": 245.48007,
+  "dec_deg": 19.15313,
+  "mag": 3.74,
+  "con": "Her"
+ },
+ {
+  "name": "Tau Cyg",
+  "ra_deg": 318.69775500000003,
+  "dec_deg": 38.045317,
+  "mag": 3.74,
+  "con": "Cyg"
+ },
+ {
+  "name": "HR3614",
+  "ra_deg": 136.03872,
+  "dec_deg": -47.097737,
+  "mag": 3.75,
+  "con": "Vel"
+ },
+ {
+  "name": "Gam Oph",
+  "ra_deg": 266.973165,
+  "dec_deg": 2.707276,
+  "mag": 3.75,
+  "con": "Oph"
+ },
+ {
+  "name": "Bet Dor",
+  "ra_deg": 83.40631499999999,
+  "dec_deg": -62.489825,
+  "mag": 3.76,
+  "con": "Dor"
+ },
+ {
+  "name": "Del Lep",
+  "ra_deg": 87.830355,
+  "dec_deg": -20.879089,
+  "mag": 3.76,
+  "con": "Lep"
+ },
+ {
+  "name": "Bet Mon",
+  "ra_deg": 97.204455,
+  "dec_deg": -7.033062,
+  "mag": 3.76,
+  "con": "Mon"
+ },
+ {
+  "name": "Omi Sgr",
+  "ra_deg": 286.17075,
+  "dec_deg": -21.741496,
+  "mag": 3.76,
+  "con": "Sgr"
+ },
+ {
+  "name": "Iot-2 Cyg",
+  "ra_deg": 292.42647,
+  "dec_deg": 51.729779,
+  "mag": 3.76,
+  "con": "Cyg"
+ },
+ {
+  "name": "Alp Lac",
+  "ra_deg": 337.822725,
+  "dec_deg": 50.282491,
+  "mag": 3.76,
+  "con": "Lac"
+ },
+ {
+  "name": "Eta Per",
+  "ra_deg": 42.674175,
+  "dec_deg": 55.895496,
+  "mag": 3.77,
+  "con": "Per"
+ },
+ {
+  "name": "Nu Per",
+  "ra_deg": 56.298480000000005,
+  "dec_deg": 42.578549,
+  "mag": 3.77,
+  "con": "Per"
+ },
+ {
+  "name": "Del-1 Tau",
+  "ra_deg": 65.73370499999999,
+  "dec_deg": 17.542514,
+  "mag": 3.77,
+  "con": "Tau"
+ },
+ {
+  "name": "Sig Ori",
+  "ra_deg": 84.68653499999999,
+  "dec_deg": -2.600069,
+  "mag": 3.77,
+  "con": "Ori"
+ },
+ {
+  "name": "Bet Vol",
+  "ra_deg": 126.434265,
+  "dec_deg": -66.13689,
+  "mag": 3.77,
+  "con": "Vol"
+ },
+ {
+  "name": "HR3445",
+  "ra_deg": 130.15654500000002,
+  "dec_deg": -46.648744,
+  "mag": 3.77,
+  "con": "Vel"
+ },
+ {
+  "name": "Eta Ara",
+  "ra_deg": 252.4464,
+  "dec_deg": -59.041378,
+  "mag": 3.77,
+  "con": "Ara"
+ },
+ {
+  "name": "Alp Del",
+  "ra_deg": 309.909525,
+  "dec_deg": 15.912072,
+  "mag": 3.77,
+  "con": "Del"
+ },
+ {
+  "name": "Zet Cap",
+  "ra_deg": 321.66677999999996,
+  "dec_deg": -22.411332,
+  "mag": 3.77,
+  "con": "Cap"
+ },
+ {
+  "name": "Iot Peg",
+  "ra_deg": 331.752705,
+  "dec_deg": 25.345112,
+  "mag": 3.77,
+  "con": "Peg"
+ },
+ {
+  "name": "Gam-2 Vol",
+  "ra_deg": 107.18682,
+  "dec_deg": -70.498932,
+  "mag": 3.78,
+  "con": "Vol"
+ },
+ {
+  "name": "Iot Gem",
+  "ra_deg": 111.43168499999999,
+  "dec_deg": 27.79808,
+  "mag": 3.78,
+  "con": "Gem"
+ },
+ {
+  "name": "Ups UMa",
+  "ra_deg": 147.748005,
+  "dec_deg": 59.038735,
+  "mag": 3.78,
+  "con": "UMa"
+ },
+ {
+  "name": "HR4257",
+  "ra_deg": 163.373385,
+  "dec_deg": -58.853171,
+  "mag": 3.78,
+  "con": "Car"
+ },
+ {
+  "name": "Zet Boo",
+  "ra_deg": 220.2873,
+  "dec_deg": 13.7283,
+  "mag": 3.78,
+  "con": "Boo"
+ },
+ {
+  "name": "Eps Aqr",
+  "ra_deg": 311.91897,
+  "dec_deg": -9.495776,
+  "mag": 3.78,
+  "con": "Aqr"
+ },
+ {
+  "name": "Kap Per",
+  "ra_deg": 47.37387,
+  "dec_deg": 44.857544,
+  "mag": 3.79,
+  "con": "Per"
+ },
+ {
+  "name": "HR4247",
+  "ra_deg": 163.32789,
+  "dec_deg": 34.214871,
+  "mag": 3.79,
+  "con": "LMi"
+ },
+ {
+  "name": "Alp For",
+  "ra_deg": 48.018735,
+  "dec_deg": -28.987618,
+  "mag": 3.8,
+  "con": "For"
+ },
+ {
+  "name": "HR2948",
+  "ra_deg": 114.70778999999999,
+  "dec_deg": -26.803836,
+  "mag": 3.8,
+  "con": "Pup"
+ },
+ {
+  "name": "Del Ser",
+  "ra_deg": 233.700615,
+  "dec_deg": 10.538867,
+  "mag": 3.8,
+  "con": "Ser"
+ },
+ {
+  "name": "Kap Cyg",
+  "ra_deg": 289.2756,
+  "dec_deg": 53.368459,
+  "mag": 3.8,
+  "con": "Cyg"
+ },
+ {
+  "name": "HR7735",
+  "ra_deg": 303.40794,
+  "dec_deg": 46.741329,
+  "mag": 3.8,
+  "con": "Cyg"
+ },
+ {
+  "name": "Ups-2 Eri",
+  "ra_deg": 68.88768,
+  "dec_deg": -30.562341,
+  "mag": 3.81,
+  "con": "Eri"
+ },
+ {
+  "name": "HR4114",
+  "ra_deg": 156.969735,
+  "dec_deg": -58.739403,
+  "mag": 3.81,
+  "con": "Car"
+ },
+ {
+  "name": "Gam CrB",
+  "ra_deg": 235.68571500000002,
+  "dec_deg": 26.295637,
+  "mag": 3.81,
+  "con": "CrB"
+ },
+ {
+  "name": "Lam And",
+  "ra_deg": 354.39083999999997,
+  "dec_deg": 46.458152,
+  "mag": 3.81,
+  "con": "And"
+ },
+ {
+  "name": "Alp Psc",
+  "ra_deg": 30.511755,
+  "dec_deg": 2.763759,
+  "mag": 3.82,
+  "con": "Psc"
+ },
+ {
+  "name": "HR3690",
+  "ra_deg": 139.711035,
+  "dec_deg": 36.802597,
+  "mag": 3.82,
+  "con": "Lyn"
+ },
+ {
+  "name": "Lam Dra",
+  "ra_deg": 172.85110500000002,
+  "dec_deg": 69.331076,
+  "mag": 3.82,
+  "con": "Dra"
+ },
+ {
+  "name": "Lam Oph",
+  "ra_deg": 247.72843500000002,
+  "dec_deg": 1.983923,
+  "mag": 3.82,
+  "con": "Oph"
+ },
+ {
+  "name": "Iot Her",
+  "ra_deg": 264.86620500000004,
+  "dec_deg": 46.006332,
+  "mag": 3.82,
+  "con": "Her"
+ },
+ {
+  "name": "Mu Hya",
+  "ra_deg": 156.52263,
+  "dec_deg": -16.83629,
+  "mag": 3.83,
+  "con": "Hya"
+ },
+ {
+  "name": "Phi Cen",
+  "ra_deg": 209.56779,
+  "dec_deg": -42.100753,
+  "mag": 3.83,
+  "con": "Cen"
+ },
+ {
+  "name": "Alp Aps",
+  "ra_deg": 221.965515,
+  "dec_deg": -79.044751,
+  "mag": 3.83,
+  "con": "Aps"
+ },
+ {
+  "name": "Bet Ret",
+  "ra_deg": 56.048895,
+  "dec_deg": -64.806903,
+  "mag": 3.84,
+  "con": "Ret"
+ },
+ {
+  "name": "Omi Per",
+  "ra_deg": 56.07972,
+  "dec_deg": 32.288248,
+  "mag": 3.84,
+  "con": "Per"
+ },
+ {
+  "name": "The-1 Tau",
+  "ra_deg": 67.14372,
+  "dec_deg": 15.962181,
+  "mag": 3.84,
+  "con": "Tau"
+ },
+ {
+  "name": "HR3571",
+  "ra_deg": 133.761855,
+  "dec_deg": -60.644609,
+  "mag": 3.84,
+  "con": "Car"
+ },
+ {
+  "name": "Rho Leo",
+  "ra_deg": 158.202795,
+  "dec_deg": 9.306586,
+  "mag": 3.84,
+  "con": "Leo"
+ },
+ {
+  "name": "HR4167",
+  "ra_deg": 159.32575500000002,
+  "dec_deg": -48.22562,
+  "mag": 3.84,
+  "con": "Vel"
+ },
+ {
+  "name": "Gam Mus",
+  "ra_deg": 188.11701,
+  "dec_deg": -72.132988,
+  "mag": 3.84,
+  "con": "Mus"
+ },
+ {
+  "name": "Omi Her",
+  "ra_deg": 271.88562,
+  "dec_deg": 28.762488,
+  "mag": 3.84,
+  "con": "Her"
+ },
+ {
+  "name": "Mu Sgr",
+  "ra_deg": 273.44088,
+  "dec_deg": -21.058834,
+  "mag": 3.84,
+  "con": "Sgr"
+ },
+ {
+  "name": "Eps Dra",
+  "ra_deg": 297.04275,
+  "dec_deg": 70.26793,
+  "mag": 3.84,
+  "con": "Dra"
+ },
+ {
+  "name": "Alp Hor",
+  "ra_deg": 63.500445,
+  "dec_deg": -42.294368,
+  "mag": 3.85,
+  "con": "Hor"
+ },
+ {
+  "name": "Bet Pic",
+  "ra_deg": 86.821185,
+  "dec_deg": -51.066514,
+  "mag": 3.85,
+  "con": "Pic"
+ },
+ {
+  "name": "Del Col",
+  "ra_deg": 95.52846,
+  "dec_deg": -33.4364,
+  "mag": 3.85,
+  "con": "Col"
+ },
+ {
+  "name": "HR4023",
+  "ra_deg": 153.684105,
+  "dec_deg": -42.121942,
+  "mag": 3.85,
+  "con": "Vel"
+ },
+ {
+  "name": "Kap Dra",
+  "ra_deg": 188.37087000000002,
+  "dec_deg": 69.788238,
+  "mag": 3.85,
+  "con": "Dra"
+ },
+ {
+  "name": "Tau Cen",
+  "ra_deg": 189.42591,
+  "dec_deg": -48.541304,
+  "mag": 3.85,
+  "con": "Cen"
+ },
+ {
+  "name": "Gam Ser",
+  "ra_deg": 239.11323000000002,
+  "dec_deg": 15.661617,
+  "mag": 3.85,
+  "con": "Ser"
+ },
+ {
+  "name": "HR6895",
+  "ra_deg": 275.924505,
+  "dec_deg": 21.769752,
+  "mag": 3.85,
+  "con": "Her"
+ },
+ {
+  "name": "Alp Sct",
+  "ra_deg": 278.80177499999996,
+  "dec_deg": -8.244073,
+  "mag": 3.85,
+  "con": "Sct"
+ },
+ {
+  "name": "Mu And",
+  "ra_deg": 14.188274999999999,
+  "dec_deg": 38.499345,
+  "mag": 3.86,
+  "con": "And"
+ },
+ {
+  "name": "HR1481",
+  "ra_deg": 69.54509999999999,
+  "dec_deg": -14.30402,
+  "mag": 3.86,
+  "con": "Eri"
+ },
+ {
+  "name": "Eps Col",
+  "ra_deg": 82.80313500000001,
+  "dec_deg": -35.470519,
+  "mag": 3.86,
+  "con": "Col"
+ },
+ {
+  "name": "Del TrA",
+  "ra_deg": 243.85945500000003,
+  "dec_deg": -63.685682,
+  "mag": 3.86,
+  "con": "TrA"
+ },
+ {
+  "name": "Gam Aps",
+  "ra_deg": 248.36413499999998,
+  "dec_deg": -78.897148,
+  "mag": 3.86,
+  "con": "Aps"
+ },
+ {
+  "name": "The Her",
+  "ra_deg": 269.06325000000004,
+  "dec_deg": 37.250539,
+  "mag": 3.86,
+  "con": "Her"
+ },
+ {
+  "name": "Gam Aqr",
+  "ra_deg": 335.41407000000004,
+  "dec_deg": -1.387331,
+  "mag": 3.86,
+  "con": "Aqr"
+ },
+ {
+  "name": "HR1149",
+  "ra_deg": 56.456685,
+  "dec_deg": 24.367748,
+  "mag": 3.87,
+  "con": "Tau"
+ },
+ {
+  "name": "HR3487",
+  "ra_deg": 131.50686000000002,
+  "dec_deg": -46.041527,
+  "mag": 3.87,
+  "con": "Vel"
+ },
+ {
+  "name": "Ups-1 Cen",
+  "ra_deg": 209.669805,
+  "dec_deg": -44.803584,
+  "mag": 3.87,
+  "con": "Cen"
+ },
+ {
+  "name": "Mu Vir",
+  "ra_deg": 220.765095,
+  "dec_deg": -5.658207,
+  "mag": 3.87,
+  "con": "Vir"
+ },
+ {
+  "name": "Rho Sco",
+  "ra_deg": 239.22115499999998,
+  "dec_deg": -29.214073,
+  "mag": 3.87,
+  "con": "Sco"
+ },
+ {
+  "name": "Eta Aql",
+  "ra_deg": 298.118205,
+  "dec_deg": 1.005661,
+  "mag": 3.87,
+  "con": "Aql"
+ },
+ {
+  "name": "Eps Phe",
+  "ra_deg": 2.35254,
+  "dec_deg": -45.747426,
+  "mag": 3.88,
+  "con": "Phe"
+ },
+ {
+  "name": "Gam-2 Ari",
+  "ra_deg": 28.38255,
+  "dec_deg": 19.293852,
+  "mag": 3.88,
+  "con": "Ari"
+ },
+ {
+  "name": "Mu Leo",
+  "ra_deg": 148.19097,
+  "dec_deg": 26.006951,
+  "mag": 3.88,
+  "con": "Leo"
+ },
+ {
+  "name": "Kap-1 Lup",
+  "ra_deg": 227.98377000000002,
+  "dec_deg": -48.737819,
+  "mag": 3.88,
+  "con": "Lup"
+ },
+ {
+  "name": "Iot Gru",
+  "ra_deg": 347.5896,
+  "dec_deg": -45.246711,
+  "mag": 3.88,
+  "con": "Gru"
+ },
+ {
+  "name": "Eta Eri",
+  "ra_deg": 44.10687,
+  "dec_deg": -8.898144,
+  "mag": 3.89,
+  "con": "Eri"
+ },
+ {
+  "name": "Omi-1 CMa",
+  "ra_deg": 103.533135,
+  "dec_deg": -24.184211,
+  "mag": 3.89,
+  "con": "CMa"
+ },
+ {
+  "name": "The Hya",
+  "ra_deg": 138.591075,
+  "dec_deg": 2.31428,
+  "mag": 3.89,
+  "con": "Hya"
+ },
+ {
+  "name": "Eta Vir",
+  "ra_deg": 184.97649,
+  "dec_deg": -0.666803,
+  "mag": 3.89,
+  "con": "Vir"
+ },
+ {
+  "name": "Eta Cyg",
+  "ra_deg": 299.07657,
+  "dec_deg": 35.083424,
+  "mag": 3.89,
+  "con": "Cyg"
+ },
+ {
+  "name": "Iot Hya",
+  "ra_deg": 144.96400500000001,
+  "dec_deg": -1.14281,
+  "mag": 3.9,
+  "con": "Hya"
+ },
+ {
+  "name": "Pi Cen",
+  "ra_deg": 170.25175499999997,
+  "dec_deg": -54.491019,
+  "mag": 3.9,
+  "con": "Cen"
+ },
+ {
+  "name": "HR5089",
+  "ra_deg": 202.761075,
+  "dec_deg": -39.407307,
+  "mag": 3.9,
+  "con": "Cen"
+ },
+ {
+  "name": "Nu Tau",
+  "ra_deg": 60.78909,
+  "dec_deg": 5.989305,
+  "mag": 3.91,
+  "con": "Tau"
+ },
+ {
+  "name": "HR3314",
+  "ra_deg": 126.41514,
+  "dec_deg": -3.906424,
+  "mag": 3.91,
+  "con": "Hya"
+ },
+ {
+  "name": "Sig Cen",
+  "ra_deg": 187.009965,
+  "dec_deg": -50.230635,
+  "mag": 3.91,
+  "con": "Cen"
+ },
+ {
+  "name": "Pi Lup",
+  "ra_deg": 226.27954499999998,
+  "dec_deg": -47.051245,
+  "mag": 3.91,
+  "con": "Lup"
+ },
+ {
+  "name": "Gam Lib",
+  "ra_deg": 233.881575,
+  "dec_deg": -14.789537,
+  "mag": 3.91,
+  "con": "Lib"
+ },
+ {
+  "name": "Tau Her",
+  "ra_deg": 244.935165,
+  "dec_deg": 46.313366,
+  "mag": 3.91,
+  "con": "Her"
+ },
+ {
+  "name": "Eps Her",
+  "ra_deg": 255.07240499999997,
+  "dec_deg": 30.926405,
+  "mag": 3.92,
+  "con": "Her"
+ },
+ {
+  "name": "Rho-1 Sgr",
+  "ra_deg": 290.418165,
+  "dec_deg": -17.847197,
+  "mag": 3.92,
+  "con": "Sgr"
+ },
+ {
+  "name": "Alp Equ",
+  "ra_deg": 318.955965,
+  "dec_deg": 5.247845,
+  "mag": 3.92,
+  "con": "Equ"
+ },
+ {
+  "name": "Kap Phe",
+  "ra_deg": 6.55074,
+  "dec_deg": -43.679829,
+  "mag": 3.93,
+  "con": "Phe"
+ },
+ {
+  "name": "Del Phe",
+  "ra_deg": 22.812765,
+  "dec_deg": -49.072702,
+  "mag": 3.93,
+  "con": "Phe"
+ },
+ {
+  "name": "Tau Per",
+  "ra_deg": 43.564425,
+  "dec_deg": 52.762479,
+  "mag": 3.93,
+  "con": "Per"
+ },
+ {
+  "name": "Nu Eri",
+  "ra_deg": 69.079755,
+  "dec_deg": -3.352459,
+  "mag": 3.93,
+  "con": "Eri"
+ },
+ {
+  "name": "Zet Vol",
+  "ra_deg": 115.45506,
+  "dec_deg": -72.606098,
+  "mag": 3.93,
+  "con": "Vol"
+ },
+ {
+  "name": "HR4337",
+  "ra_deg": 167.147475,
+  "dec_deg": -58.975037,
+  "mag": 3.93,
+  "con": "Car"
+ },
+ {
+  "name": "Ome-1 Sco",
+  "ra_deg": 241.70177999999999,
+  "dec_deg": -20.669192,
+  "mag": 3.93,
+  "con": "Sco"
+ },
+ {
+  "name": "HR6714",
+  "ra_deg": 270.16130999999996,
+  "dec_deg": 2.931568,
+  "mag": 3.93,
+  "con": "Oph"
+ },
+ {
+  "name": "Zet Phe",
+  "ra_deg": 17.096130000000002,
+  "dec_deg": -55.24576,
+  "mag": 3.94,
+  "con": "Phe"
+ },
+ {
+  "name": "Alp Mon",
+  "ra_deg": 115.31181,
+  "dec_deg": -9.551131,
+  "mag": 3.94,
+  "con": "Mon"
+ },
+ {
+  "name": "HR2996",
+  "ra_deg": 115.95195,
+  "dec_deg": -28.954826,
+  "mag": 3.94,
+  "con": "Pup"
+ },
+ {
+  "name": "Del Cnc",
+  "ra_deg": 131.17125,
+  "dec_deg": 18.154309,
+  "mag": 3.94,
+  "con": "Cnc"
+ },
+ {
+  "name": "Nu Cyg",
+  "ra_deg": 314.293395,
+  "dec_deg": 41.167136,
+  "mag": 3.94,
+  "con": "Cyg"
+ },
+ {
+  "name": "HR580",
+  "ra_deg": 30.85902,
+  "dec_deg": 72.421294,
+  "mag": 3.95,
+  "con": "Cas"
+ },
+ {
+  "name": "Nu-2 CMa",
+  "ra_deg": 99.17098499999999,
+  "dec_deg": -19.255879,
+  "mag": 3.95,
+  "con": "CMa"
+ },
+ {
+  "name": "Zet UMa",
+  "ra_deg": 200.98494,
+  "dec_deg": 54.920471,
+  "mag": 3.95,
+  "con": "UMa"
+ },
+ {
+  "name": "HR1273",
+  "ra_deg": 62.165355000000005,
+  "dec_deg": 47.712513,
+  "mag": 3.96,
+  "con": "Per"
+ },
+ {
+  "name": "Eta Col",
+  "ra_deg": 89.78667,
+  "dec_deg": -42.815135,
+  "mag": 3.96,
+  "con": "Col"
+ },
+ {
+  "name": "HR3579",
+  "ra_deg": 135.160275,
+  "dec_deg": 41.782911,
+  "mag": 3.96,
+  "con": "Lyn"
+ },
+ {
+  "name": "HR3663",
+  "ra_deg": 137.819775,
+  "dec_deg": -62.316977,
+  "mag": 3.96,
+  "con": "Car"
+ },
+ {
+  "name": "Bet-1 Sgr",
+  "ra_deg": 290.65954500000004,
+  "dec_deg": -44.458965,
+  "mag": 3.96,
+  "con": "Sgr"
+ },
+ {
+  "name": "Alp Sgr",
+  "ra_deg": 290.971545,
+  "dec_deg": -40.61594,
+  "mag": 3.96,
+  "con": "Sgr"
+ },
+ {
+  "name": "HR7751",
+  "ra_deg": 303.86800500000004,
+  "dec_deg": 47.714208,
+  "mag": 3.96,
+  "con": "Cyg"
+ },
+ {
+  "name": "HR8892",
+  "ra_deg": 350.74263,
+  "dec_deg": -20.10058,
+  "mag": 3.96,
+  "con": "Aqr"
+ },
+ {
+  "name": "HR1393",
+  "ra_deg": 66.009195,
+  "dec_deg": -34.016846,
+  "mag": 3.97,
+  "con": "Eri"
+ },
+ {
+  "name": "Nu Aur",
+  "ra_deg": 87.87249,
+  "dec_deg": 39.14848,
+  "mag": 3.97,
+  "con": "Aur"
+ },
+ {
+  "name": "Del Vol",
+  "ra_deg": 109.20762,
+  "dec_deg": -67.957152,
+  "mag": 3.97,
+  "con": "Vol"
+ },
+ {
+  "name": "Bet Pyx",
+  "ra_deg": 130.025595,
+  "dec_deg": -35.308352,
+  "mag": 3.97,
+  "con": "Pyx"
+ },
+ {
+  "name": "Rho Cen",
+  "ra_deg": 182.91303000000002,
+  "dec_deg": -52.36846,
+  "mag": 3.97,
+  "con": "Cen"
+ },
+ {
+  "name": "Chi Lup",
+  "ra_deg": 237.73974,
+  "dec_deg": -33.627165,
+  "mag": 3.97,
+  "con": "Lup"
+ },
+ {
+  "name": "Eps Pav",
+  "ra_deg": 300.147675,
+  "dec_deg": -72.910504,
+  "mag": 3.97,
+  "con": "Pav"
+ },
+ {
+  "name": "Del-1 Gru",
+  "ra_deg": 337.317375,
+  "dec_deg": -43.495565,
+  "mag": 3.97,
+  "con": "Gru"
+ },
+ {
+  "name": "Lam Peg",
+  "ra_deg": 341.632815,
+  "dec_deg": 23.565654,
+  "mag": 3.97,
+  "con": "Peg"
+ },
+ {
+  "name": "Xi Per",
+  "ra_deg": 59.741249999999994,
+  "dec_deg": 35.791033,
+  "mag": 3.98,
+  "con": "Per"
+ },
+ {
+  "name": "Rho Cyg",
+  "ra_deg": 323.49525,
+  "dec_deg": 45.591837,
+  "mag": 3.98,
+  "con": "Cyg"
+ },
+ {
+  "name": "Ups Cet",
+  "ra_deg": 30.001260000000002,
+  "dec_deg": -21.077831,
+  "mag": 3.99,
+  "con": "Cet"
+ },
+ {
+  "name": "Gam Mon",
+  "ra_deg": 93.71388,
+  "dec_deg": -6.274776,
+  "mag": 3.99,
+  "con": "Mon"
+ },
+ {
+  "name": "HR4102",
+  "ra_deg": 156.09888,
+  "dec_deg": -74.031612,
+  "mag": 3.99,
+  "con": "Car"
+ },
+ {
+  "name": "Alcor",
+  "ra_deg": 201.306195,
+  "dec_deg": 54.987958,
+  "mag": 3.99,
+  "con": "UMa"
+ },
+ {
+  "name": "Gam Tuc",
+  "ra_deg": 349.35747,
+  "dec_deg": -58.235734,
+  "mag": 3.99,
+  "con": "Tuc"
+ },
+ {
+  "name": "Alp Vol",
+  "ra_deg": 135.611655,
+  "dec_deg": -66.396076,
+  "mag": 4.0,
+  "con": "Vol"
+ },
+ {
+  "name": "Iot Leo",
+  "ra_deg": 170.98104,
+  "dec_deg": 10.529509,
+  "mag": 4.0,
+  "con": "Leo"
+ },
+ {
+  "name": "Nu Sco",
+  "ra_deg": 242.99889000000002,
+  "dec_deg": -19.460708,
+  "mag": 4.0,
+  "con": "Sco"
+ }
+]
