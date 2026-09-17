@@ -108,6 +108,7 @@ def test_scan_context_matches_the_solve_it_describes():
     actually optimises the diagram would quietly become fiction. Check the peak of the psi
     scan lands on the pose the solver committed to.
     """
+    pytest.importorskip("scipy")
     import json
     from src.figlib.stars import solve as S
     seq = "hpwren_20260911_Q1_wc-n-mobo-c"
