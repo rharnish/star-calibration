@@ -24,7 +24,8 @@ def _one(seq: str) -> dict:
 
 if __name__ == "__main__":
     nights = hpwren_nights.index()
-    seqs = sorted(nights)
+    # whole-night directories (<day>_N) belong to stars.window_ablation, not the Q1 batch
+    seqs = sorted(s for s in nights if "_N_" not in s)
     print(f"{len(seqs)} HPWREN night blocks indexed", flush=True)
     with Pool(4) as pool:
         new = {r["seq"]: r for r in pool.imap_unordered(_one, seqs)}

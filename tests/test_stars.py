@@ -55,3 +55,8 @@ def test_predictive_linker_follows_a_moving_star_through_noise():
     best = max(linked, key=len)
     assert len(best) == 30
     assert all(abs(best[o][0] - (1000.0 + 0.1 * o)) < 1e-6 for o in best)
+
+
+def test_sky_model_defaults_to_the_full_chain():
+    # proper motion, precession and refraction are on unless a caller switches them off
+    assert catalog.MODEL == {"proper_motion": True, "precession": True, "refraction": True}
