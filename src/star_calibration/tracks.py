@@ -57,9 +57,15 @@ def detect_points(img: np.ndarray, sky_frac: float = 0.35, thresh: int = 25,
     return out
 
 
-def link_tracks(frames_points: list[tuple[int, list]], max_step_px: float = 20.0) -> list[dict]:
+def link_tracks(frames_points: list[tuple[int, list]], max_step_px: float = 20.0,
+                max_gap_s: float | None = None) -> list[dict]:
     """Greedy nearest-neighbor linking across consecutive frames (sorted by offset). Each
-    track is a dict of offset -> (x, y, amp)."""
+    track is a dict of offset -> (x, y, amp).
+
+    With max_gap_s None an unmatched track stays open indefinitely, which is harmless over a
+    90-minute block but not over a night: a star lost behind cloud can be picked up hours
+    later by whichever other star wanders within max_step_px of where it vanished. A whole
+    night passes max_gap_s (as link_tracks_predictive already does) to close such tracks."""
     tracks: list[dict] = []
     open_tracks: list[tuple[int, dict]] = []  # (last_offset, track)
     for offset, points in frames_points:
@@ -76,7 +82,8 @@ def link_tracks(frames_points: list[tuple[int, list]], max_step_px: float = 20.0
                     used.add(j)
                     still_open.append((offset, track))
                     continue
-            still_open.append((last_offset, track))  # no match this frame, keep waiting briefly
+            if max_gap_s is None or offset - last_offset <= max_gap_s:
+                still_open.append((last_offset, track))  # no match this frame, keep waiting briefly
         open_tracks = still_open
         for j, p in enumerate(points):
             if j not in used:
@@ -170,7 +177,12 @@ def moving_tracks(tracks: list[dict], min_frames: int = 8, min_span_px: float = 
 
 
 def collect(seq: str, el_max: float = -8.0, max_step_px: float = 20.0,
-            min_frames: int = 8, min_span_px: float = 50.0):
+            min_frames: int = 8, min_span_px: float = 50.0, keep_frames: bool = True,
+            max_gap_s: float | None = None):
+    """Moving tracks for one sequence, plus the decoded frames and the sequence record.
+
+    keep_frames=False keeps only the first decoded frame (enough for the frame size, which is
+    all solve.load_tracks reads): a whole night is ~470 frames of 19 MB each."""
     s = SEQS[seq]
     mono = CAMS[s["camera"]].get("imager") == "monochrome"
     if seq.startswith("hpwren_"):
@@ -188,7 +200,8 @@ def collect(seq: str, el_max: float = -8.0, max_step_px: float = 20.0,
         if el > el_max:
             continue
         img = cv2.imdecode(np.frombuffer(blob, np.uint8), cv2.IMREAD_COLOR)
-        decoded[offset] = (epoch, img)
+        if keep_frames or not decoded:
+            decoded[offset] = (epoch, img)
         pts = detect_points_adaptive(img) if mono else detect_points(img)
         frames_points.append((offset, pts))
     print(f"{seq}: {len(frames_points)}/{len(frames)} frames dark enough (sun el <= {el_max})")
@@ -202,7 +215,7 @@ def collect(seq: str, el_max: float = -8.0, max_step_px: float = 20.0,
               f"not a star field, skipping")
         return [], decoded, s
     tracks = (link_tracks_predictive(frames_points) if mono
-              else link_tracks(frames_points, max_step_px=max_step_px))
+              else link_tracks(frames_points, max_step_px=max_step_px, max_gap_s=max_gap_s))
     good = moving_tracks(tracks, min_frames=min_frames, min_span_px=min_span_px)
     print(f"  {len(tracks)} raw tracks -> {len(good)} moving, persistent tracks")
     return good, decoded, s

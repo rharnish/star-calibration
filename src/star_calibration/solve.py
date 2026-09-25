@@ -51,7 +51,10 @@ def load_tracks(seq: str):
         d = pickle.load(open(cache, "rb"))
         return d["tracks"], tuple(d.get("WH", (3072, 2048)))
     from .tracks import collect   # imported lazily: it decodes whole archives
-    tracks, decoded, _ = collect(seq)
+    # A whole-night directory (nights.fetch_night) is ~470 frames: keep only one decoded, and
+    # close tracks lost for 5 min so a star behind cloud can't be relinked hours later.
+    night = "_N_" in seq
+    tracks, decoded, _ = collect(seq, keep_frames=not night, max_gap_s=300.0 if night else None)
     W, H = 3072, 2048
     if decoded:
         H, W = next(iter(decoded.values()))[1].shape[:2]
@@ -59,13 +62,40 @@ def load_tracks(seq: str):
     return tracks, (W, H)
 
 
+def clip(track: dict, window: tuple[float, float] | None,
+         min_frames: int = 8, min_span_px: float = 50.0) -> dict:
+    """The part of a track inside [window[0], window[1]) seconds of offset, or {} if what is
+    left would fail tracks.moving_tracks' test (>= min_frames points, >= min_span_px from
+    first to last). No window: the track unchanged."""
+    if window is None:
+        return track
+    t = {o: v for o, v in track.items() if window[0] <= o < window[1]}
+    if len(t) < min_frames:
+        return {}
+    o = sorted(t)
+    return t if np.hypot(t[o[-1]][0] - t[o[0]][0], t[o[-1]][1] - t[o[0]][1]) >= min_span_px else {}
+
+
+def windowed(seq: str, window: tuple[float, float] | None = None):
+    """(raw, keep, (W, H)): the cached tracks clipped to `window` -- raw keeps its length and
+    indexing, so `matches` still name cached track indices -- and the indices `prune` keeps."""
+    raw, WH = load_tracks(seq)
+    raw = [clip(t, window) for t in raw]
+    ok = [i for i, t in enumerate(raw) if t]
+    return raw, [ok[i] for i in prune([raw[i] for i in ok])], WH
+
+
 def prune(tracks: list[dict]) -> list[int]:
     """Indices of the tracks to use: all of them, unless there are too many to be stars."""
     idx = list(range(len(tracks)))
     if len(tracks) <= MAX_TRACKS:
         return idx
+    # "Half as long as the longest" separates stars from short noise tracks over one block,
+    # but over a whole night the longest track spans ~500 frames and the rule would keep only
+    # the few stars up all night (hp-s-mobo-c: 377 tracks -> 12, too few to solve). Capping
+    # the bar at 45 frames leaves every <= 90-frame block exactly as before.
     longest = max(len(t) for t in tracks)
-    idx = [i for i in idx if len(tracks[i]) >= 0.5 * longest]
+    idx = [i for i in idx if len(tracks[i]) >= min(0.5 * longest, 45)]
     idx.sort(key=lambda i: -np.median([v[2] for v in tracks[i].values()]))
     return idx[:MAX_TRACKS]
 
@@ -89,7 +119,8 @@ def make_coincidence(c, W, H, lens, tree, y_band, az_b, alt_b, coarse_px):
     return coincidence
 
 
-def scan_context(seq: str, k_ratio: float | None = None, wide: bool = True):
+def scan_context(seq: str, k_ratio: float | None = None, wide: bool = True,
+                 window: tuple[float, float] | None = None):
     """Everything `solve`'s coarse stage builds, for a figure to draw or a caller to inspect.
 
     Returns the tracks actually used, the frame size, the lens, the pole fit, the scorer, and
@@ -97,8 +128,8 @@ def scan_context(seq: str, k_ratio: float | None = None, wide: bool = True):
     the solver: the scorer comes from `make_coincidence` and the family from `pole`.
     """
     s, c = SEQS[seq], CAMS[SEQS[seq]["camera"]]
-    raw, (W, H) = load_tracks(seq)
-    tracks = [raw[i] for i in prune(raw)]
+    raw, keep, (W, H) = windowed(seq, window)
+    tracks = [raw[i] for i in keep]
     k0 = initial_k(c, W)
     lens = ((k_ratio or K_RATIO) * k0, K1)
     offs = sorted({o for t in tracks for o in t})
@@ -141,7 +172,7 @@ def _spread(grid, min_sep_deg: float = 2.0, n: int = 5):
 
 
 def solve(seq: str, wide: bool = False, min_stars: int = 8,
-          k_ratio: float | None = None) -> dict:
+          k_ratio: float | None = None, window: tuple[float, float] | None = None) -> dict:
     """One sequence's pose.
 
     `wide` replaces the +-30/15/10 deg grid around the published pose with `pole.py`'s
@@ -152,9 +183,11 @@ def solve(seq: str, wide: bool = False, min_stars: int = 8,
     """
     s = SEQS[seq]
     c = CAMS[s["camera"]]
-    out = {"seq": seq, "camera": s["camera"], "imager": c.get("imager")}
-    raw, (W, H) = load_tracks(seq)
-    keep = prune(raw)
+    # every solve says which catalog and corrections it was made under; the ledger checks it
+    out = {"seq": seq, "camera": s["camera"], "imager": c.get("imager"), "sky_model": SG.model_id()}
+    if window is not None:
+        out["window"] = window
+    raw, keep, (W, H) = windowed(seq, window)
     tracks = [raw[i] for i in keep]
     out.update(W=W, H=H, n_tracks_raw=len(raw), n_tracks=len(tracks))
     if len(tracks) < 8:
@@ -239,7 +272,7 @@ def solve(seq: str, wide: bool = False, min_stars: int = 8,
     alt_tab = np.zeros((len(vis), len(offs)))
     az_tab = np.zeros_like(alt_tab)
     for i, n in enumerate(names):
-        alt_tab[i], az_tab[i] = SG.altaz(*SG.STARS[n], ep, c["lat"], c["lon"])
+        alt_tab[i], az_tab[i] = SG.star_altaz(n, ep, c["lat"], c["lon"], c.get("elev") or 1600.0)
     oidx = {o: j for j, o in enumerate(offs)}
     tr_idx = [np.array([oidx[o] for o in sorted(t)]) for t in tracks]
     tr_xy = [np.array([t[o][:2] for o in sorted(t)]) for t in tracks]
@@ -318,7 +351,9 @@ def _run(seq: str) -> dict:
 
 
 if __name__ == "__main__":
-    seqs = sys.argv[1:] or sorted(p.name[len("tracks_"):-4] for p in DATA.glob("tracks_*.pkl"))
+    # whole-night blocks (<day>_N) belong to stars.window_ablation, not the batch or the ledger
+    seqs = sys.argv[1:] or sorted(p.name[len("tracks_"):-4] for p in DATA.glob("tracks_*.pkl")
+                                  if "_N_" not in p.name)
     with Pool(4) as pool:
         results = list(pool.imap_unordered(_run, seqs))
     results.sort(key=lambda r: (r["status"] != "solved", r["seq"]))
@@ -335,7 +370,7 @@ if __name__ == "__main__":
     print(f"{sum(r['status'] == 'solved' for r in results)}/{len(results)} solved")
 
 
-def solve_wide(seq: str, min_stars: int = 8) -> dict:
+def solve_wide(seq: str, min_stars: int = 8, window: tuple[float, float] | None = None) -> dict:
     """A global solve, tried under each lens the trails allow, best result kept.
 
     Two lens hypotheses go in: the shared 0.886x nameplate that `solve` assumes for every
@@ -350,8 +385,8 @@ def solve_wide(seq: str, min_stars: int = 8) -> dict:
     lens is what rescues every north-facing camera, where the pole sits inside the frame,
     scale is ill-conditioned against pole position, and the measurement comes out 3-4% low.
     """
-    raw, (W, H) = load_tracks(seq)
-    tracks = [raw[i] for i in prune(raw)]
+    raw, keep, (W, H) = windowed(seq, window)
+    tracks = [raw[i] for i in keep]
     cands = []
     if len(tracks) >= 8:
         c = CAMS[SEQS[seq]["camera"]]
@@ -368,7 +403,7 @@ def solve_wide(seq: str, min_stars: int = 8) -> dict:
     attempts = [(False, None)] + [(True, kr) for kr in cands]
     best = None
     for wide, kr in attempts:
-        r = solve(seq, wide=wide, min_stars=min_stars, k_ratio=kr)
+        r = solve(seq, wide=wide, min_stars=min_stars, k_ratio=kr, window=window)
         r["lens_from_pole"] = cands[1] if len(cands) > 1 else None
         r["found_by"] = "pole" if wide else "grid"
         key = (r["status"] == "solved", r.get("n_stars") or 0, -(r.get("median_px") or 1e9))

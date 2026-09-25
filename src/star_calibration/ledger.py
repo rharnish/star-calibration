@@ -9,7 +9,13 @@ between. This module makes that claim explicit, and conservative.
 Entries come from star-track solves (src/figlib/stars/solve.py) and live in
 data/meta/pose_ledger.json, one per solve:
     {"camera", "epoch", "frame_w", "d_az", "d_pitch", "d_roll", "k_ratio", "k1",
-     "n_stars", "median_px", "source"}
+     "n_stars", "median_px", "source", "sky_model"}
+
+`sky_model` is stars.catalog.model_id() at solve time: the catalog and which corrections
+(proper motion, precession, refraction) were applied. Poses solved under different models
+differ by up to ~0.3 deg for reasons that have nothing to do with the camera, so `load`
+refuses a ledger that mixes them. Entries from before the field existed read as
+"legacy: J2000, uncorrected".
 
 Lookup for (camera, epoch), first rule that fires:
   1. same-night: solves within SAME_DAYS -> their median d_az;
@@ -50,10 +56,18 @@ def path() -> Path:
     return Path(os.environ.get("FIGLIB_POSE_LEDGER_PATH") or LEDGER)
 
 
+LEGACY_MODEL = "legacy: J2000, uncorrected"
+
+
 def load(p: Path | None = None) -> list[dict]:
     p = Path(p or path())
     if str(p) not in _cache:
-        _cache[str(p)] = json.loads(p.read_text()) if p.exists() else []
+        rows = json.loads(p.read_text()) if p.exists() else []
+        models = {r.get("sky_model", LEGACY_MODEL) for r in rows}
+        if len(models) > 1:
+            raise ValueError(f"{p} mixes sky models {sorted(models)}: re-solve so every entry "
+                             "shares one (stars.resolve_ledger)")
+        _cache[str(p)] = rows
     return _cache[str(p)]
 
 
@@ -113,7 +127,8 @@ def build(solve_summary: list[dict], t0_by_seq: dict[str, float],
                     "d_az": round(p["d_az"], 3), "d_pitch": round(p["d_pitch"], 3),
                     "d_roll": round(p["d_roll"], 3), "k_ratio": round(p["k_ratio"], 4),
                     "k1": round(p["k1"], 4), "n_stars": r["n_stars"],
-                    "median_px": round(r["median_px"], 2), "source": f"star:{r['seq']}"})
+                    "median_px": round(r["median_px"], 2), "source": f"star:{r['seq']}",
+                    "sky_model": r.get("sky_model", LEGACY_MODEL)})
     out.sort(key=lambda e: (e["camera"], e["epoch"]))
     Path(dest).write_text(json.dumps(out, indent=1) + "\n")
     return out
