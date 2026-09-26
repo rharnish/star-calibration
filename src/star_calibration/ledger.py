@@ -52,6 +52,12 @@ def enabled() -> bool:
     return os.environ.get("FIGLIB_POSE_LEDGER") == "1"
 
 
+def full_enabled() -> bool:
+    """FIGLIB_POSE_FULL=1: bearings go through the whole solved camera -- its own lens, pitch
+    and roll, read at the box's foot -- instead of the shared lens along the middle row."""
+    return os.environ.get("FIGLIB_POSE_FULL") == "1"
+
+
 def path() -> Path:
     return Path(os.environ.get("FIGLIB_POSE_LEDGER_PATH") or LEDGER)
 
@@ -71,12 +77,26 @@ def load(p: Path | None = None) -> list[dict]:
     return _cache[str(p)]
 
 
+LENS_KEYS = ("d_pitch", "d_roll", "k_ratio", "k1")
+
+
 def lookup(entries: list[dict], camera: str, epoch: float,
            frame_w: int | None = None) -> dict | None:
-    """{"d_az", "rule", "sources"} for `camera` at `epoch`, or None when no rule applies.
+    """{"d_az", "rule", "sources", "d_pitch", "d_roll", "k_ratio", "k1"} for `camera` at
+    `epoch`, or None when no rule applies. The rule picks the solves and sets d_az; the rest
+    of the solved camera is the mean over those same solves.
 
     With `frame_w`, only solves recorded in that frame width count.
     """
+    hit = _rule(entries, camera, epoch, frame_w)
+    if hit is not None:
+        src = [e for e in entries if e["source"] in hit["sources"]]
+        hit.update({k: statistics.fmean(e[k] for e in src) for k in LENS_KEYS
+                    if all(k in e for e in src)})
+    return hit
+
+
+def _rule(entries: list[dict], camera: str, epoch: float, frame_w: int | None) -> dict | None:
     mine = sorted((e for e in entries if e["camera"] == camera
                    and (frame_w is None or e.get("frame_w") == frame_w)),
                   key=lambda e: e["epoch"])
@@ -112,7 +132,11 @@ def corrected_cam(camera: str, cam: dict, epoch: float,
     hit = lookup(load() if entries is None else entries, camera, epoch, cam.get("frame_w"))
     if hit is None:
         return cam, None
-    return {**cam, "az": cam["az"] + hit["d_az"]}, hit
+    out = {**cam, "az": cam["az"] + hit["d_az"]}
+    if full_enabled() and all(k in hit for k in LENS_KEYS):
+        # the rest of the solved camera, for geom.offset_bearing_deg to read a pixel through
+        out["solved"] = {k: hit[k] for k in LENS_KEYS}
+    return out, hit
 
 
 def build(solve_summary: list[dict], t0_by_seq: dict[str, float],
