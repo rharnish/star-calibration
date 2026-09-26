@@ -34,9 +34,10 @@ Opt in with FIGLIB_POSE_LEDGER=1 (FIGLIB_POSE_LEDGER_PATH to point at another fi
 from __future__ import annotations
 
 import json
-import os
 import statistics
 from pathlib import Path
+
+from . import settings
 
 ROOT = Path(__file__).resolve().parents[2]
 LEDGER = ROOT / "data" / "meta" / "pose_ledger.json"
@@ -49,17 +50,17 @@ _cache: dict[str, list[dict]] = {}
 
 
 def enabled() -> bool:
-    return os.environ.get("FIGLIB_POSE_LEDGER") == "1"
+    return settings.flag("FIGLIB_POSE_LEDGER")
 
 
 def full_enabled() -> bool:
     """FIGLIB_POSE_FULL=1: bearings go through the whole solved camera -- its own lens, pitch
     and roll, read at the box's foot -- instead of the shared lens along the middle row."""
-    return os.environ.get("FIGLIB_POSE_FULL") == "1"
+    return settings.flag("FIGLIB_POSE_FULL")
 
 
 def path() -> Path:
-    return Path(os.environ.get("FIGLIB_POSE_LEDGER_PATH") or LEDGER)
+    return Path(settings.get("FIGLIB_POSE_LEDGER_PATH") or LEDGER)
 
 
 LEGACY_MODEL = "legacy: J2000, uncorrected"
