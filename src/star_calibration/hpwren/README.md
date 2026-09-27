@@ -8,7 +8,7 @@ a worked example for any other fixed-camera network.
 ## Calibrate a camera
 
 ```sh
-pip install -e ".[hpwren]"          # from the repository root
+pip install -e ".[hpwren,opencv]"   # from the repository root; drop opencv if you have a cv2 build
 
 # 1. Frames: the first 90 minutes after local midnight (Q1), about one frame a minute
 python -m star_calibration.hpwren.calibrate fetch 20260911 hp-s-mobo-c vo-n-mobo-c

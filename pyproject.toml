@@ -20,7 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 opencv = ["opencv-python-headless>=4.10"]
 hpwren = ["requests>=2.31"]          # weather.py (Open-Meteo)
-dev = ["pytest>=8", "opencv-python-headless>=4.10"]
+dev = ["pytest>=8", "opencv-python-headless>=4.10", "requests>=2.31"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
