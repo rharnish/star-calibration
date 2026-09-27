@@ -155,6 +155,16 @@ def read_frames(seq: str) -> list[tuple[int, int, bytes]]:
     return [(int(p.stem), int(p.stem) - s["t0"], p.read_bytes()) for p in files if p.stat().st_size > 0]
 
 
+def frame_at(seq: str, offset: float) -> tuple[int, int, bytes]:
+    """The one frame nearest `offset` seconds from t0, as read_frames would give it, reading
+    only that file (a whole night is ~470 frames of a few MB)."""
+    s = sequences()[seq]
+    files = sorted((p for p in block_dir(s).glob("*.jpg") if p.stat().st_size > 0),
+                   key=lambda p: int(p.stem))
+    p = min(files, key=lambda p: abs(int(p.stem) - s["t0"] - offset))
+    return int(p.stem), int(p.stem) - s["t0"], p.read_bytes()
+
+
 def main(argv: list[str]) -> None:
     night = "--night" in argv
     argv = [a for a in argv if a != "--night"]

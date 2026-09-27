@@ -6,17 +6,20 @@ re-run only does what it hasn't done:
   nights/      frames, one directory per camera-night block (nights.py)
   tracks/      tracks_<block>.pkl, the moving tracks and frame size per block
   solves/      solve_<block>.json per block, and summary.json over all of them
+  overlays/    star_solve_<block>.jpg: the solve drawn on its own frame (overlay.py)
 
     python -m star_calibration.hpwren.calibrate fetch 20260911 hp-s-mobo-c vo-n-mobo-c
     python -m star_calibration.hpwren.calibrate solve                  # every indexed block
     python -m star_calibration.hpwren.calibrate solve hpwren_20260911_Q1_hp-s-mobo-c
+    python -m star_calibration.hpwren.calibrate overlay [block ...]    # redraw overlays
     python -m star_calibration.hpwren.calibrate agree                  # night-to-night check
     python -m star_calibration.hpwren.calibrate ledger [dest.json]     # solved -> pose ledger
 
 `solve` runs `solve.solve_wide`: the published-pose grid, then the pole-based global search
 under the shared lens and under the lens the trails measure, best result kept. Whole-night
 blocks (<day>_N) are for window studies, not the ledger, and are left out of `solve` unless
-named.
+named. Each solved (or failed) block's overlay is drawn as it finishes, so the gallery
+(gallery.py) has a picture for every card.
 """
 from __future__ import annotations
 
@@ -26,7 +29,10 @@ import sys
 from multiprocessing import Pool
 from pathlib import Path
 
-from .. import cross_night, ledger
+import cv2
+import numpy as np
+
+from .. import cross_night, ledger, overlay
 from ..solve import Night, solve_wide
 from ..tracks import collect
 from . import cache_dir, cameras, nights
@@ -38,6 +44,10 @@ def tracks_dir() -> Path:
 
 def solves_dir() -> Path:
     return cache_dir() / "solves"
+
+
+def overlays_dir() -> Path:
+    return cache_dir() / "overlays"
 
 
 def load_tracks(seq: str) -> tuple[list[dict], tuple[int, int]]:
@@ -70,6 +80,19 @@ def night(seq: str) -> Night:
                  W=W, H=H, label=seq)
 
 
+def render(seq: str, result: dict | None = None) -> Path:
+    """Draw one block's solve on its reference frame into overlays/."""
+    if result is None:
+        result = json.loads((solves_dir() / f"solve_{seq}.json").read_text())
+    n = night(seq)
+    _, _, blob = nights.frame_at(seq, overlay.reference_offset(result, n))
+    frame = cv2.imdecode(np.frombuffer(blob, np.uint8), cv2.IMREAD_COLOR)
+    overlays_dir().mkdir(parents=True, exist_ok=True)
+    dest = overlays_dir() / f"star_solve_{seq.replace('#', '_')}.jpg"
+    overlay.write(overlay.draw(result, n, frame), dest)
+    return dest
+
+
 def _one(seq: str) -> dict:
     try:
         r = solve_wide(night(seq))
@@ -77,6 +100,11 @@ def _one(seq: str) -> dict:
         r = {"seq": seq, "status": "failed", "reason": f"{type(exc).__name__}: {exc}"}
     solves_dir().mkdir(parents=True, exist_ok=True)
     (solves_dir() / f"solve_{seq}.json").write_text(json.dumps(r, indent=1, default=float) + "\n")
+    if "n_tracks" in r:           # it got as far as tracks: there is something to draw
+        try:
+            render(seq, r)
+        except Exception as exc:  # a picture is not worth losing the solve over
+            print(f"{seq}: no overlay ({type(exc).__name__}: {exc})")
     return r
 
 
@@ -117,6 +145,9 @@ def main(argv: list[str]) -> None:
         seqs = args or sorted(s for s in nights.index() if "_N_" not in s)
         print(f"{len(seqs)} blocks", flush=True)
         report(solve_blocks(seqs))
+    elif cmd == "overlay":
+        for seq in args or [r["seq"] for r in summary() if "n_tracks" in r]:
+            print(render(seq))
     elif cmd == "agree":
         t0 = {k: v["t0"] for k, v in nights.sequences().items()}
         cross_night.report(summary(), t0, cameras())

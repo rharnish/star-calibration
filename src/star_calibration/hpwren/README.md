@@ -13,7 +13,7 @@ pip install -e ".[hpwren]"          # from the repository root
 # 1. Frames: the first 90 minutes after local midnight (Q1), about one frame a minute
 python -m star_calibration.hpwren.calibrate fetch 20260911 hp-s-mobo-c vo-n-mobo-c
 
-# 2. Tracks and a pose for every fetched block (cached; a re-run skips what's done)
+# 2. Tracks, a pose and an overlay for every fetched block (cached; a re-run skips what's done)
 python -m star_calibration.hpwren.calibrate solve
 
 # 3. Is it right? A second night of the same camera should land on the same pose
@@ -37,6 +37,12 @@ A solved block gives its pose relative to the published table. The two cameras a
 (positive is clockwise). vo-n-mobo-c points 11° east of its nameplate north. `k_ratio` is the
 lens scale as a fraction of the nameplate one.
 
+Each solve is also drawn on its own frame, in the cache's `overlays/`. Matched tracks are
+green with the fitted stars in magenta on top of them. The same stars under the published
+pose are orange, with a yellow arrow from published to fitted, so a camera that points 11° off
+its nameplate shows eleven degrees of arrow. A failed block shows its tracks in cyan against
+where the published pose says the bright stars should be.
+
 **Choosing nights.** The CDN serves roughly the last 89 days; older frames are in Glacier
 Deep Archive and need a staff restore. Clear nights work, and so do moonlit ones. A night
 that fails is usually cloud or fog: `weather` and `gallery` show which.
@@ -56,6 +62,8 @@ nights/<cam>/<YYYYMMDD>_Q<n>/<epoch>.jpg    frames (nights.py)
 nights.json                                 the index: block name -> camera, t0, directory
 tracks/tracks_<block>.pkl                   moving tracks per block
 solves/solve_<block>.json, summary.json     per-block results
+overlays/star_solve_<block>.jpg             each solve drawn on its frame (overlay.py)
+gallery/index.html                          every block on one page (gallery.py)
 ```
 
 ## What ships here

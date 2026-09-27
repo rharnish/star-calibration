@@ -1,12 +1,12 @@
 """One page to look at every star solve: solved beside failed, and each against the weather.
 
-Reads the cache's solves/summary.json and solves/solve_weather.json (weather.py), and any
-star_solve_<block>.jpg overlays in the cache's overlays/ (tracks and fitted stars drawn on
-the block's own frame; plume-triangulation's stars.fig_track_solve draws them). Writes
-gallery/index.html in the cache, with 480 px thumbnails beside it; the page links the full
-overlays by relative path, so it is not self-contained. A block with no overlay still gets
-its card.
+Reads the cache's solves/summary.json and solves/solve_weather.json (weather.py), and the
+star_solve_<block>.jpg overlays in the cache's overlays/ that `calibrate solve` draws
+(overlay.py: tracks and fitted stars on the block's own frame). Writes gallery/index.html in
+the cache, with 480 px thumbnails beside it; the page links the full overlays by relative
+path, so it is not self-contained. A block with no overlay still gets its card.
 
+    python -m star_calibration.hpwren.calibrate overlay   # redraw any missing overlays
     python -m star_calibration.hpwren.weather
     python -m star_calibration.hpwren.gallery
 
@@ -23,7 +23,7 @@ from pathlib import Path
 import cv2
 
 from . import cache_dir, nights
-from .calibrate import solves_dir, summary
+from .calibrate import overlays_dir, solves_dir, summary
 
 THUMB_W = 480
 
@@ -56,7 +56,7 @@ def rows() -> list[dict]:
     blocks = nights.sequences()
     out = []
     for r in summary():
-        img = cache_dir() / "overlays" / f"star_solve_{r['seq'].replace('#', '_')}.jpg"
+        img = overlays_dir() / f"star_solve_{r['seq'].replace('#', '_')}.jpg"
         w = weather.get(r["seq"], {})
         out.append({
             "seq": r["seq"], "camera": r.get("camera") or blocks[r["seq"]]["camera"],

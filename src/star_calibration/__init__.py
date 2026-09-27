@@ -10,6 +10,7 @@ with no site visit and no surveyed landmark.
   pole         the celestial pole from the trails alone, and the pose family it implies
   solve        pose (and lens) from one night's tracks: `solve`, `solve_wide`, `Night`
   cross_night  whether two nights' solves of one camera agree
+  overlay      a solve drawn on its own frame, fitted stars against tracks
   ledger       per-camera, per-date poses, and the rule for when one applies to another date
   sun, moon    their positions, for dark-frame selection and moonlit nights
 
@@ -17,4 +18,4 @@ with no site visit and no surveyed landmark.
                a command-line calibrator, and the solved pose ledger
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
