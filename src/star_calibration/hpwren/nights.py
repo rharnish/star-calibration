@@ -1,26 +1,26 @@
-"""Moonless-night frame blocks from HPWREN's public CDN, for star-track calibration.
+"""Night frame blocks from HPWREN's public CDN, for star-track calibration.
 
-FIgLib is exhausted for this: all 456 archives are local and none holds an unsolved night
-sequence on the 60 cameras the scored fires use (checked 2026-09-13). The CDN keeps only
-the last ~89 days of JPGs public (older ones sit in Glacier Deep Archive and need an HPWREN
-staff restore), so recent moonless nights are the only source. They measure each camera's
-pose *now*; whether that applies to an older fire is the pose ledger's call
-(src/figlib/pose_ledger.py), not this module's.
+The CDN keeps only the last ~89 days of JPGs public (older ones sit in Glacier Deep Archive
+and need an HPWREN staff restore), so recent nights are the source. They measure each
+camera's pose *now*; whether that applies to another date is the pose ledger's call
+(star_calibration.ledger), not this module's. Moonlight is not a problem: moonlit nights
+solve as well as dark ones (plume-triangulation's NOTES.md, 2026-09-15).
 
 Q blocks are local time: Q1 = 00:00-02:59 America/Los_Angeles (verified: the 2026-09-10 Q1
 list starts at 07:00:57 UTC = 00:00:57 PDT). Frames are ~1/min.
 
-Layout: data/hpwren_nights/<cam>/<YYYYMMDD>_Q<n>/<epoch>.jpg (gitignored), indexed in
-out/sky/data/hpwren_nights.json as pseudo-sequences "hpwren_<YYYYMMDD>_Q<n>_<cam>" that
-stars.tracks.collect and stars.solve treat like FIgLib sequences. A whole night -- Q7 and Q8
-of the evening's date, Q1 and Q2 of the next -- lives in <YYYYMMDD>_N/ and indexes as
-"hpwren_<YYYYMMDD>_N_<cam>" (see `fetch_night`; used by stars.window_ablation).
+Layout, under the shared cache (hpwren.cache_dir(), $HPWREN_CACHE):
+nights/<cam>/<YYYYMMDD>_Q<n>/<epoch>.jpg, indexed in nights.json as blocks named
+"hpwren_<YYYYMMDD>_Q<n>_<cam>", each with its camera, t0 (the median frame's epoch; track
+offsets count from it) and its directory relative to nights/. A whole night -- Q7 and Q8 of
+the evening's date, Q1 and Q2 of the next -- lives in <YYYYMMDD>_N/ and indexes as
+"hpwren_<YYYYMMDD>_N_<cam>" (see `fetch_night`).
 
 Data credit: HPWREN, https://www.hpwren.ucsd.edu/
 
-    python -m src.figlib.stars.nights 20260911 hp-s-mobo-c vo-n-mobo-c ...
-    python -m src.figlib.stars.nights 20260911 @cams.json        (a JSON list of camera names)
-    python -m src.figlib.stars.nights --night 20260713 vo-n-mobo-c   (18:00-06:00, all frames)
+    python -m star_calibration.hpwren.nights 20260911 hp-s-mobo-c vo-n-mobo-c ...
+    python -m star_calibration.hpwren.nights 20260911 @cams.txt   (a JSON list of camera names)
+    python -m star_calibration.hpwren.nights --night 20260713 vo-n-mobo-c   (18:00-06:00)
 """
 from __future__ import annotations
 
@@ -32,11 +32,17 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
-SKY = ROOT / "out" / "sky"
-FRAMES = ROOT / "data/hpwren_nights"
-MANIFEST = SKY / "data/hpwren_nights.json"
+from . import cache_dir, cameras
+
 CDN = "https://cdn.hpwren.ucsd.edu"
+
+
+def frames_dir() -> Path:
+    return cache_dir() / "nights"
+
+
+def manifest_path() -> Path:
+    return cache_dir() / "nights.json"
 
 
 def _get(url: str, tries: int = 3) -> bytes:
@@ -62,7 +68,7 @@ def fetch(cam: str, day: str, q: int = 1, n_frames: int = 90) -> tuple[str, str,
     except Exception:
         return cam, day, 0, 0
     names = [l.strip() for l in listing.decode().splitlines() if l.strip().endswith(".jpg")][:n_frames]
-    d = FRAMES / cam / f"{day}_Q{q}"
+    d = frames_dir() / cam / f"{day}_Q{q}"
     d.mkdir(parents=True, exist_ok=True)
     got = 0
     for n in names:
@@ -81,7 +87,7 @@ def fetch_night(cam: str, evening_day: str) -> tuple[str, str, int, int]:
     one <evening_day>_N/ directory, skipping files on disk. Twilight frames come along; the
     track extractor drops them by sun elevation, so the directory holds the whole block."""
     nxt = (datetime.strptime(evening_day, "%Y%m%d") + timedelta(days=1)).strftime("%Y%m%d")
-    d = FRAMES / cam / f"{evening_day}_N"
+    d = frames_dir() / cam / f"{evening_day}_N"
     d.mkdir(parents=True, exist_ok=True)
     got = listed = 0
     for day, q in ((evening_day, 7), (evening_day, 8), (nxt, 1), (nxt, 2)):
@@ -108,9 +114,9 @@ def fetch_night(cam: str, evening_day: str) -> tuple[str, str, int, int]:
 
 def index() -> dict:
     """Rebuild the manifest from what's on disk."""
-    cams = json.loads((ROOT / "data/meta/cams.json").read_text())
+    cams, root = cameras(), frames_dir()
     out = {}
-    for d in sorted([*FRAMES.glob("*/*_Q*"), *FRAMES.glob("*/*_N")]):
+    for d in sorted([*root.glob("*/*_Q*"), *root.glob("*/*_N")]):
         epochs = sorted(int(p.stem) for p in d.glob("*.jpg") if p.stat().st_size > 0)
         if len(epochs) < 8:
             continue
@@ -125,29 +131,40 @@ def index() -> dict:
             s = seq_name(cam, day, q)
         out[s] = {"seq": s, "camera": cam, "day": day, "q": q,
                   "t0": epochs[len(epochs) // 2], "lat": c["lat"], "lon": c["lon"],
-                  "n_frames": len(epochs), "dir": str(d.relative_to(ROOT))}
-    MANIFEST.parent.mkdir(parents=True, exist_ok=True)
-    MANIFEST.write_text(json.dumps(out, indent=1) + "\n")
+                  "n_frames": len(epochs), "dir": str(d.relative_to(root))}
+    manifest_path().parent.mkdir(parents=True, exist_ok=True)
+    manifest_path().write_text(json.dumps(out, indent=1) + "\n")
     return out
 
 
 def sequences() -> dict:
-    return json.loads(MANIFEST.read_text()) if MANIFEST.exists() else {}
+    """The indexed blocks, by name."""
+    m = manifest_path()
+    return json.loads(m.read_text()) if m.exists() else {}
+
+
+def block_dir(s: dict) -> Path:
+    """The directory holding one indexed block's frames."""
+    return frames_dir() / s["dir"]
 
 
 def read_frames(seq: str) -> list[tuple[int, int, bytes]]:
-    """(epoch, offset from t0, jpeg bytes), in time order -- detect_yolo.read_frames' shape."""
+    """(epoch, offset from t0, jpeg bytes), in time order: tracks.collect's input."""
     s = sequences()[seq]
-    files = sorted((ROOT / s["dir"]).glob("*.jpg"), key=lambda p: int(p.stem))
+    files = sorted(block_dir(s).glob("*.jpg"), key=lambda p: int(p.stem))
     return [(int(p.stem), int(p.stem) - s["t0"], p.read_bytes()) for p in files if p.stat().st_size > 0]
 
 
-if __name__ == "__main__":
-    night = "--night" in sys.argv
-    argv = [a for a in sys.argv[1:] if a != "--night"]
+def main(argv: list[str]) -> None:
+    night = "--night" in argv
+    argv = [a for a in argv if a != "--night"]
     day, args = argv[0], argv[1:]
     cams = json.loads(Path(args[0][1:]).read_text()) if args and args[0].startswith("@") else args
     with ThreadPoolExecutor(4) as pool:
         for cam, d, got, listed in pool.map(lambda c: (fetch_night if night else fetch)(c, day), cams):
             print(f"{d} {cam:18s} {got}/{listed} frames", flush=True)
     print(f"indexed {len(index())} night blocks")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

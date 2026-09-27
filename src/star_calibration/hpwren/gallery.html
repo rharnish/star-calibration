@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Star Solve Gallery</title>
+<!-- Template: stars/solve_gallery.py fills in the data and writes out/sky/solve_gallery.html -->
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10); --wash: rgba(11,11,11,0.05);
+  --solved: #2a78d6; --stars: #eb6834; --dark: #1baf7a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10); --wash: rgba(255,255,255,0.06);
+    --solved: #3987e5; --stars: #d95926; --dark: #199e70;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10); --wash: rgba(255,255,255,0.06);
+  --solved: #3987e5; --stars: #d95926; --dark: #199e70;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1480px; margin: 0 auto; padding: 20px 16px 60px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 0 0 2px; }
+.sub { color: var(--ink-2); margin: 0 0 16px; max-width: 900px; }
+.tiles { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 10px 14px; min-width: 150px; }
+.tile .v { font-size: 24px; font-weight: 600; }
+.tile .l { color: var(--ink-2); font-size: 12px; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin: 0 0 14px;
+  position: sticky; top: 0; z-index: 5; background: var(--page); padding: 8px 0; border-bottom: 1px solid var(--ring); }
+.bar label { color: var(--ink-2); font-size: 12px; display: flex; gap: 6px; align-items: center; }
+select, input[type=search] { font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--axis); border-radius: 6px; padding: 4px 6px; }
+.legend { display: flex; gap: 6px; flex-wrap: wrap; }
+.legend button { font: inherit; font-size: 12px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--ring); border-radius: 999px; padding: 3px 10px 3px 6px; cursor: pointer; display: flex; gap: 6px; align-items: center; }
+.legend button[aria-pressed="false"] { opacity: .45; text-decoration: line-through; }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 14px; }
+.charts { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; margin-bottom: 22px; }
+@media (max-width: 900px) { .charts { grid-template-columns: minmax(0, 1fr); } }
+.note { color: var(--muted); font-size: 12px; margin: 4px 0 0; }
+#scatter svg, #bins svg { width: 100%; height: auto; display: block; }
+@media (max-width: 700px) { .bar { position: static; } }
+svg text { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+svg .axis-title { fill: var(--ink-2); font-size: 12px; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 900px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.colhead { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; }
+.colhead .n { color: var(--ink-2); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.sol { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; overflow: hidden;
+  cursor: pointer; display: flex; flex-direction: column; text-align: left; padding: 0; font: inherit; color: inherit; }
+.sol:hover, .sol:focus-visible { outline: 2px solid var(--ink-2); outline-offset: 1px; }
+.sol.hl { outline: 2px solid var(--ink); }
+.sol img { width: 100%; aspect-ratio: 16 / 7; object-fit: cover; object-position: top; background: #000; display: block; }
+.sol .b { padding: 7px 9px 8px; display: grid; gap: 3px; border-top: 3px solid var(--c); }
+.sol .t { font-weight: 600; font-size: 12px; overflow-wrap: anywhere; }
+.sol .m { color: var(--ink-2); font-size: 12px; }
+.sol .w { display: flex; gap: 8px; align-items: center; color: var(--ink-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+.tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--ring);
+  border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.18); z-index: 20; max-width: 320px; display: none; }
+.tip b { font-size: 13px; }
+.tip .k { color: var(--ink-2); }
+dialog { width: min(1400px, 96vw); max-height: 94vh; border: 1px solid var(--ring); border-radius: 12px;
+  background: var(--surface); color: var(--ink); padding: 14px; }
+dialog::backdrop { background: rgba(0,0,0,.6); }
+dialog img { width: 100%; display: block; border-radius: 6px; background: #000; }
+.dlg-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; margin-bottom: 8px; }
+.dlg-head button { font: inherit; background: var(--wash); color: var(--ink); border: 1px solid var(--ring); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-top: 12px; }
+.fact { border: 1px solid var(--ring); border-radius: 8px; padding: 8px 10px; }
+.fact .l { color: var(--ink-2); font-size: 12px; }
+.fact .v { font-weight: 600; font-variant-numeric: tabular-nums; }
+.sw { display: inline-block; width: 12px; height: 12px; }
+.empty { color: var(--muted); padding: 20px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Star solves: solved vs failed, against the weather</h1>
+  <p class="sub">Every star-track camera solve in <code>solve_summary.json</code>. Each overlay is from <code>stars.fig_track_solve</code>. On a solved (or below-cutoff) overlay, green marks matched tracks and magenta the fitted star arcs. On a failed overlay, cyan marks the tracks used and orange the bright stars at the published pose. Weather comes from Open-Meteo at the camera for the hour nearest the solve's reference frame.</p>
+  <div class="tiles" id="tiles"></div>
+
+  <div class="bar">
+    <div class="legend" id="legend"></div>
+    <label>Weather <select id="src">
+      <option value="fc">Forecast (historical-forecast)</option>
+      <option value="ra">Reanalysis (ERA5)</option></select></label>
+    <label>x <select id="xv"></select></label>
+    <label>y <select id="yv"></select></label>
+    <label>Sort <select id="sort">
+      <option value="x">by x variable</option><option value="date">by date</option>
+      <option value="tracks">by tracks</option><option value="cam">by camera</option></select></label>
+    <label><input type="search" id="q" placeholder="filter: camera, fire, date"></label>
+  </div>
+
+  <div class="charts">
+    <div class="card">
+      <h2 id="sc-title"></h2>
+      <div id="scatter"></div>
+      <p class="note" id="sc-note"></p>
+    </div>
+    <div class="card">
+      <h2 id="bin-title"></h2>
+      <div id="bins"></div>
+      <p class="note">Share of solves in each bin of the x variable, by outcome. n is the solve count in the bin.</p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <section><div class="colhead"><h2>Solved</h2><span class="n" id="n-solved"></span></div><div class="grid" id="g-solved"></div></section>
+    <section><div class="colhead"><h2>Failed</h2><span class="n" id="n-failed"></span></div><div class="grid" id="g-failed"></div></section>
+  </div>
+</main>
+<div class="tip" id="tip"></div>
+<dialog id="dlg"></dialog>
+
+<script>
+const DATA = /*__DATA__*/[];
+const CLS = {
+  solved: { label: "Solved", shape: "circle" },
+  stars:  { label: "Failed, stars seen", shape: "square" },
+  dark:   { label: "Failed, few/no tracks", shape: "triangle" },
+};
+const VARS = {
+  cloud_cover:          { label: "Cloud cover", unit: "%", bins: [0, 1, 20, 50, 90, 101], fmt: v => v.toFixed(0) + "%" },
+  cloud_cover_low:      { label: "Low cloud", unit: "%", bins: [0, 1, 20, 50, 90, 101], fmt: v => v.toFixed(0) + "%" },
+  cloud_cover_mid:      { label: "Mid cloud", unit: "%", bins: [0, 1, 20, 50, 90, 101], fmt: v => v.toFixed(0) + "%" },
+  cloud_cover_high:     { label: "High cloud", unit: "%", bins: [0, 1, 20, 50, 90, 101], fmt: v => v.toFixed(0) + "%" },
+  visibility:           { label: "Visibility", unit: "km", fc: true, bins: [0, 10, 20, 35, 50, 1e9], get: v => v / 1000, fmt: v => v.toFixed(1) + " km" },
+  relative_humidity_2m: { label: "Relative humidity", unit: "%", bins: [0, 30, 50, 70, 90, 101], fmt: v => v.toFixed(0) + "%" },
+  dewdep:               { label: "Dew-point depression", unit: "°C", bins: [-99, 2, 5, 10, 20, 99], fmt: v => v.toFixed(1) + " °C" },
+  wind_speed_10m:       { label: "Wind 10 m", unit: "km/h", bins: [0, 5, 10, 20, 30, 999], fmt: v => v.toFixed(0) + " km/h" },
+};
+const YS = {
+  n_tracks:  { label: "Moving tracks used", log: true, fmt: v => v.toFixed(0) },
+  n_stars:   { label: "Stars matched (best fit)", fmt: v => v.toFixed(0) },
+  median_px: { label: "Median residual (px, best fit)", fmt: v => v.toFixed(2) + " px" },
+};
+const state = { src: "fc", x: "cloud_cover", y: "n_tracks", sort: "x", q: "", on: { solved: true, stars: true, dark: true } };
+try { Object.assign(state, JSON.parse(localStorage.getItem("solve-gallery") || "{}")); } catch (e) {}
+const save = () => { try { localStorage.setItem("solve-gallery", JSON.stringify(state)); } catch (e) {} };
+
+const $ = id => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => {
+  const n = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (parent) parent.appendChild(n);
+  return n;
+};
+const h = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+const color = c => `var(--${c})`;
+
+function wx(r, v, src = state.src) {
+  const w = r[src]; if (!w) return null;
+  if (v === "dewdep") {
+    const t = w.temperature_2m?.at, d = w.dew_point_2m?.at;
+    return t == null || d == null ? null : t - d;
+  }
+  const a = w[v]?.at; if (a == null) return null;
+  return VARS[v].get ? VARS[v].get(a) : a;
+}
+function profile(r, v, src) {
+  const w = r[src]; if (!w) return [];
+  if (v === "dewdep") return w.temperature_2m.profile.map((t, i) => t - w.dew_point_2m.profile[i]);
+  return (w[v]?.profile || []).map(a => a == null ? null : VARS[v].get ? VARS[v].get(a) : a);
+}
+function when(r) {
+  if (!r.epoch) return "";
+  const d = new Date(r.epoch * 1000);
+  return d.toLocaleString("en-US", { timeZone: "America/Los_Angeles", year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }) + " PT";
+}
+const shortSeq = s => s.replace(/^hpwren_/, "").replace(/_Q1_/, " · ").replace(/_([a-z0-9]+-[a-z0-9]+-mobo-[cm])$/, " · $1");
+function visible() {
+  const q = state.q.trim().toLowerCase();
+  return DATA.filter(r => state.on[r.cls] && (!q || r.seq.toLowerCase().includes(q)));
+}
+
+function shapePath(shape, x, y, s) {
+  if (shape === "circle") return `M${x - s},${y}a${s},${s} 0 1,0 ${2 * s},0a${s},${s} 0 1,0 ${-2 * s},0`;
+  if (shape === "square") { const a = s * 0.9; return `M${x - a},${y - a}h${2 * a}v${2 * a}h${-2 * a}z`; }
+  const a = s * 1.2; return `M${x},${y - a}L${x + a},${y + a * 0.8}L${x - a},${y + a * 0.8}z`;
+}
+function hash(s) { let x = 0; for (const c of s) x = (x * 31 + c.charCodeAt(0)) | 0; return ((x >>> 0) % 1000) / 1000 - 0.5; }
+
+// ---- tooltip
+const tip = $("tip");
+function showTip(ev, r) {
+  tip.replaceChildren();
+  tip.appendChild(h("b", null, shortSeq(r.seq)));
+  const lines = [
+    [CLS[r.cls].label, r.reason || ""],
+    [VARS[state.x].label, fmtX(r)],
+    [YS[state.y].label, fmtY(r)],
+    ["Tracks", `${r.n_tracks}/${r.n_tracks_raw}`],
+    ["When", when(r)],
+  ];
+  for (const [k, v] of lines) { const d = h("div"); d.appendChild(h("span", "k", k + ": ")); d.appendChild(document.createTextNode(v)); tip.appendChild(d); }
+  tip.style.display = "block";
+  const bx = Math.min(ev.clientX + 14, innerWidth - tip.offsetWidth - 8);
+  const by = Math.min(ev.clientY + 14, innerHeight - tip.offsetHeight - 8);
+  tip.style.left = bx + "px"; tip.style.top = by + "px";
+}
+const hideTip = () => { tip.style.display = "none"; };
+const fmtX = r => { const v = wx(r, state.x); return v == null ? "n/a" : VARS[state.x].fmt(v); };
+const fmtY = r => { const v = r[state.y]; return v == null ? "n/a" : YS[state.y].fmt(v); };
+
+// ---- scatter
+function scatter(rows) {
+  const box = $("scatter"); box.replaceChildren();
+  const W = Math.max(300, box.clientWidth || 700), H = 360, m = { l: 52, r: 14, t: 12, b: 44 };
+  const svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img" }, box);
+  const X = VARS[state.x], Y = YS[state.y];
+  const pts = rows.map(r => ({ r, x: wx(r, state.x), y: r[state.y] })).filter(p => p.x != null && p.y != null);
+  const dropped = rows.length - pts.length;
+  const xs = pts.map(p => p.x);
+  let x0 = Math.min(...xs, 0), x1 = Math.max(...xs, 1);
+  if (state.x.startsWith("cloud") || state.x === "relative_humidity_2m") { x0 = 0; x1 = 100; }
+  const pad = (x1 - x0) * 0.03;
+  x0 -= pad; x1 += pad;
+  const sx = v => m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r);
+  let sy, yt;
+  if (Y.log) {
+    const ymax = Math.max(10, ...pts.map(p => p.y));
+    const f = v => Math.log10(Math.max(v, 0.5) + 0.5);
+    const top = f(ymax * 1.2), bot = f(0);
+    sy = v => H - m.b - (f(v) - bot) / (top - bot) * (H - m.t - m.b);
+    yt = [0, 1, 3, 10, 30, 100, 300].filter(v => v <= ymax * 1.2);
+  } else {
+    const ymax = Math.max(...pts.map(p => p.y), 1) * 1.08;
+    sy = v => H - m.b - v / ymax * (H - m.t - m.b);
+    const step = niceStep(ymax / 5); yt = []; for (let v = 0; v <= ymax; v += step) yt.push(+v.toFixed(6));
+  }
+  for (const v of yt) {
+    el("line", { x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v), stroke: "var(--grid)" }, svg);
+    el("text", { x: m.l - 6, y: sy(v) + 4, "text-anchor": "end" }, svg).textContent = v;
+  }
+  const step = niceStep((x1 - x0) / 6);
+  for (let v = Math.ceil(x0 / step) * step; v <= x1; v += step) {
+    el("line", { x1: sx(v), x2: sx(v), y1: H - m.b, y2: H - m.b + 4, stroke: "var(--axis)" }, svg);
+    el("text", { x: sx(v), y: H - m.b + 16, "text-anchor": "middle" }, svg).textContent = +v.toFixed(3);
+  }
+  el("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, stroke: "var(--axis)" }, svg);
+  el("text", { x: (m.l + W - m.r) / 2, y: H - 8, "text-anchor": "middle", class: "axis-title" }, svg).textContent = `${X.label} (${X.unit}), ${state.src === "fc" ? "forecast" : "ERA5"}`;
+  const yl = el("text", { x: 0, y: 0, "text-anchor": "middle", class: "axis-title", transform: `translate(13 ${(m.t + H - m.b) / 2}) rotate(-90)` }, svg);
+  yl.textContent = Y.label + (Y.log ? " (log)" : "");
+
+  const jit = (x1 - x0) * 0.012;
+  const drawn = [];
+  const order = ["solved", "stars", "dark"];
+  for (const p of pts.sort((a, b) => order.indexOf(a.r.cls) - order.indexOf(b.r.cls))) {
+    const px = sx(p.x + hash(p.r.seq) * 2 * jit), py = sy(p.y) + hash(p.r.seq + "y") * 4;
+    const mk = el("path", { d: shapePath(CLS[p.r.cls].shape, px, py, 5), fill: color(p.r.cls), "fill-opacity": 0.85, stroke: "var(--surface)", "stroke-width": 1.5 }, svg);
+    drawn.push({ px, py, r: p.r, mk });
+  }
+  // nearest-point hit layer
+  const hit = el("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: "transparent", style: "cursor:pointer" }, svg);
+  let cur = null;
+  const ring = el("circle", { r: 9, fill: "none", stroke: "var(--ink)", "stroke-width": 1.5, visibility: "hidden" }, svg);
+  hit.addEventListener("pointermove", ev => {
+    const b = svg.getBoundingClientRect(), mx = (ev.clientX - b.left) * W / b.width, my = (ev.clientY - b.top) * H / b.height;
+    let best = null, bd = 24 * 24;
+    for (const d of drawn) { const dd = (d.px - mx) ** 2 + (d.py - my) ** 2; if (dd < bd) { bd = dd; best = d; } }
+    cur = best;
+    if (!best) { ring.setAttribute("visibility", "hidden"); hideTip(); highlight(null); return; }
+    ring.setAttribute("cx", best.px); ring.setAttribute("cy", best.py); ring.setAttribute("visibility", "visible");
+    showTip(ev, best.r); highlight(best.r.seq);
+  });
+  hit.addEventListener("pointerleave", () => { ring.setAttribute("visibility", "hidden"); hideTip(); highlight(null); });
+  hit.addEventListener("click", () => { if (cur) openDlg(cur.r); });
+  $("sc-title").textContent = `${Y.label} vs ${X.label.toLowerCase()}`;
+  $("sc-note").textContent = `${pts.length} solves plotted${dropped ? `, ${dropped} without a value for this y or x left out` : ""}. Points are jittered slightly so stacks at 0% show. Hover a point to highlight its card; click to open it.`;
+}
+function niceStep(raw) {
+  const p = 10 ** Math.floor(Math.log10(raw || 1)), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p;
+}
+
+// ---- binned outcome share
+function bins(rows) {
+  const box = $("bins"); box.replaceChildren();
+  const X = VARS[state.x], edges = X.bins, order = ["solved", "stars", "dark"];
+  const B = edges.slice(0, -1).map((lo, i) => ({ lo, hi: edges[i + 1], n: 0, c: { solved: 0, stars: 0, dark: 0 } }));
+  for (const r of rows) {
+    const v = wx(r, state.x); if (v == null) continue;
+    const b = B.find(b => v >= b.lo && v < b.hi); if (b) { b.n++; b.c[r.cls]++; }
+  }
+  const lab = b => {
+    const u = X.unit === "%" ? "%" : " " + X.unit;
+    if (b.lo <= -99 || b.lo === 0 && edges[1] !== 1) return `< ${b.hi}${u}`;
+    if (b.hi >= 99 && X.unit !== "%" || b.hi > 100 && X.unit === "%" && b.lo >= 90) return `≥ ${b.lo}${u}`;
+    if (b.hi === 1 && X.unit === "%") return "0%";
+    return `${b.lo}–${b.hi}${u}`;
+  };
+  const W = Math.max(280, box.clientWidth || 420), rowH = 34, m = { l: 84, r: 44, t: 6 }, H = m.t + B.length * rowH + 6;
+  const svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}` }, box);
+  const bw = W - m.l - m.r;
+  B.forEach((b, i) => {
+    const y = m.t + i * rowH;
+    el("text", { x: m.l - 8, y: y + 18, "text-anchor": "end" }, svg).textContent = lab(b);
+    el("text", { x: W - m.r + 6, y: y + 18 }, svg).textContent = "n=" + b.n;
+    if (!b.n) { el("rect", { x: m.l, y: y + 6, width: bw, height: 18, rx: 4, fill: "var(--wash)" }, svg); return; }
+    let x = m.l;
+    const segs = order.filter(c => state.on[c] && b.c[c]);
+    segs.forEach((c, k) => {
+      const w = b.c[c] / b.n * bw, gap = k < segs.length - 1 ? 2 : 0;
+      const seg = el("rect", { x, y: y + 6, width: Math.max(1, w - gap), height: 18, rx: 4, fill: color(c), tabindex: 0 }, svg);
+      const show = ev => {
+        tip.replaceChildren(h("b", null, `${Math.round(b.c[c] / b.n * 100)}%`));
+        tip.appendChild(h("div", "k", `${CLS[c].label}: ${b.c[c]} of ${b.n}, ${X.label.toLowerCase()} ${lab(b)}`));
+        tip.style.display = "block";
+        const rc = ev.clientX != null ? ev : { clientX: seg.getBoundingClientRect().x, clientY: seg.getBoundingClientRect().y };
+        tip.style.left = Math.min(rc.clientX + 14, innerWidth - tip.offsetWidth - 8) + "px";
+        tip.style.top = (rc.clientY + 14) + "px";
+      };
+      seg.addEventListener("pointermove", show); seg.addEventListener("focus", show);
+      seg.addEventListener("pointerleave", hideTip); seg.addEventListener("blur", hideTip);
+      if (w > 30) el("text", { x: x + (w - gap) / 2, y: y + 19, "text-anchor": "middle", style: "fill:#fff;font-weight:600;pointer-events:none" }, svg).textContent = b.c[c];
+      x += w;
+    });
+  });
+  $("bin-title").textContent = `Outcome by ${X.label.toLowerCase()}`;
+}
+
+// ---- gallery
+function spark(vals, cls) {
+  const W = 64, H = 16, svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, "aria-hidden": "true" });
+  const ok = vals.filter(v => v != null); if (!ok.length) return svg;
+  const lo = state.x.startsWith("cloud") || state.x === "relative_humidity_2m" ? 0 : Math.min(...ok);
+  const hi = state.x.startsWith("cloud") || state.x === "relative_humidity_2m" ? 100 : Math.max(...ok, lo + 1e-6);
+  const p = vals.map((v, i) => v == null ? null : [i / (vals.length - 1) * (W - 2) + 1, H - 2 - (v - lo) / (hi - lo || 1) * (H - 4)]);
+  el("line", { x1: W / 2, x2: W / 2, y1: 0, y2: H, stroke: "var(--axis)" }, svg);
+  el("path", { d: p.filter(Boolean).map((q, i) => (i ? "L" : "M") + q[0].toFixed(1) + "," + q[1].toFixed(1)).join(""), fill: "none", stroke: color(cls), "stroke-width": 1.5 }, svg);
+  return svg;
+}
+const cards = new Map();
+function gallery(rows) {
+  const key = { x: r => wx(r, state.x) ?? -1e9, date: r => -(r.epoch || 0), tracks: r => r.n_tracks, cam: r => r.camera };
+  const k = key[state.sort];
+  const sorted = [...rows].sort((a, b) => { const A = k(a), B = k(b); return A < B ? -1 : A > B ? 1 : a.seq < b.seq ? -1 : 1; });
+  cards.clear();
+  for (const side of ["solved", "failed"]) {
+    const g = $("g-" + side); g.replaceChildren();
+    const list = sorted.filter(r => (r.cls === "solved") === (side === "solved"));
+    $("n-" + side).textContent = `${list.length} shown`;
+    if (!list.length) g.appendChild(h("div", "empty", "No solves match."));
+    for (const r of list) {
+      const b = h("button", "sol"); b.style.setProperty("--c", color(r.cls));
+      if (r.thumb) { const im = h("img"); im.loading = "lazy"; im.src = r.thumb; im.alt = "overlay for " + r.seq; b.appendChild(im); }
+      const body = h("div", "b");
+      body.appendChild(h("div", "t", shortSeq(r.seq)));
+      const q = r.status === "solved" || r.n_stars != null && r.median_px != null
+        ? `${r.n_tracks} tracks · ${r.n_stars}★ · ${r.median_px.toFixed(2)} px` : `${r.n_tracks} tracks`;
+      body.appendChild(h("div", "m", r.cls === "solved" ? q : `${q} · ${r.reason}`));
+      const w = h("div", "w");
+      w.appendChild(document.createTextNode(`${VARS[state.x].label}: ${fmtX(r)}`));
+      w.appendChild(spark(profile(r, state.x, state.src), r.cls));
+      body.appendChild(w);
+      body.appendChild(h("div", "m", when(r)));
+      b.appendChild(body);
+      b.addEventListener("click", () => openDlg(r));
+      g.appendChild(b); cards.set(r.seq, b);
+    }
+  }
+}
+let hl = null;
+function highlight(seq) {
+  if (hl) hl.classList.remove("hl");
+  hl = seq ? cards.get(seq) : null;
+  if (hl) hl.classList.add("hl");
+}
+
+// ---- detail dialog
+function openDlg(r) {
+  const d = $("dlg"); d.replaceChildren();
+  const head = h("div", "dlg-head");
+  const t = h("div"); t.appendChild(h("h2", null, r.seq));
+  t.appendChild(h("div", "sub", `${CLS[r.cls].label}${r.reason ? " — " + r.reason : ""} · ${r.imager || ""} · ${when(r)}`));
+  head.appendChild(t);
+  const x = h("button", null, "Close"); x.addEventListener("click", () => d.close()); head.appendChild(x);
+  d.appendChild(head);
+  if (r.img) { const im = h("img"); im.src = r.img; im.alt = "star solve overlay"; d.appendChild(im); }
+  const facts = h("div", "facts");
+  const add = (l, v, node) => { const f = h("div", "fact"); f.appendChild(h("div", "l", l)); const vv = h("div", "v", v); f.appendChild(vv); if (node) f.appendChild(node); facts.appendChild(f); };
+  add("Tracks used / raw", `${r.n_tracks} / ${r.n_tracks_raw}`);
+  if (r.n_stars != null) add("Stars · median · rmse", `${r.n_stars} · ${r.median_px.toFixed(2)} px · ${r.rmse_px.toFixed(1)} px`);
+  if (r.k_ratio != null) add("Lens k ratio", r.k_ratio.toFixed(3) + "x");
+  for (const v of Object.keys(VARS)) {
+    for (const src of ["fc", "ra"]) {
+      const val = wx(r, v, src); if (val == null) continue;
+      const cls = r.cls, sp = spark(profile(r, v, src), cls); sp.setAttribute("width", 120); sp.setAttribute("height", 26);
+      add(`${VARS[v].label} (${src === "fc" ? "forecast" : "ERA5"}), ±6 h`, VARS[v].fmt(val), sp);
+    }
+  }
+  d.appendChild(facts);
+  d.showModal();
+}
+$("dlg").addEventListener("click", e => { if (e.target === $("dlg")) $("dlg").close(); });
+
+// ---- controls
+function tiles() {
+  const box = $("tiles"); box.replaceChildren();
+  const n = c => DATA.filter(r => r.cls === c).length;
+  const med = (c, v) => { const a = DATA.filter(r => r.cls === c).map(r => wx(r, v)).filter(x => x != null).sort((a, b) => a - b); return a.length ? a[a.length >> 1] : null; };
+  const items = [[`${n("solved")} / ${DATA.length}`, "solved"]];
+  for (const c of ["solved", "stars", "dark"]) {
+    const m = med(c, "cloud_cover"), rh = med(c, "relative_humidity_2m");
+    items.push([`${m == null ? "–" : m.toFixed(0)}% · ${rh == null ? "–" : rh.toFixed(0)}%`, `${CLS[c].label} (${n(c)}): median cloud · RH, ${state.src === "fc" ? "forecast" : "ERA5"}`]);
+  }
+  for (const [v, l] of items) { const t = h("div", "tile"); t.appendChild(h("div", "v", v)); t.appendChild(h("div", "l", l)); box.appendChild(t); }
+}
+function legend() {
+  const box = $("legend"); box.replaceChildren();
+  for (const [c, o] of Object.entries(CLS)) {
+    const b = h("button"); b.setAttribute("aria-pressed", state.on[c]);
+    const s = el("svg", { width: 14, height: 14, viewBox: "0 0 14 14" }); el("path", { d: shapePath(o.shape, 7, 7, 5), fill: color(c) }, s);
+    b.appendChild(s); b.appendChild(document.createTextNode(`${o.label} (${DATA.filter(r => r.cls === c).length})`));
+    b.addEventListener("click", () => { state.on[c] = !state.on[c]; render(); });
+    box.appendChild(b);
+  }
+}
+for (const [k, v] of Object.entries(VARS)) $("xv").appendChild(new Option(v.label, k));
+for (const [k, v] of Object.entries(YS)) $("yv").appendChild(new Option(v.label, k));
+const bind = (id, key) => { $(id).value = state[key]; $(id).addEventListener("input", e => { state[key] = e.target.value; render(); }); };
+bind("src", "src"); bind("xv", "x"); bind("yv", "y"); bind("sort", "sort"); bind("q", "q");
+
+function render() {
+  if (VARS[state.x].fc && state.src === "ra") { state.src = "fc"; $("src").value = "fc"; }
+  save();
+  const rows = visible();
+  legend(); tiles(); scatter(rows); bins(rows); gallery(rows);
+}
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { const rows = visible(); scatter(rows); bins(rows); }, 150); });
+render();
+</script>
+</body>
+</html>
