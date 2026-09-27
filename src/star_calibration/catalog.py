@@ -29,7 +29,7 @@ The chain for one star, catalog -> pixel, with MODEL switching each step:
   2. precession     catalog equinox -> mean equator and equinox of date (IAU 1976, Lieske 1977)
   3. [not modelled] nutation (<= 17") and annual aberration (<= 20.5"): < 1 px on these
                     cameras. A check against Skyfield's full chain (IAU 2000A, aberration)
-                    agrees to 0.005 deg (tests/test_window_ablation.py).
+                    agrees to 0.005 deg (tests/test_catalog.py).
   4. alt/az         Greenwich mean sidereal time + longitude -> hour angle -> altitude, azimuth
   5. refraction     true -> apparent altitude (Saemundsson), scaled for the site's elevation
 
