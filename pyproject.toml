@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "star-calibration"
+version = "0.1.0"
+description = "Camera pose and lens calibration from star trails, applied to HPWREN's fire cameras"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Roy Harnish" }]
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.13",
+]
+
+# tracks.py needs OpenCV. It is an extra so a project that already has its own OpenCV build
+# (opencv-python, opencv-contrib-python) doesn't get a second, conflicting cv2.
+[project.optional-dependencies]
+opencv = ["opencv-python-headless>=4.10"]
+hpwren = ["requests>=2.31"]          # weather.py (Open-Meteo)
+dev = ["pytest>=8", "opencv-python-headless>=4.10"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+star_calibration = ["data/*.json"]
+"star_calibration.hpwren" = ["*.json", "*.js", "*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

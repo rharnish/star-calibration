@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.figlib import pose_ledger as L
+from star_calibration import ledger as L
 
 DAY = L.DAY_S
 
@@ -44,15 +44,6 @@ def test_one_sided_only_within_max_days():
 
 def test_unknown_camera_has_no_correction():
     assert L.lookup(LEDGER, "zz", 100 * DAY) is None
-
-
-def test_corrected_cam_is_a_no_op_unless_enabled(monkeypatch):
-    cam = {"az": 180.0, "fov": 90, "frame_w": 3072}
-    monkeypatch.delenv("FIGLIB_POSE_LEDGER", raising=False)
-    assert L.corrected_cam("c", cam, 1000 * DAY, LEDGER) == (cam, None)
-    monkeypatch.setenv("FIGLIB_POSE_LEDGER", "1")
-    out, hit = L.corrected_cam("c", cam, 1000 * DAY, LEDGER)
-    assert out["az"] == pytest.approx(181.5) and cam["az"] == 180.0 and hit["rule"] == "same-night"
 
 
 def test_a_solve_never_crosses_a_change_of_frame_format():

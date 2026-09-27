@@ -1,19 +1,18 @@
-"""Equidistant fisheye projection -- the model `terrain.project()` should be, for this rig.
+"""Equidistant fisheye projection: the lens model the HPWREN Mobotix cameras follow.
 
-`terrain.project()`/`calibrate._distort()` model these lenses as rectilinear (pixel offset
-proportional to tan(angle from boresight)) plus a single radial-distortion correction term.
-That combination is a reasonable local approximation near the image center, but it is not
-what a fisheye lens does, and the failure is not subtle: projecting Orion's belt (real
-elevation 52 deg, well inside these cameras' published 90 deg horizontal FOV) through
-`project()` lands 1000+ px above the top of a 2048px-tall frame, for a star plainly visible
-mid-frame in the real image (see NOTES.md, "Night sky (stars)"). tan() diverges as its
-argument approaches 90 deg; a fisheye lens is built specifically so that light from those
-angles still lands on the sensor, via a mapping that stays finite (and roughly linear in
-angle, not in tan(angle)) out to and past the edge of the field. The equidistant model here
-(pixel radius proportional to angle from boresight, r = k * theta) is the standard first
-approximation for that -- not necessarily exactly what a Mobotix panomorph lens does, but a
-qualitatively correct one to test the sun/tower/star fits against, in a way the tangent-plane
-model structurally cannot be.
+A rectilinear model (pixel offset proportional to tan(angle from boresight)) is a fair local
+approximation near the image centre, but it is not what these lenses do, and the failure is
+not subtle. Projected rectilinearly, Orion's belt at 52 deg elevation -- well inside a
+published 90 deg field of view -- lands 1000+ px above the top of a 2048 px frame, for a star
+plainly visible mid-frame in the real image (plume-triangulation's NOTES.md, "Night sky
+(stars)"). tan() diverges as its argument approaches 90 deg; a fisheye lens is built so that
+light from those angles still lands on the sensor, via a mapping that stays finite (and
+roughly linear in angle) out to and past the edge of the field. The model here is pixel
+radius r = k * theta * (1 + k1 * theta^2): equidistant, plus one radial term.
+
+The star solves put every 90 deg, 3072 px unit on nearly the same lens, K_RATIO and K1 below
+(k = K_RATIO times the nameplate scale, `initial_k`). They are the starting lens for a solve
+and the shared lens for a camera that has none of its own.
 
 Geometry: build the camera's boresight as a unit vector from (az, pitch), then a local
 (right, up) image-plane basis perpendicular to it, rotated by roll. Any target (az, el) is
@@ -27,6 +26,11 @@ from __future__ import annotations
 import math
 
 import numpy as np
+
+# The shared lens of the 90 deg, 3072 px units: 0.886 of the nameplate scale, k1 -0.078. All
+# nine of the first lens-free solves agreed on it (k 0.882-0.890, k1 -0.074 to -0.084;
+# plume-triangulation's NOTES.md, 2026-09-13), and 79 cameras since sit at 0.877-0.894.
+K_RATIO, K1 = 0.886, -0.078
 
 
 def _unit(az_deg, el_deg):
@@ -116,12 +120,10 @@ def unproject_fisheye(cam: dict, x_frac, y_frac, width: int, height: int,
 
 
 if __name__ == "__main__":
-    import json
-    from pathlib import Path
-    from src.figlib.stars import catalog as SG
+    from star_calibration import catalog as SG
+    from star_calibration.hpwren import cameras
 
-    cams = json.loads((Path(__file__).resolve().parents[3] / "data/meta/cams.json").read_text())
-    cam = cams["hp-s-mobo-c"]
+    cam = cameras()["hp-s-mobo-c"]
     W, H = 3072, 2048
     alt, az = SG.stars_altaz(SG.ORION, 1729513594, cam["lat"], cam["lon"])
     x, y = project_fisheye(cam, az, alt, W, H)

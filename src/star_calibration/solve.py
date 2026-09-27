@@ -1,8 +1,9 @@
-"""Star-track calibration with the lens fixed: pose only, from cached moving tracks.
+"""Camera pose (and lens) from one night's moving star tracks.
 
 star_track_calibrate.py solved 9 of 34 night sequences by searching pose AND lens scale
-together. All 9 agreed on the lens (k 0.882-0.890x nameplate, k1 -0.074..-0.084; NOTES.md,
-2026-09-13), so this treats that lens as known and searches only d_az/d_pitch/d_roll. A
+together. All 9 agreed on the lens (k 0.882-0.890x nameplate, k1 -0.074..-0.084;
+plume-triangulation's NOTES.md, 2026-09-13), so this treats that lens as known and searches
+only d_az/d_pitch/d_roll. A
 3-parameter grid is finer (1 deg, not 2) and cheaper, and it can't wander into a wrong
 focal scale that happens to line up a few stars. Only the last two refinement stages free
 the lens again, as a check rather than an assumption.
@@ -15,51 +16,41 @@ Other changes from star_track_calibrate.py, each aimed at a failure the batch sh
   * sequences with no or few tracks report a reason instead of crashing;
   * a solve needs >= 8 stars, median residual < 3px and a lens ratio inside 0.85-0.92.
 
-Writes data/star_tracks/solve_<seq>.json per sequence and solve_summary.json.
+Input is a `Night`: one camera's tracks (tracks.collect) with the frame size, the camera's
+published record (lat, lon, elev, az, fov, pitch, roll, imager) and the epoch the track
+offsets count from. `solve` and `solve_wide` return a JSON-ready dict; nothing here reads or
+writes files. `hpwren.calibrate` is the command-line driver for HPWREN's CDN nights.
 """
 from __future__ import annotations
 
 import itertools
-import json
-import pickle
-import sys
-from multiprocessing import Pool
-from pathlib import Path
+from dataclasses import dataclass
 
 import numpy as np
 from scipy.optimize import least_squares, linear_sum_assignment
 from scipy.spatial import cKDTree
 
 from . import catalog as SG
-from . import nights as hpwren_nights
 from . import pole as POLE
-from .fisheye import initial_k, project_fisheye
+from .fisheye import K1, K_RATIO, initial_k, project_fisheye
 
-ROOT = Path(__file__).resolve().parents[3]
-SKY = ROOT / "out" / "sky"
-CAMS = json.loads((ROOT / "data/meta/cams.json").read_text())
-SEQS = {s["seq"]: s for s in json.loads((ROOT / "data/meta/all/sequences.json").read_text())}
-SEQS.update(hpwren_nights.sequences())
-DATA = SKY / "data/star_tracks"
-K_RATIO, K1 = 0.886, -0.078
 MAX_TRACKS = 150
 
 
-def load_tracks(seq: str):
-    cache = DATA / f"tracks_{seq}.pkl"
-    if cache.exists():
-        d = pickle.load(open(cache, "rb"))
-        return d["tracks"], tuple(d.get("WH", (3072, 2048)))
-    from .tracks import collect   # imported lazily: it decodes whole archives
-    # A whole-night directory (nights.fetch_night) is ~470 frames: keep only one decoded, and
-    # close tracks lost for 5 min so a star behind cloud can't be relinked hours later.
-    night = "_N_" in seq
-    tracks, decoded, _ = collect(seq, keep_frames=not night, max_gap_s=300.0 if night else None)
-    W, H = 3072, 2048
-    if decoded:
-        H, W = next(iter(decoded.values()))[1].shape[:2]
-    pickle.dump({"tracks": tracks, "WH": (W, H)}, open(cache, "wb"))
-    return tracks, (W, H)
+@dataclass
+class Night:
+    """One camera's sky over one block of frames: what a solve needs, and nothing else.
+
+    `tracks` are tracks.collect's output, offsets in seconds from `t0` (an epoch). `cam` is
+    the camera's published record; `camera` its name and `label` the block's, both only
+    carried into the result."""
+    camera: str
+    cam: dict
+    t0: float
+    tracks: list[dict]
+    W: int = 3072
+    H: int = 2048
+    label: str | None = None
 
 
 def clip(track: dict, window: tuple[float, float] | None,
@@ -76,13 +67,12 @@ def clip(track: dict, window: tuple[float, float] | None,
     return t if np.hypot(t[o[-1]][0] - t[o[0]][0], t[o[-1]][1] - t[o[0]][1]) >= min_span_px else {}
 
 
-def windowed(seq: str, window: tuple[float, float] | None = None):
-    """(raw, keep, (W, H)): the cached tracks clipped to `window` -- raw keeps its length and
-    indexing, so `matches` still name cached track indices -- and the indices `prune` keeps."""
-    raw, WH = load_tracks(seq)
-    raw = [clip(t, window) for t in raw]
+def windowed(tracks: list[dict], window: tuple[float, float] | None = None):
+    """(raw, keep): the tracks clipped to `window` -- raw keeps its length and indexing, so
+    `matches` still name the caller's track indices -- and the indices `prune` keeps."""
+    raw = [clip(t, window) for t in tracks]
     ok = [i for i, t in enumerate(raw) if t]
-    return raw, [ok[i] for i in prune([raw[i] for i in ok])], WH
+    return raw, [ok[i] for i in prune([raw[i] for i in ok])]
 
 
 def prune(tracks: list[dict]) -> list[int]:
@@ -103,8 +93,8 @@ def prune(tracks: list[dict]) -> list[int]:
 def make_coincidence(c, W, H, lens, tree, y_band, az_b, alt_b, coarse_px):
     """How many bright stars a candidate pose puts on top of some track.
 
-    Factored out so `stars.fig_solve_process` can draw the same score the search optimises,
-    rather than a reimplementation of it that could quietly drift.
+    Factored out so a figure (plume-triangulation's `stars.fig_solve_process`) can draw the
+    same score the search optimises, rather than a reimplementation that could quietly drift.
     """
     def coincidence(p):
         x, y = project_fisheye(c, az_b, alt_b, W, H, *p, *lens)
@@ -119,7 +109,7 @@ def make_coincidence(c, W, H, lens, tree, y_band, az_b, alt_b, coarse_px):
     return coincidence
 
 
-def scan_context(seq: str, k_ratio: float | None = None, wide: bool = True,
+def scan_context(night: Night, k_ratio: float | None = None, wide: bool = True,
                  window: tuple[float, float] | None = None):
     """Everything `solve`'s coarse stage builds, for a figure to draw or a caller to inspect.
 
@@ -127,14 +117,14 @@ def scan_context(seq: str, k_ratio: float | None = None, wide: bool = True,
     the psi scan itself (angles, scores, and the pose each angle implies). Same code path as
     the solver: the scorer comes from `make_coincidence` and the family from `pole`.
     """
-    s, c = SEQS[seq], CAMS[SEQS[seq]["camera"]]
-    raw, keep, (W, H) = windowed(seq, window)
+    c, W, H = night.cam, night.W, night.H
+    raw, keep = windowed(night.tracks, window)
     tracks = [raw[i] for i in keep]
     k0 = initial_k(c, W)
     lens = ((k_ratio or K_RATIO) * k0, K1)
     offs = sorted({o for t in tracks for o in t})
     ref = max(offs, key=lambda o: sum(o in t for t in tracks))
-    vis = SG.visible_stars(c, s["t0"] + ref, mag_limit=4.0,
+    vis = SG.visible_stars(c, night.t0 + ref, mag_limit=4.0,
                            fov_margin_deg=180 if wide else 45, min_alt_deg=-5)
     mags = np.array([v["mag"] for v in vis])
     near = [t for t in tracks if min(abs(o - ref) for o in t) <= 70]
@@ -151,7 +141,7 @@ def scan_context(seq: str, k_ratio: float | None = None, wide: bool = True,
     scores = np.array([coin(tuple(q))[0] for q in poses]) if fit else None
     return {"cam": c, "tracks": tracks, "W": W, "H": H, "lens": lens, "ref": ref,
             "fit": fit, "coincidence": coin, "psi": psi, "poses": poses, "scores": scores,
-            "t0": s["t0"]}
+            "t0": night.t0}
 
 
 def _spread(grid, min_sep_deg: float = 2.0, n: int = 5):
@@ -171,9 +161,9 @@ def _spread(grid, min_sep_deg: float = 2.0, n: int = 5):
     return out
 
 
-def solve(seq: str, wide: bool = False, min_stars: int = 8,
+def solve(night: Night, wide: bool = False, min_stars: int = 8,
           k_ratio: float | None = None, window: tuple[float, float] | None = None) -> dict:
-    """One sequence's pose.
+    """One night's pose.
 
     `wide` replaces the +-30/15/10 deg grid around the published pose with `pole.py`'s
     closed-form pole plus a 1-D scan of the one angle the pole cannot see, which makes the
@@ -181,13 +171,13 @@ def solve(seq: str, wide: bool = False, min_stars: int = 8,
     is wrong by more than the grid is wide. `min_stars` is the acceptance cutoff; lowering it
     is only safe if something else vouches for the solve (see `cross_night.py`).
     """
-    s = SEQS[seq]
-    c = CAMS[s["camera"]]
+    c, W, H = night.cam, night.W, night.H
     # every solve says which catalog and corrections it was made under; the ledger checks it
-    out = {"seq": seq, "camera": s["camera"], "imager": c.get("imager"), "sky_model": SG.model_id()}
+    out = {"seq": night.label, "camera": night.camera, "imager": c.get("imager"),
+           "sky_model": SG.model_id()}
     if window is not None:
         out["window"] = window
-    raw, keep, (W, H) = windowed(seq, window)
+    raw, keep = windowed(night.tracks, window)
     tracks = [raw[i] for i in keep]
     out.update(W=W, H=H, n_tracks_raw=len(raw), n_tracks=len(tracks))
     if len(tracks) < 8:
@@ -205,7 +195,7 @@ def solve(seq: str, wide: bool = False, min_stars: int = 8,
     out["ref_offset"] = ref
     # A wide search may land the boresight anywhere, so the candidate pool has to be every
     # star above the horizon rather than a window around the published azimuth.
-    vis = SG.visible_stars(c, s["t0"] + ref, mag_limit=4.0,
+    vis = SG.visible_stars(c, night.t0 + ref, mag_limit=4.0,
                            fov_margin_deg=180 if wide else 45, min_alt_deg=-5)
     names = [v["name"] for v in vis]
     mags = np.array([v["mag"] for v in vis])
@@ -268,7 +258,7 @@ def solve(seq: str, wide: bool = False, min_stars: int = 8,
                           "pose": list(g[3])} for g in grid[:5]]
 
     # every catalog star's (alt, az) at every observed offset
-    ep = s["t0"] + np.array(offs, float)
+    ep = night.t0 + np.array(offs, float)
     alt_tab = np.zeros((len(vis), len(offs)))
     az_tab = np.zeros_like(alt_tab)
     for i, n in enumerate(names):
@@ -341,36 +331,7 @@ def solve(seq: str, wide: bool = False, min_stars: int = 8,
     return out
 
 
-def _run(seq: str) -> dict:
-    try:
-        r = solve(seq)
-    except Exception as exc:   # one bad archive shouldn't sink the batch
-        r = {"seq": seq, "status": "failed", "reason": f"{type(exc).__name__}: {exc}"}
-    (DATA / f"solve_{seq}.json").write_text(json.dumps(r, indent=1, default=float) + "\n")
-    return r
-
-
-if __name__ == "__main__":
-    # whole-night blocks (<day>_N) belong to stars.window_ablation, not the batch or the ledger
-    seqs = sys.argv[1:] or sorted(p.name[len("tracks_"):-4] for p in DATA.glob("tracks_*.pkl")
-                                  if "_N_" not in p.name)
-    with Pool(4) as pool:
-        results = list(pool.imap_unordered(_run, seqs))
-    results.sort(key=lambda r: (r["status"] != "solved", r["seq"]))
-    for r in results:
-        if r["status"] == "solved":
-            p = r["pose"]
-            print(f"SOLVED {r['seq']:55s} {r['n_stars']:2d} stars  med {r['median_px']:.2f}px  "
-                  f"d_az {p['d_az']:+6.2f} d_pitch {p['d_pitch']:+6.2f} d_roll {p['d_roll']:+6.2f}  "
-                  f"k {p['k_ratio']:.3f}x k1 {p['k1']:+.3f}  runs {r['runs_agreeing']}")
-        else:
-            print(f"failed {r['seq']:55s} {r.get('n_tracks', '-')}/{r.get('n_tracks_raw', '-')} tracks  "
-                  f"{r['reason']}")
-    (DATA / "solve_summary.json").write_text(json.dumps(results, indent=1, default=float) + "\n")
-    print(f"{sum(r['status'] == 'solved' for r in results)}/{len(results)} solved")
-
-
-def solve_wide(seq: str, min_stars: int = 8, window: tuple[float, float] | None = None) -> dict:
+def solve_wide(night: Night, min_stars: int = 8, window: tuple[float, float] | None = None) -> dict:
     """A global solve, tried under each lens the trails allow, best result kept.
 
     Two lens hypotheses go in: the shared 0.886x nameplate that `solve` assumes for every
@@ -385,12 +346,11 @@ def solve_wide(seq: str, min_stars: int = 8, window: tuple[float, float] | None 
     lens is what rescues every north-facing camera, where the pole sits inside the frame,
     scale is ill-conditioned against pole position, and the measurement comes out 3-4% low.
     """
-    raw, keep, (W, H) = windowed(seq, window)
+    raw, keep = windowed(night.tracks, window)
     tracks = [raw[i] for i in keep]
     cands = []
     if len(tracks) >= 8:
-        c = CAMS[SEQS[seq]["camera"]]
-        ls = POLE.lens_scale(tracks, W, H, initial_k(c, W), K1)
+        ls = POLE.lens_scale(tracks, night.W, night.H, initial_k(night.cam, night.W), K1)
         if ls is not None and 0.6 <= ls["k_ratio"] <= 1.2 and abs(ls["k_ratio"] - K_RATIO) > 0.005:
             cands.append(ls["k_ratio"])
     cands = [None] + cands
@@ -403,7 +363,7 @@ def solve_wide(seq: str, min_stars: int = 8, window: tuple[float, float] | None 
     attempts = [(False, None)] + [(True, kr) for kr in cands]
     best = None
     for wide, kr in attempts:
-        r = solve(seq, wide=wide, min_stars=min_stars, k_ratio=kr, window=window)
+        r = solve(night, wide=wide, min_stars=min_stars, k_ratio=kr, window=window)
         r["lens_from_pole"] = cands[1] if len(cands) > 1 else None
         r["found_by"] = "pole" if wide else "grid"
         key = (r["status"] == "solved", r.get("n_stars") or 0, -(r.get("median_px") or 1e9))

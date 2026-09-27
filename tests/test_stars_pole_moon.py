@@ -1,16 +1,14 @@
 """Pole-from-trails and the lunar ephemeris."""
-import json
 import math
-from pathlib import Path
 
 import numpy as np
 import pytest
 
-from src.figlib.stars import moon as M
-from src.figlib.stars import pole as P
+from star_calibration import moon as M
+from star_calibration import pole as P
+from star_calibration.hpwren import cameras
 
-ROOT = Path(__file__).resolve().parents[1]
-CAMS = json.loads((ROOT / "data/meta/cams.json").read_text())
+CAMS = cameras()
 
 
 def _epoch(iso):
@@ -60,7 +58,7 @@ def test_pole_family_contains_the_true_pose(cam, pose):
 
 
 def test_pixel_to_cam_inverts_the_lens():
-    from src.figlib.stars.fisheye import initial_k, project_fisheye
+    from star_calibration.fisheye import initial_k, project_fisheye
     c = CAMS["hp-w-mobo-c"]
     W, H, k1 = 3072, 2048, -0.078
     k = 0.886 * initial_k(c, W)
@@ -77,8 +75,8 @@ def test_pixel_to_cam_inverts_the_lens():
 
 def test_fit_pole_recovers_a_synthetic_rotation():
     """Synthesise trails from a known pose and check the closed-form fit returns it."""
-    from src.figlib.stars.fisheye import initial_k, project_fisheye
-    from src.figlib.stars import catalog as SG
+    from star_calibration.fisheye import initial_k, project_fisheye
+    from star_calibration import catalog as SG
     c = CAMS["hp-w-mobo-c"]
     W, H, k1 = 3072, 2048, -0.078
     k = 0.886 * initial_k(c, W)
@@ -109,16 +107,15 @@ def test_scan_context_matches_the_solve_it_describes():
     scan lands on the pose the solver committed to.
     """
     pytest.importorskip("scipy")
-    import json
-    from src.figlib.stars import solve as S
+    from star_calibration.hpwren import calibrate
+    from star_calibration.solve import scan_context
     seq = "hpwren_20260911_Q1_wc-n-mobo-c"
-    summary = S.DATA / "solve_wide_summary.json"
-    if not (S.DATA / f"tracks_{seq}.pkl").exists() or not summary.exists():
-        pytest.skip("cached tracks / wide summary not present")
-    res = next((r for r in json.loads(summary.read_text()) if r["seq"] == seq), None)
+    if not (calibrate.tracks_dir() / f"tracks_{seq}.pkl").exists():
+        pytest.skip("cached tracks not present ($HPWREN_CACHE)")
+    res = next((r for r in calibrate.summary() if r["seq"] == seq), None)
     if res is None or res["status"] != "solved":
-        pytest.skip("sequence not solved in the current summary")
-    ctx = S.scan_context(seq)
+        pytest.skip("block not solved in the cache's summary")
+    ctx = scan_context(calibrate.night(seq))
     assert ctx["fit"]["norm"] == pytest.approx(1.0, abs=0.05)
     peak = ctx["poses"][int(np.argmax(ctx["scores"]))]
     got = np.array([res["pose"][k] for k in ("d_az", "d_pitch", "d_roll")])

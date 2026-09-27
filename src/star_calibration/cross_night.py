@@ -20,27 +20,18 @@ deliberately *not* on d_az alone, since a pitch error trades against an azimuth 
 Cameras do get re-aimed, which is the honest confound: a real disagreement can mean a real
 move rather than a bad fit. That is why this reports agreement rather than silently
 accepting, and why the window matters -- nights days apart are the useful comparison, and
-`pose_ledger.py` is the thing that decides which pose applies to which fire.
+`ledger.py` is the thing that decides which pose applies to which date.
 
-    python -m src.figlib.stars.cross_night                 # the committed solves
-    python -m src.figlib.stars.cross_night --wide          # solve_wide's results
-    python -m src.figlib.stars.cross_night --min-stars 4   # re-solve low, then check
+    python -m star_calibration.hpwren.calibrate agree      # the HPWREN solves in the cache
 """
 from __future__ import annotations
 
-import functools
-import json
 import math
-import sys
 from collections import defaultdict
-from pathlib import Path
 
 import numpy as np
 
 from . import pole as POLE
-from . import solve as S
-
-ROOT = Path(__file__).resolve().parents[3]
 
 
 def boresight(cam: dict, pose: dict) -> np.ndarray:
@@ -55,12 +46,14 @@ def disagreement(cam: dict, a: dict, b: dict) -> tuple[float, float]:
     return sep, roll
 
 
-def pairs(results: list[dict]) -> list[dict]:
-    """For every solve, its closest-in-time sibling solve of the same camera."""
+def pairs(results: list[dict], t0: dict[str, float], cams: dict[str, dict]) -> list[dict]:
+    """For every solve, its closest-in-time sibling solve of the same camera.
+
+    `t0` maps each result's "seq" label to its epoch; `cams` is the camera table."""
     by_cam = defaultdict(list)
     for r in results:
         if r.get("status") == "solved" and r.get("pose"):
-            t = S.SEQS.get(r["seq"], {}).get("t0")
+            t = t0.get(r["seq"])
             if t:
                 by_cam[r["camera"]].append((t, r))
     out = []
@@ -68,7 +61,7 @@ def pairs(results: list[dict]) -> list[dict]:
         if len(rows) < 2:
             continue
         rows.sort()
-        c = S.CAMS[camera]
+        c = cams[camera]
         for i, (t, r) in enumerate(rows):
             j = min((k for k in range(len(rows)) if k != i), key=lambda k: abs(rows[k][0] - t))
             t2, r2 = rows[j]
@@ -80,8 +73,8 @@ def pairs(results: list[dict]) -> list[dict]:
     return out
 
 
-def report(results: list[dict]) -> None:
-    ps = pairs(results)
+def report(results: list[dict], t0: dict[str, float], cams: dict[str, dict]) -> None:
+    ps = pairs(results, t0, cams)
     if not ps:
         print("no camera has two solves to compare")
         return
@@ -109,17 +102,3 @@ def report(results: list[dict]) -> None:
         ok = sum(1 for p in low if p["sep_deg"] < 0.25)
         print(f"of the {len(low)} pairs where one side has fewer than 8 stars, "
               f"{ok} agree within 0.25 deg")
-
-
-if __name__ == "__main__":
-    args = sys.argv[1:]
-    src = S.DATA / ("solve_wide_summary.json" if "--wide" in args else "solve_summary.json")
-    if "--min-stars" in args:
-        n = int(args[args.index("--min-stars") + 1])
-        seqs = sorted(p.name[len("tracks_"):-4] for p in S.DATA.glob("tracks_*.pkl"))
-        from multiprocessing import Pool
-        with Pool(4) as pool:
-            res = list(pool.imap_unordered(functools.partial(S.solve_wide, min_stars=n), seqs))
-    else:
-        res = json.loads(src.read_text())
-    report(res)

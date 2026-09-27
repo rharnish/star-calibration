@@ -14,14 +14,14 @@ catalog that does not state them:
               the observation date. (A Gaia DR3 catalog, say, is ICRS but epoch 2016.0 --
               frame and epoch are different questions.)
 
-The catalog file carries these in a header -- data/meta/bright_stars.json:
+The catalog file carries these in a header -- star_calibration/data/bright_stars.json:
 
     {"catalog": {"name", "source", "frame", "equinox", "epoch", "pm_units", ...},
      "stars":   [{"name", "ra_deg", "dec_deg", "pmra_mas", "pmdec_mas", "mag", "con"}, ...]}
 
 so a solve that swaps catalogs gets the right corrections from the catalog itself, and every
 solve records `model_id()` -- the catalog and the corrections applied -- in its result, where
-the pose ledger checks it (pose_ledger.load refuses a ledger that mixes sky models).
+the pose ledger checks it (ledger.load refuses a ledger that mixes sky models).
 
 The chain for one star, catalog -> pixel, with MODEL switching each step:
 
@@ -37,7 +37,7 @@ Why precession matters: until 2026-09 the solver used the J2000 positions as if 
 date. By 2026 the sky has turned ~0.36 deg against them, and every star solve absorbed that
 into its pose -- about -0.28 deg of azimuth on every camera, and a residual that drifts across
 a night because a pose can absorb a fixed rotation but not one that changes with sidereal
-time. NOTES.md, 2026-09-24 (the whole-night window ablation) has the measurement.
+time. plume-triangulation's NOTES.md, 2026-09-24 (the whole-night window ablation) has the measurement.
 
 The shipped catalog is the HYG database v3 (github.com/astronexus/HYG-Database, via the
 kiloquad/__HYG-Database mirror) filtered to mag <= 4.0: 523 stars. HYG v3 gives RA/Dec for
@@ -52,7 +52,7 @@ from pathlib import Path
 
 import numpy as np
 
-CATALOG_PATH = Path(__file__).resolve().parents[3] / "data" / "meta" / "bright_stars.json"
+CATALOG_PATH = Path(__file__).resolve().parent / "data" / "bright_stars.json"
 SAME_AS_J2000 = ("ICRS", "FK5")                  # frames this module can place without conversion
 J2000_UNIX = 946728000.0                         # 2000-01-01 12:00 TT ~ UTC, s
 JULIAN_YEAR_S = 365.25 * 86400
@@ -274,7 +274,7 @@ def visible_stars(cam: dict, epoch: float, mag_limit: float = 4.0, fov_margin_de
 
 if __name__ == "__main__":
     # sanity: Orion visible from Palomar (hp-s-mobo-c) predawn Oct 21 2024, not from Boucher
-    # Hill (bh-s-mobo-c) at 23:05 in July -- matches what NOTES.md records finding by eye.
+    # Hill (bh-s-mobo-c) at 23:05 in July -- matches what plume-triangulation's NOTES.md records finding by eye.
     alt, az = stars_altaz(ORION, 1729513594, 33.36302, -116.83622)
     print("hp-s-mobo-c Orion:", list(zip(ORION, alt.round(1), az.round(1))))
     alt, az = stars_altaz(ORION, 1722146709, 33.33462, -116.91938)

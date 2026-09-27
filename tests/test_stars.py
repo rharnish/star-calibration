@@ -9,8 +9,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from src.figlib.stars import catalog, fisheye
-from src.figlib.stars.sun import sun
+from star_calibration import catalog, fisheye
+from star_calibration.sun import sun
 
 PALOMAR = (33.36302, -116.83622)
 CAM = {"lat": PALOMAR[0], "lon": PALOMAR[1], "az": 180.0, "fov": 90.0}
@@ -42,7 +42,7 @@ def test_fisheye_puts_the_boresight_at_frame_center_and_is_equidistant():
 def test_predictive_linker_follows_a_moving_star_through_noise():
     pytest.importorskip("cv2")
     pytest.importorskip("scipy")
-    from src.figlib.stars import tracks
+    from star_calibration import tracks
 
     rng = np.random.default_rng(0)
     frames = []

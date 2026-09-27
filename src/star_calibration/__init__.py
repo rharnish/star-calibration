@@ -1,14 +1,20 @@
 """Camera pose and lens calibration from the night sky.
 
 Point sources that drift at the sidereal rate are stars; matching their tracks to a catalog
-under one shared pose measures a camera's azimuth, pitch, roll and lens in a single fit.
-See NOTES.md (2026-09-13) for how this was built and what it established.
+under one shared pose measures a fixed camera's azimuth, pitch, roll and lens in a single fit,
+with no site visit and no surveyed landmark.
 
-  sun        sun position (el, az) for an epoch and site
-  catalog    bright-star catalog (HYG, mag <= 4) and alt/az for any epoch
-  fisheye    equidistant fisheye projection, the model these lenses follow
-  tracks     point-source detection and linking into moving tracks, per sequence
-  solve      label-free pose search and star<->track fit with the lens held fixed
-  nights     moonless-night frame blocks from HPWREN's public CDN
-  run_nights track and solve every fetched night block, then rebuild the pose ledger
+  catalog      bright-star catalog (HYG, mag <= 4), and apparent alt/az for any epoch and site
+  fisheye      the equidistant-plus-one-term lens model, and pixel <-> direction
+  tracks       point-source detection in each frame, and linking into moving tracks
+  pole         the celestial pole from the trails alone, and the pose family it implies
+  solve        pose (and lens) from one night's tracks: `solve`, `solve_wide`, `Night`
+  cross_night  whether two nights' solves of one camera agree
+  ledger       per-camera, per-date poses, and the rule for when one applies to another date
+  sun, moon    their positions, for dark-frame selection and moonlit nights
+
+  hpwren       the library applied to HPWREN's camera network: camera table, CDN nights,
+               a command-line calibrator, and the solved pose ledger
 """
+
+__version__ = "0.1.0"
