@@ -21,8 +21,8 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import requests
 
-from . import cameras, nights
-from .calibrate import load_tracks, solves_dir, summary
+from . import cameras
+from .calibrate import block, load_tracks, solves_dir, summary
 
 HOURLY = ["cloud_cover", "cloud_cover_low", "cloud_cover_mid", "cloud_cover_high",
           "visibility", "relative_humidity_2m", "dew_point_2m", "temperature_2m",
@@ -36,8 +36,9 @@ PROFILE_H = 6
 
 def ref_epoch(r: dict) -> int:
     """The solve's reference frame; for rows that stopped before choosing one, the median
-    track time, or the block's start if it has no tracks at all."""
-    s = nights.sequences()[r["seq"]]
+    track time, or the block's start if it has no tracks at all. A result filed with
+    calibrate.add carries its own t0 and ref_offset."""
+    s = block(r)
     if "ref_offset" in r:
         return int(s["t0"] + r["ref_offset"])
     tracks, _ = load_tracks(r["seq"])
@@ -45,8 +46,8 @@ def ref_epoch(r: dict) -> int:
     return int(s["t0"] + (offs[len(offs) // 2] if offs else 0))
 
 
-def site_latlon(seq: str) -> tuple[float, float]:
-    s = nights.sequences()[seq]
+def site_latlon(r: dict) -> tuple[float, float]:
+    s = block(r)
     c = cameras().get(s["camera"], {})
     return round(s.get("lat", c.get("lat")), 4), round(s.get("lon", c.get("lon")), 4)
 
@@ -92,7 +93,7 @@ def main() -> None:
     try:
         for n, r in enumerate(rows):
             ep = ref_epoch(r)
-            lat, lon = site_latlon(r["seq"])
+            lat, lon = site_latlon(r)
             day = datetime.fromtimestamp(ep, timezone.utc).strftime("%Y-%m-%d")
             row = {"seq": r["seq"], "epoch": ep, "lat": lat, "lon": lon}
             for src in SOURCES:

@@ -1,6 +1,8 @@
 """The HPWREN package: its camera table, its ledger, and the cache layout nights.py keeps."""
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from star_calibration import ledger
@@ -62,3 +64,23 @@ def test_mixed_sky_models_are_refused(tmp_path):
     p.write_text('[{"camera": "a", "sky_model": "x"}, {"camera": "b", "sky_model": "y"}]')
     with pytest.raises(ValueError, match="mixes sky models"):
         ledger.load(p)
+
+
+def test_added_result_joins_the_summary_but_not_the_ledger(monkeypatch, tmp_path):
+    pytest.importorskip("cv2")
+    import numpy as np
+    from star_calibration.hpwren import calibrate, weather
+    monkeypatch.setenv("HPWREN_CACHE", str(tmp_path))
+    pose = {"d_az": 0.3, "d_pitch": 0.0, "d_roll": 0.0, "k_ratio": 0.886, "k1": -0.078}
+    r = {"seq": "20191030_CopperCanyon_om-s-mobo-m", "camera": "om-s-mobo-m", "status": "solved",
+         "W": 3072, "pose": pose, "n_stars": 11, "median_px": 0.85, "n_tracks": 93}
+    with pytest.raises(ValueError, match="needs"):
+        calibrate.add(r, None, "figlib")
+    r |= {"t0": 1572497000, "lat": 32.5948, "lon": -116.8447, "ref_offset": 680}
+    calibrate.add(r, np.zeros((40, 60, 3), np.uint8), "figlib")
+    (row,) = calibrate.summary()
+    assert row["source"] == "figlib" and calibrate.block(row, {})["t0"] == 1572497000
+    assert (tmp_path / "overlays" / f"star_solve_{r['seq']}.jpg").exists()
+    assert weather.ref_epoch(row) == 1572497680 and weather.site_latlon(row) == (32.5948, -116.8447)
+    calibrate.main(["ledger", str(tmp_path / "l.json")])
+    assert json.loads((tmp_path / "l.json").read_text()) == []

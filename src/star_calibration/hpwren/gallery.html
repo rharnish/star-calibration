@@ -89,7 +89,7 @@ dialog img { width: 100%; display: block; border-radius: 6px; background: #000; 
 <body>
 <main>
   <h1>Star solves: solved vs failed, against the weather</h1>
-  <p class="sub">Every star-track camera solve in <code>solve_summary.json</code>. Each overlay is from <code>stars.fig_track_solve</code>. On a solved (or below-cutoff) overlay, green marks matched tracks and magenta the fitted star arcs. On a failed overlay, cyan marks the tracks used and orange the bright stars at the published pose. Weather comes from Open-Meteo at the camera for the hour nearest the solve's reference frame.</p>
+  <p class="sub">Every star-track camera solve in the cache's <code>solves/summary.json</code>: its own CDN blocks (<code>hpwren_*</code>), and any solve another project filed there with <code>calibrate.add</code>. Each overlay is drawn by <code>star_calibration.overlay</code>. On a solved (or below-cutoff) overlay, green marks matched tracks and magenta the fitted star arcs. On a failed overlay, cyan marks the tracks used and orange the bright stars at the published pose. Weather comes from Open-Meteo at the camera for the hour nearest the solve's reference frame.</p>
   <div class="tiles" id="tiles"></div>
 
   <div class="bar">

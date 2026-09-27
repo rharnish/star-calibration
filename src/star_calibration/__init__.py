@@ -18,4 +18,4 @@ with no site visit and no surveyed landmark.
                a command-line calibrator, and the solved pose ledger
 """
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"

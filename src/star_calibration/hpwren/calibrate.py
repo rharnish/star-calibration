@@ -20,6 +20,9 @@ under the shared lens and under the lens the trails measure, best result kept. W
 blocks (<day>_N) are for window studies, not the ledger, and are left out of `solve` unless
 named. Each solved (or failed) block's overlay is drawn as it finishes, so the gallery
 (gallery.py) has a picture for every card.
+
+A solve made from frames the cache doesn't hold (another project's archive) can be filed
+beside these with `add`, so the one gallery shows it too; see `add` for what it must carry.
 """
 from __future__ import annotations
 
@@ -80,6 +83,12 @@ def night(seq: str) -> Night:
                  W=W, H=H, label=seq)
 
 
+def block(r: dict, indexed: dict | None = None) -> dict:
+    """Where a result came from -- its camera, t0, lat and lon: its indexed block, or the
+    result itself for one filed with `add`."""
+    return (nights.sequences() if indexed is None else indexed).get(r["seq"]) or r
+
+
 def render(seq: str, result: dict | None = None) -> Path:
     """Draw one block's solve on its reference frame into overlays/."""
     if result is None:
@@ -113,15 +122,40 @@ def summary() -> list[dict]:
     return json.loads(p.read_text()) if p.exists() else []
 
 
-def solve_blocks(seqs: list[str], workers: int = 4) -> list[dict]:
-    """Solve `seqs` and merge them into solves/summary.json."""
-    with Pool(workers) as pool:
-        new = {r["seq"]: r for r in pool.imap_unordered(_one, seqs)}
-    merged = {r["seq"]: r for r in summary()} | new
+def _merge(new: list[dict]) -> None:
+    """Fold `new` into solves/summary.json, replacing rows with the same seq."""
+    merged = {r["seq"]: r for r in summary()} | {r["seq"]: r for r in new}
     rows = sorted(merged.values(), key=lambda r: (r["status"] != "solved", r["seq"]))
     solves_dir().mkdir(parents=True, exist_ok=True)
     (solves_dir() / "summary.json").write_text(json.dumps(rows, indent=1, default=float) + "\n")
-    return sorted(new.values(), key=lambda r: (r["status"] != "solved", r["seq"]))
+
+
+def add(result: dict, image: np.ndarray | None, source: str) -> None:
+    """File a solve of frames the cache doesn't hold, with its overlay (overlay.draw's
+    picture, or None), so weather, gallery and agree see it beside the cache's own.
+
+    With no indexed block to supply them, `result` must carry "camera", "t0", "lat" and "lon",
+    and "ref_offset" (the frame the overlay is drawn on; overlay.reference_offset gives it
+    for a failure) so the weather can be read at the right hour. It is marked with `source`,
+    and `ledger` leaves it out: the shipped ledger is this package's own CDN solves."""
+    missing = {"camera", "t0", "lat", "lon", "ref_offset"} - set(result)
+    if missing:
+        raise ValueError(f"{result.get('seq')}: an added result needs {sorted(missing)}")
+    r = result | {"source": source}
+    solves_dir().mkdir(parents=True, exist_ok=True)
+    (solves_dir() / f"solve_{r['seq']}.json").write_text(json.dumps(r, indent=1, default=float) + "\n")
+    if image is not None:
+        overlays_dir().mkdir(parents=True, exist_ok=True)
+        overlay.write(image, overlays_dir() / f"star_solve_{r['seq'].replace('#', '_')}.jpg")
+    _merge([r])
+
+
+def solve_blocks(seqs: list[str], workers: int = 4) -> list[dict]:
+    """Solve `seqs` and merge them into solves/summary.json."""
+    with Pool(workers) as pool:
+        new = list(pool.imap_unordered(_one, seqs))
+    _merge(new)
+    return sorted(new, key=lambda r: (r["status"] != "solved", r["seq"]))
 
 
 def report(results: list[dict]) -> None:
@@ -146,15 +180,17 @@ def main(argv: list[str]) -> None:
         print(f"{len(seqs)} blocks", flush=True)
         report(solve_blocks(seqs))
     elif cmd == "overlay":
-        for seq in args or [r["seq"] for r in summary() if "n_tracks" in r]:
+        indexed = nights.sequences()   # an added result's overlay came with it
+        for seq in args or [r["seq"] for r in summary() if "n_tracks" in r and r["seq"] in indexed]:
             print(render(seq))
     elif cmd == "agree":
-        t0 = {k: v["t0"] for k, v in nights.sequences().items()}
-        cross_night.report(summary(), t0, cameras())
+        indexed = nights.sequences()
+        rows = summary()
+        cross_night.report(rows, {r["seq"]: block(r, indexed)["t0"] for r in rows}, cameras())
     elif cmd == "ledger":
         t0 = {k: v["t0"] for k, v in nights.sequences().items()}
         dest = Path(args[0]) if args else cache_dir() / "pose_ledger.json"
-        rows = ledger.build(summary(), t0, dest)
+        rows = ledger.build([r for r in summary() if "source" not in r], t0, dest)
         print(f"wrote {dest} ({len(rows)} solves, {len({r['camera'] for r in rows})} cameras)")
     else:
         print(__doc__)

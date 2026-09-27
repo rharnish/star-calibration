@@ -56,6 +56,9 @@ python -m star_calibration.hpwren.gallery    # one page: solved beside failed, w
 
 Frames and intermediate results go in a cache outside any repository: `$HPWREN_CACHE`, or
 `~/.cache/hpwren`. Every project that works with these frames can share one copy.
+A project that solves frames the cache doesn't hold can file its results there too, with
+`calibrate.add` (plume-triangulation files its FIgLib archive solves this way). Those results
+reach the gallery and the weather, but not the ledger.
 
 ```
 nights/<cam>/<YYYYMMDD>_Q<n>/<epoch>.jpg    frames (nights.py)
