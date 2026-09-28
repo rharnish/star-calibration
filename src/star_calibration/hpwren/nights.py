@@ -148,21 +148,54 @@ def block_dir(s: dict) -> Path:
     return frames_dir() / s["dir"]
 
 
+# When a camera sends nothing, the CDN serves a 320x240 "No Images!" card (HPWREN's logo
+# crossed out, and the date) under the frame's name. bl-e-mobo-c sent only these on
+# 2026-09-11..13, and wc-w-mobo-c mostly these. There's no sky in one, and among real frames
+# its detections would sit at a tenth of their scale, so the readers below skip them.
+PLACEHOLDER_WH = (320, 240)
+
+
+def jpeg_size(head: bytes) -> tuple[int, int] | None:
+    """(width, height) from a JPEG's start-of-frame segment, or None if `head` doesn't reach
+    one. Reads only the header: a real frame is a few MB."""
+    i = 2
+    while i + 9 <= len(head) and head[i] == 0xFF:
+        m = head[i + 1]
+        if m == 0xFF:                  # fill byte
+            i += 1
+            continue
+        if 0xC0 <= m <= 0xCF and m not in (0xC4, 0xC8, 0xCC):
+            return int.from_bytes(head[i + 7:i + 9], "big"), int.from_bytes(head[i + 5:i + 7], "big")
+        i += 2 + int.from_bytes(head[i + 2:i + 4], "big")
+    return None
+
+
+def is_placeholder(p: Path) -> bool:
+    with open(p, "rb") as f:
+        return jpeg_size(f.read(65536)) == PLACEHOLDER_WH
+
+
+def frame_files(seq: str) -> tuple[list[Path], list[Path]]:
+    """One indexed block's frames in time order: (real, placeholders)."""
+    s = sequences()[seq]
+    files = sorted((p for p in block_dir(s).glob("*.jpg") if p.stat().st_size > 0),
+                   key=lambda p: int(p.stem))
+    flags = [is_placeholder(p) for p in files]
+    return ([p for p, f in zip(files, flags) if not f], [p for p, f in zip(files, flags) if f])
+
+
 def read_frames(seq: str) -> list[tuple[int, int, bytes]]:
     """(epoch, offset from t0, jpeg bytes), in time order: tracks.collect's input."""
-    s = sequences()[seq]
-    files = sorted(block_dir(s).glob("*.jpg"), key=lambda p: int(p.stem))
-    return [(int(p.stem), int(p.stem) - s["t0"], p.read_bytes()) for p in files if p.stat().st_size > 0]
+    t0 = sequences()[seq]["t0"]
+    return [(int(p.stem), int(p.stem) - t0, p.read_bytes()) for p in frame_files(seq)[0]]
 
 
 def frame_at(seq: str, offset: float) -> tuple[int, int, bytes]:
     """The one frame nearest `offset` seconds from t0, as read_frames would give it, reading
     only that file (a whole night is ~470 frames of a few MB)."""
-    s = sequences()[seq]
-    files = sorted((p for p in block_dir(s).glob("*.jpg") if p.stat().st_size > 0),
-                   key=lambda p: int(p.stem))
-    p = min(files, key=lambda p: abs(int(p.stem) - s["t0"] - offset))
-    return int(p.stem), int(p.stem) - s["t0"], p.read_bytes()
+    t0 = sequences()[seq]["t0"]
+    p = min(frame_files(seq)[0], key=lambda p: abs(int(p.stem) - t0 - offset))
+    return int(p.stem), int(p.stem) - t0, p.read_bytes()
 
 
 def main(argv: list[str]) -> None:

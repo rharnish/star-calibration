@@ -19,7 +19,9 @@ re-run only does what it hasn't done:
 under the shared lens and under the lens the trails measure, best result kept. Whole-night
 blocks (<day>_N) are for window studies, not the ledger, and are left out of `solve` unless
 named. Each solved (or failed) block's overlay is drawn as it finishes, so the gallery
-(gallery.py) has a picture for every card.
+(gallery.py) has a picture for every card. A block the camera sent nothing for -- the CDN's
+"No Images!" placeholder in most of its frames (nights.PLACEHOLDER_WH) -- fails without a
+solve, reason "no images: ...", and its card shows one of the placeholders.
 
 A solve made from frames the cache doesn't hold (another project's archive) can be filed
 beside these with `add`, so the one gallery shows it too; see `add` for what it must carry.
@@ -28,6 +30,7 @@ from __future__ import annotations
 
 import json
 import pickle
+import shutil
 import sys
 from multiprocessing import Pool
 from pathlib import Path
@@ -103,13 +106,27 @@ def render(seq: str, result: dict | None = None) -> Path:
 
 
 def _one(seq: str) -> dict:
+    placeholders = []
     try:
-        r = solve_wide(night(seq))
+        real, placeholders = nights.frame_files(seq)
+        # 8 = tracks.moving_tracks' min_frames; a block that is mostly placeholders has too
+        # few, too scattered real frames to say anything about the sky
+        if len(real) < 8 or len(placeholders) > len(real):
+            r = {"seq": seq, "camera": nights.sequences()[seq]["camera"], "status": "failed",
+                 "reason": f"no images: {len(placeholders)}/{len(real) + len(placeholders)} "
+                           f"frames are the CDN's placeholder"}
+        else:
+            r = solve_wide(night(seq))
     except Exception as exc:   # one bad block shouldn't sink the batch
         r = {"seq": seq, "status": "failed", "reason": f"{type(exc).__name__}: {exc}"}
     solves_dir().mkdir(parents=True, exist_ok=True)
     (solves_dir() / f"solve_{seq}.json").write_text(json.dumps(r, indent=1, default=float) + "\n")
-    if "n_tracks" in r:           # it got as far as tracks: there is something to draw
+    if (r.get("reason") or "").startswith("no images") and placeholders:
+        # nothing to draw on: the gallery card shows the card the CDN served instead
+        overlays_dir().mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(placeholders[len(placeholders) // 2],
+                        overlays_dir() / f"star_solve_{seq.replace('#', '_')}.jpg")
+    elif "n_tracks" in r:         # it got as far as tracks: there is something to draw
         try:
             render(seq, r)
         except Exception as exc:  # a picture is not worth losing the solve over

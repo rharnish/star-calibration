@@ -46,6 +46,25 @@ def test_index_and_read_frames_round_trip(monkeypatch, tmp_path):
     assert [f[0] for f in frames] == epochs and frames[0][1] == epochs[0] - s["t0"]
 
 
+def test_placeholder_frames_are_skipped(monkeypatch, tmp_path):
+    cv2 = pytest.importorskip("cv2")
+    import numpy as np
+    monkeypatch.setenv("HPWREN_CACHE", str(tmp_path))
+    d = tmp_path / "nights" / "bl-e-mobo-c" / "20260911_Q1"
+    d.mkdir(parents=True)
+    epochs = [1789113600 + 60 * i for i in range(10)]
+    for i, e in enumerate(epochs):
+        W, H = (320, 240) if i < 7 else (480, 320)
+        (d / f"{e}.jpg").write_bytes(cv2.imencode(".jpg", np.zeros((H, W, 3), np.uint8))[1].tobytes())
+    nights.index()
+    seq = "hpwren_20260911_Q1_bl-e-mobo-c"
+    real, placeholders = nights.frame_files(seq)
+    assert [int(p.stem) for p in real] == epochs[7:] and len(placeholders) == 7
+    assert [f[0] for f in nights.read_frames(seq)] == epochs[7:]
+    assert nights.frame_at(seq, -1e9)[0] == epochs[7]
+    assert nights.jpeg_size((d / f"{epochs[8]}.jpg").read_bytes()) == (480, 320)
+
+
 def test_ledger_build_dates_each_solve_by_its_block(tmp_path):
     summary = [{"seq": "b1", "camera": "hp-s-mobo-c", "status": "solved", "W": 3072,
                 "pose": {"d_az": 0.31234, "d_pitch": 0.0, "d_roll": -0.5, "k_ratio": 0.8861,

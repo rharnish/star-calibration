@@ -14,6 +14,7 @@ Outcome classes (the page colours by these):
   solved  -- status "solved"
   stars   -- failed, but the tracks were there: below the solve cutoff, or no start converged
   dark    -- failed with too few moving tracks to try: cloud, fog, lens, or a dead camera
+  noimg   -- failed because the camera sent nothing: the CDN served its "No Images!" card
 """
 from __future__ import annotations
 
@@ -35,7 +36,10 @@ def gallery_dir() -> Path:
 def outcome(r: dict) -> str:
     if r["status"] == "solved":
         return "solved"
-    return "dark" if (r.get("reason") or "").startswith("only ") else "stars"
+    reason = r.get("reason") or ""
+    if reason.startswith("no images"):
+        return "noimg"
+    return "dark" if reason.startswith("only ") else "stars"
 
 
 def thumb(src: Path) -> str:

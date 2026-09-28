@@ -10,21 +10,21 @@
   color-scheme: light;
   --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
   --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10); --wash: rgba(11,11,11,0.05);
-  --solved: #2a78d6; --stars: #eb6834; --dark: #1baf7a;
+  --solved: #2a78d6; --stars: #eb6834; --dark: #1baf7a; --noimg: #eda100;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
     --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10); --wash: rgba(255,255,255,0.06);
-    --solved: #3987e5; --stars: #d95926; --dark: #199e70;
+    --solved: #3987e5; --stars: #d95926; --dark: #199e70; --noimg: #c98500;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
   --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10); --wash: rgba(255,255,255,0.06);
-  --solved: #3987e5; --stars: #d95926; --dark: #199e70;
+  --solved: #3987e5; --stars: #d95926; --dark: #199e70; --noimg: #c98500;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--page); color: var(--ink);
@@ -89,7 +89,7 @@ dialog img { width: 100%; display: block; border-radius: 6px; background: #000; 
 <body>
 <main>
   <h1>Star solves: solved vs failed, against the weather</h1>
-  <p class="sub">Every star-track camera solve in the cache's <code>solves/summary.json</code>: its own CDN blocks (<code>hpwren_*</code>), and any solve another project filed there with <code>calibrate.add</code>. Each overlay is drawn by <code>star_calibration.overlay</code>. On a solved (or below-cutoff) overlay, green marks matched tracks and magenta the fitted star arcs. On a failed overlay, cyan marks the tracks used and orange the bright stars at the published pose. Weather comes from Open-Meteo at the camera for the hour nearest the solve's reference frame.</p>
+  <p class="sub">Every star-track camera solve in the cache's <code>solves/summary.json</code>: its own CDN blocks (<code>hpwren_*</code>), and any solve another project filed there with <code>calibrate.add</code>. Each overlay is drawn by <code>star_calibration.overlay</code>. On a solved (or below-cutoff) overlay, green marks matched tracks and magenta the fitted star arcs. On a failed overlay, cyan marks the tracks used and orange the bright stars at the published pose. A "no images" card shows the placeholder the CDN served because the camera sent no frames. Weather comes from Open-Meteo at the camera for the hour nearest the solve's reference frame.</p>
   <div class="tiles" id="tiles"></div>
 
   <div class="bar">
@@ -132,6 +132,7 @@ const CLS = {
   solved: { label: "Solved", shape: "circle" },
   stars:  { label: "Failed, stars seen", shape: "square" },
   dark:   { label: "Failed, few/no tracks", shape: "triangle" },
+  noimg:  { label: "Failed, no images", shape: "diamond" },
 };
 const VARS = {
   cloud_cover:          { label: "Cloud cover", unit: "%", bins: [0, 1, 20, 50, 90, 101], fmt: v => v.toFixed(0) + "%" },
@@ -148,8 +149,8 @@ const YS = {
   n_stars:   { label: "Stars matched (best fit)", fmt: v => v.toFixed(0) },
   median_px: { label: "Median residual (px, best fit)", fmt: v => v.toFixed(2) + " px" },
 };
-const state = { src: "fc", x: "cloud_cover", y: "n_tracks", sort: "x", q: "", on: { solved: true, stars: true, dark: true } };
-try { Object.assign(state, JSON.parse(localStorage.getItem("solve-gallery") || "{}")); } catch (e) {}
+const state = { src: "fc", x: "cloud_cover", y: "n_tracks", sort: "x", q: "", on: { solved: true, stars: true, dark: true, noimg: true } };
+try { const saved = JSON.parse(localStorage.getItem("solve-gallery") || "{}"); Object.assign(state, saved, { on: { ...state.on, ...saved.on } }); } catch (e) {}
 const save = () => { try { localStorage.setItem("solve-gallery", JSON.stringify(state)); } catch (e) {} };
 
 const $ = id => document.getElementById(id);
@@ -191,6 +192,7 @@ function visible() {
 function shapePath(shape, x, y, s) {
   if (shape === "circle") return `M${x - s},${y}a${s},${s} 0 1,0 ${2 * s},0a${s},${s} 0 1,0 ${-2 * s},0`;
   if (shape === "square") { const a = s * 0.9; return `M${x - a},${y - a}h${2 * a}v${2 * a}h${-2 * a}z`; }
+  if (shape === "diamond") { const a = s * 1.2; return `M${x},${y - a}L${x + a},${y}L${x},${y + a}L${x - a},${y}z`; }
   const a = s * 1.2; return `M${x},${y - a}L${x + a},${y + a * 0.8}L${x - a},${y + a * 0.8}z`;
 }
 function hash(s) { let x = 0; for (const c of s) x = (x * 31 + c.charCodeAt(0)) | 0; return ((x >>> 0) % 1000) / 1000 - 0.5; }
@@ -259,7 +261,7 @@ function scatter(rows) {
 
   const jit = (x1 - x0) * 0.012;
   const drawn = [];
-  const order = ["solved", "stars", "dark"];
+  const order = ["solved", "stars", "dark", "noimg"];
   for (const p of pts.sort((a, b) => order.indexOf(a.r.cls) - order.indexOf(b.r.cls))) {
     const px = sx(p.x + hash(p.r.seq) * 2 * jit), py = sy(p.y) + hash(p.r.seq + "y") * 4;
     const mk = el("path", { d: shapePath(CLS[p.r.cls].shape, px, py, 5), fill: color(p.r.cls), "fill-opacity": 0.85, stroke: "var(--surface)", "stroke-width": 1.5 }, svg);
@@ -291,8 +293,8 @@ function niceStep(raw) {
 // ---- binned outcome share
 function bins(rows) {
   const box = $("bins"); box.replaceChildren();
-  const X = VARS[state.x], edges = X.bins, order = ["solved", "stars", "dark"];
-  const B = edges.slice(0, -1).map((lo, i) => ({ lo, hi: edges[i + 1], n: 0, c: { solved: 0, stars: 0, dark: 0 } }));
+  const X = VARS[state.x], edges = X.bins, order = ["solved", "stars", "dark", "noimg"];
+  const B = edges.slice(0, -1).map((lo, i) => ({ lo, hi: edges[i + 1], n: 0, c: { solved: 0, stars: 0, dark: 0, noimg: 0 } }));
   for (const r of rows) {
     const v = wx(r, state.x); if (v == null) continue;
     const b = B.find(b => v >= b.lo && v < b.hi); if (b) { b.n++; b.c[r.cls]++; }
@@ -415,7 +417,7 @@ function tiles() {
   const n = c => DATA.filter(r => r.cls === c).length;
   const med = (c, v) => { const a = DATA.filter(r => r.cls === c).map(r => wx(r, v)).filter(x => x != null).sort((a, b) => a - b); return a.length ? a[a.length >> 1] : null; };
   const items = [[`${n("solved")} / ${DATA.length}`, "solved"]];
-  for (const c of ["solved", "stars", "dark"]) {
+  for (const c of ["solved", "stars", "dark", "noimg"]) {
     const m = med(c, "cloud_cover"), rh = med(c, "relative_humidity_2m");
     items.push([`${m == null ? "–" : m.toFixed(0)}% · ${rh == null ? "–" : rh.toFixed(0)}%`, `${CLS[c].label} (${n(c)}): median cloud · RH, ${state.src === "fc" ? "forecast" : "ERA5"}`]);
   }
