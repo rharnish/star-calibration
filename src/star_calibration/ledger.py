@@ -117,7 +117,8 @@ def build(solve_summary: list[dict], t0_by_seq: dict[str, float],
                     "d_roll": round(p["d_roll"], 3), "k_ratio": round(p["k_ratio"], 4),
                     "k1": round(p["k1"], 4), "n_stars": r["n_stars"],
                     "median_px": round(r["median_px"], 2), "source": f"star:{r['seq']}",
-                    "sky_model": r.get("sky_model", LEGACY_MODEL)})
+                    "sky_model": r.get("sky_model", LEGACY_MODEL)}
+                   | ({"solver": r["solver"]} if r.get("solver") else {}))
     out.sort(key=lambda e: (e["camera"], e["epoch"]))
     if dest is not None:
         Path(dest).write_text(json.dumps(out, indent=1) + "\n")

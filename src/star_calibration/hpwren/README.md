@@ -43,6 +43,23 @@ pose are orange, with a yellow arrow from published to fitted, so a camera that 
 its nameplate shows eleven degrees of arrow. A failed block shows its tracks in cyan against
 where the published pose says the bright stars should be.
 
+To see how a block got there, `calibrate animate <block>` re-solves it and plays the solve
+back as video, in the cache's `animations/`: the frames, the pole the trails imply, the
+coarse search, each start's refinement tightening onto the tracks, and the acceptance tests
+passed or failed. It is most useful on a failure, where it shows the step that gave out.
+`--kept` leaves out the attempts `solve_wide` didn't keep. `--full` draws the whole frame, not
+just the band of sky, and `--mark` ends on the frame with chosen stars named where the solved
+pose puts them, e.g. `--mark Alkaid-Mizar-Alioth-Megrez-Dubhe-Merak-Phad-Megrez,Polaris` for
+the Big Dipper and the pole star. It needs ffmpeg on the PATH for
+H.264; without it the video is MPEG-4, which VLC plays but a browser won't.
+
+`calibrate explore <block>` does the same in the browser: it re-solves the block and writes
+the solve as data, and the gallery's card links a replay page (`gallery/explore.html`). There
+you can scrub back and forth through the steps, zoom into the frame, toggle layers, hover a
+track to see its star and residual, and click a rung of the tolerance ladder or a point of the
+coarse scan to see that pose. Every star position on it is projected in Python by the
+solver's own model, so it shows only poses the solver actually tried.
+
 **Choosing nights.** The CDN serves roughly the last 89 days; older frames are in Glacier
 Deep Archive and need a staff restore. Clear nights work, and so do moonlit ones. A night
 that fails is usually cloud or fog: `weather` and `gallery` show which.
@@ -58,7 +75,8 @@ Frames and intermediate results go in a cache outside any repository: `$HPWREN_C
 `~/.cache/hpwren`. Every project that works with these frames can share one copy.
 A project that solves frames the cache doesn't hold can file its results there too, with
 `calibrate.add` (plume-triangulation files its FIgLib archive solves this way). Those results
-reach the gallery and the weather, but not the ledger.
+reach the gallery and the weather, but not the ledger. [docs/records.md](../../../docs/records.md)
+describes every record below, field by field.
 
 ```
 nights/<cam>/<YYYYMMDD>_Q<n>/<epoch>.jpg    frames (nights.py)
@@ -66,7 +84,10 @@ nights.json                                 the index: block name -> camera, t0,
 tracks/tracks_<block>.pkl                   moving tracks per block
 solves/solve_<block>.json, summary.json     per-block results
 overlays/star_solve_<block>.jpg             each solve drawn on its frame (overlay.py)
+animations/star_solve_<block>.mp4           a solve played back, on request (animate.py)
+explore/<block>.js                          a solve as data for the replay page, on request (explore.py)
 gallery/index.html                          every block on one page (gallery.py)
+gallery/explore.html                        the replay page, one block at a time
 ```
 
 ## What ships here

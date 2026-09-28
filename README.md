@@ -100,9 +100,15 @@ python -m star_calibration.hpwren.calibrate agree
 | `solve` | `Night`, `solve`, `solve_wide` |
 | `cross_night` | night-to-night agreement |
 | `overlay` | a solve drawn on its own frame: tracks, fitted stars, and the published pose's error |
+| `animate` | a solve played back as video from its trace: pole, coarse search, refinement, verdict |
+| `explore` | the same trace as data for a browser replay, every star already projected |
 | `ledger` | per-camera, per-date poses, and when one applies |
 | `sun`, `moon` | dark-frame selection; moonlit nights solve as well as dark ones |
 | `hpwren/` | HPWREN's camera table, CDN nights, a command-line calibrator, the solved ledger |
+
+Every record the package and its HPWREN pipeline produce, from the camera table and pose
+ledger to the cache's tracks, solves and weather, is described field by field, with units
+and rules, in [docs/records.md](docs/records.md).
 
 `pytest` runs in ~15 s with no data. It includes an end-to-end solve of a synthetic night:
 catalog stars through a known, off-nameplate camera, back to that camera to 0.03°.

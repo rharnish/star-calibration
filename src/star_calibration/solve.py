@@ -31,6 +31,7 @@ from scipy.optimize import least_squares, linear_sum_assignment
 from scipy.spatial import cKDTree
 
 from . import catalog as SG
+from . import solver_id
 from . import pole as POLE
 from .fisheye import K1, K_RATIO, initial_k, project_fisheye
 
@@ -162,7 +163,8 @@ def _spread(grid, min_sep_deg: float = 2.0, n: int = 5):
 
 
 def solve(night: Night, wide: bool = False, min_stars: int = 8,
-          k_ratio: float | None = None, window: tuple[float, float] | None = None) -> dict:
+          k_ratio: float | None = None, window: tuple[float, float] | None = None,
+          trace: list | None = None) -> dict:
     """One night's pose.
 
     `wide` replaces the +-30/15/10 deg grid around the published pose with `pole.py`'s
@@ -170,18 +172,28 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
     search global instead of local -- the only way to reach a camera whose published azimuth
     is wrong by more than the grid is wide. `min_stars` is the acceptance cutoff; lowering it
     is only safe if something else vouches for the solve (see `cross_night.py`).
+
+    `trace`, if given, gets one dict per step appended to it -- the attempt, the pole, the
+    coarse scan, the starts, every rung of every start's refinement, and the verdict -- for
+    `animate.py` to draw. Nothing reads it back, so passing one never changes the result.
     """
+    def note(**event):
+        if trace is not None:
+            trace.append(event)
+
     c, W, H = night.cam, night.W, night.H
     # every solve says which catalog and corrections it was made under; the ledger checks it
     out = {"seq": night.label, "camera": night.camera, "imager": c.get("imager"),
-           "sky_model": SG.model_id()}
+           "sky_model": SG.model_id(), "solver": solver_id()}
     if window is not None:
         out["window"] = window
     raw, keep = windowed(night.tracks, window)
     tracks = [raw[i] for i in keep]
     out.update(W=W, H=H, n_tracks_raw=len(raw), n_tracks=len(tracks))
+    note(stage="attempt", wide=wide, k_ratio=k_ratio, tracks=list(keep))
     if len(tracks) < 8:
         out.update(status="failed", reason=f"only {len(tracks)} moving tracks")
+        note(stage="verdict", status="failed", reason=out["reason"])
         return out
 
     k0 = initial_k(c, W)
@@ -224,6 +236,7 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
               ((25, False), (15, False), (8, False), (6, False), (6, True), (5, True)))
 
     coincidence = make_coincidence(c, W, H, lens, tree, y_band, az_b, alt_b, coarse_px)
+    note(stage="setup", lens=lens, ref=ref, coarse_px=coarse_px, ladder=ladder)
 
     grid = []
     if wide:
@@ -231,19 +244,25 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
         out["pole"] = None if fit is None else {
             "norm": fit["norm"], "inlier_frac": fit["inlier_frac"],
             "median_res_rel": fit["median_res_rel"], "p_cam": list(fit["p_hat"])}
+        note(stage="pole", fit=out["pole"], inliers=None if fit is None else fit["inliers"])
         if fit is None or fit["norm"] < 0.75:
             out.update(status="failed",
                        reason=("no pole fit" if fit is None else
                                f"no coherent sky rotation (|p| {fit['norm']:.2f}, "
                                f"residual {fit['median_res_rel']:.2f} of sidereal)"))
+            note(stage="verdict", status="failed", reason=out["reason"])
             return out
         # Everything except the turn about the polar axis is now fixed, so scan that one
         # angle. 0.1 deg is finer than the 1 deg the old grid could afford in three.
         psi = np.arange(0.0, 360.0, 0.1)
-        for pose in POLE.pose_from_axes(POLE.cam_from_pole(fit["p_hat"], c["lat"], psi), c):
+        poses = POLE.pose_from_axes(POLE.cam_from_pole(fit["p_hat"], c["lat"], psi), c)
+        scores = np.zeros(len(psi))
+        for i, pose in enumerate(poses):
             sc, n_in, n_pred = coincidence(tuple(pose))
+            scores[i] = sc
             if n_in >= 3:
                 grid.append((sc, n_in, n_pred, tuple(float(v) for v in pose)))
+        note(stage="scan", psi=psi, poses=poses, scores=scores)
         grid.sort(key=lambda g: -g[0])
         grid = _spread(grid, min_sep_deg=2.0, n=5)
     else:
@@ -252,10 +271,13 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
             if n_in >= 3:
                 grid.append((sc, n_in, n_pred, p))
         grid.sort(key=lambda g: -g[0])
+        note(stage="scan", poses=np.array([g[3] for g in grid[:200]], float).reshape(-1, 3),
+             scores=np.array([g[0] for g in grid[:200]], float))
     pub = coincidence((0, 0, 0))
     out["published_coincidence"] = {"inliers": pub[1], "predicted": pub[2]}
     out["coarse_top"] = [{"score": round(g[0], 2), "inliers": g[1], "predicted": g[2],
                           "pose": list(g[3])} for g in grid[:5]]
+    note(stage="starts", poses=[list(g[3]) for g in grid[:5]], scores=[g[0] for g in grid[:5]])
 
     # every catalog star's (alt, az) at every observed offset
     ep = night.t0 + np.array(offs, float)
@@ -294,22 +316,29 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
         return np.asarray(full(sol.x), float), np.hypot(*sol.fun.reshape(2, -1)), ia
 
     runs = []
-    for g in grid[:5]:
+    for s, g in enumerate(grid[:5]):
         p5 = np.array([*g[3], *lens], float)
         pairs = []
         for thr, free in ladder:
             C = costs(p5)
             ri, ci = linear_sum_assignment(np.minimum(C, 1e3))
             pairs = [(i, j) for i, j in zip(ri, ci) if C[i, j] < thr]
+            named = [(names[i], keep[j]) for i, j in pairs]   # raw track indices, as `matches`
             if len(pairs) < 4:
+                note(stage="rung", start=s, thr=thr, free_lens=free, before=p5.copy(),
+                     after=None, pairs=named, median_px=None)
                 break
+            before = p5.copy()
             p5, e, ia = refit(p5, pairs, free)
+            note(stage="rung", start=s, thr=thr, free_lens=free, before=before, after=p5.copy(),
+                 pairs=named, median_px=float(np.median(e)))
         if len(pairs) < 4:
             continue
-        runs.append({"start": list(g[3]), "pose": p5, "pairs": pairs, "e": e, "ia": ia})
+        runs.append({"s": s, "start": list(g[3]), "pose": p5, "pairs": pairs, "e": e, "ia": ia})
 
     if not runs:
         out.update(status="failed", reason="no start converged to >= 4 stars")
+        note(stage="verdict", status="failed", reason=out["reason"])
         return out
     best = max(runs, key=lambda r: (len(r["pairs"]), -float(np.median(r["e"]))))
     stars = {names[i] for i, _ in best["pairs"]}
@@ -328,10 +357,16 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
         matches={names[i]: keep[j] for i, j in best["pairs"]},   # raw track indices
         per_star_px={names[i]: float(np.median(e[best["ia"] == i])) for i, _ in best["pairs"]},
         mags={names[i]: float(mags[i]) for i, _ in best["pairs"]})
+    note(stage="verdict", status=out["status"], reason=out["reason"],
+         start=best["s"],
+         tests=[(f"{len(stars)} stars >= {min_stars}", len(stars) >= min_stars),
+                (f"median {med:.2f}px < 3.0", med < 3.0),
+                (f"k {kr:.3f}x in {lo_k:.2f}-{hi_k:.2f}", lo_k <= kr <= hi_k)])
     return out
 
 
-def solve_wide(night: Night, min_stars: int = 8, window: tuple[float, float] | None = None) -> dict:
+def solve_wide(night: Night, min_stars: int = 8, window: tuple[float, float] | None = None,
+               trace: list | None = None) -> dict:
     """A global solve, tried under each lens the trails allow, best result kept.
 
     Two lens hypotheses go in: the shared 0.886x nameplate that `solve` assumes for every
@@ -345,6 +380,9 @@ def solve_wide(night: Night, min_stars: int = 8, window: tuple[float, float] | N
     cameras, whose trails want ~0.78x and which match nothing at all under 0.886x. The shared
     lens is what rescues every north-facing camera, where the pole sits inside the frame,
     scale is ill-conditioned against pole position, and the measurement comes out 3-4% low.
+
+    `trace` collects every attempt's steps (see `solve`), then a "kept" event naming the
+    attempt whose result is returned.
     """
     raw, keep = windowed(night.tracks, window)
     tracks = [raw[i] for i in keep]
@@ -362,11 +400,13 @@ def solve_wide(night: Night, min_stars: int = 8, window: tuple[float, float] | N
     # best makes this a strict superset of the old solver.
     attempts = [(False, None)] + [(True, kr) for kr in cands]
     best = None
-    for wide, kr in attempts:
-        r = solve(night, wide=wide, min_stars=min_stars, k_ratio=kr, window=window)
+    for a, (wide, kr) in enumerate(attempts):
+        r = solve(night, wide=wide, min_stars=min_stars, k_ratio=kr, window=window, trace=trace)
         r["lens_from_pole"] = cands[1] if len(cands) > 1 else None
         r["found_by"] = "pole" if wide else "grid"
         key = (r["status"] == "solved", r.get("n_stars") or 0, -(r.get("median_px") or 1e9))
         if best is None or key > best[0]:
-            best = (key, r)
+            best = (key, r, a)
+    if trace is not None:
+        trace.append({"stage": "kept", "attempt": best[2]})
     return best[1]

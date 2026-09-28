@@ -7,11 +7,15 @@ re-run only does what it hasn't done:
   tracks/      tracks_<block>.pkl, the moving tracks and frame size per block
   solves/      solve_<block>.json per block, and summary.json over all of them
   overlays/    star_solve_<block>.jpg: the solve drawn on its own frame (overlay.py)
+  animations/  star_solve_<block>.mp4: the solve played back, step by step (animate.py)
+  explore/     <block>.js: the solve as data for gallery/explore.html, the browser replay
 
     python -m star_calibration.hpwren.calibrate fetch 20260911 hp-s-mobo-c vo-n-mobo-c
     python -m star_calibration.hpwren.calibrate solve                  # every indexed block
     python -m star_calibration.hpwren.calibrate solve hpwren_20260911_Q1_hp-s-mobo-c
     python -m star_calibration.hpwren.calibrate overlay [block ...]    # redraw overlays
+    python -m star_calibration.hpwren.calibrate animate [--kept] [--full] [--mark A-B,C] block ...
+    python -m star_calibration.hpwren.calibrate explore block ...       # replay in the browser
     python -m star_calibration.hpwren.calibrate agree                  # night-to-night check
     python -m star_calibration.hpwren.calibrate ledger [dest.json]     # solved -> pose ledger
 
@@ -34,11 +38,14 @@ import shutil
 import sys
 from multiprocessing import Pool
 from pathlib import Path
+from urllib.parse import quote
 
 import cv2
 import numpy as np
 
+from .. import animate as anim
 from .. import cross_night, ledger, overlay
+from .. import explore as ex
 from ..solve import Night, solve_wide
 from ..tracks import collect
 from . import cache_dir, cameras, nights
@@ -54,6 +61,22 @@ def solves_dir() -> Path:
 
 def overlays_dir() -> Path:
     return cache_dir() / "overlays"
+
+
+def animations_dir() -> Path:
+    return cache_dir() / "animations"
+
+
+def explore_dir() -> Path:
+    return cache_dir() / "explore"
+
+
+def explorer_page() -> Path:
+    """The replay page, gallery/explore.html, refreshed from the package's template."""
+    dest = cache_dir() / "gallery" / "explore.html"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(Path(__file__).with_name("explore.html"), dest)
+    return dest
 
 
 def load_tracks(seq: str) -> tuple[list[dict], tuple[int, int]]:
@@ -102,6 +125,51 @@ def render(seq: str, result: dict | None = None) -> Path:
     overlays_dir().mkdir(parents=True, exist_ok=True)
     dest = overlays_dir() / f"star_solve_{seq.replace('#', '_')}.jpg"
     overlay.write(overlay.draw(result, n, frame), dest)
+    return dest
+
+
+def animate(seq: str, only_kept: bool = False, full_frame: bool = False,
+            mark: list[str] = ()) -> Path:
+    """Re-solve one block with a trace and play the solve back into animations/. The result
+    isn't filed: solves/ and the gallery stay as `solve` left them. `full_frame` draws the
+    whole frame, not just the sky band, into star_solve_<block>_full.mp4. `mark` names stars
+    (or "-"-joined chains of them) to point out at the end; see animate.frames."""
+    if seq not in nights.sequences():
+        raise SystemExit(f"{seq}: not a block in this cache (a result filed with `add` has "
+                         f"no frames here to draw)")
+    n = night(seq)
+    trace: list[dict] = []
+    r = solve_wide(n, trace=trace)
+    images = ((o, cv2.imdecode(np.frombuffer(blob, np.uint8), cv2.IMREAD_COLOR))
+              for _, o, blob in nights.read_frames(seq))
+    animations_dir().mkdir(parents=True, exist_ok=True)
+    dest = animations_dir() / f"star_solve_{seq.replace('#', '_')}{'_full' if full_frame else ''}.mp4"
+    path = anim.write(anim.frames(trace, r, n, images, only_kept=only_kept,
+                                  full_frame=full_frame, mark=mark), dest)
+    print(f"{seq}: {r['status']}{'' if r['status'] == 'solved' else ', ' + r['reason']}")
+    return path
+
+
+def explore(seq: str) -> Path:
+    """Re-solve one block with a trace and write explore/<block>.js, which the gallery's
+    explore.html replays. Like `animate`, the result isn't filed. The page shows the block's
+    frames from nights/ where they are: nothing is copied."""
+    if seq not in nights.sequences():
+        raise SystemExit(f"{seq}: not a block in this cache (a result filed with `add` has "
+                         f"no frames here to draw)")
+    n = night(seq)
+    trace: list[dict] = []
+    r = solve_wide(n, trace=trace)
+    t0 = nights.sequences()[seq]["t0"]
+    frames = [(int(p.stem) - t0, "../" + quote(p.relative_to(cache_dir()).as_posix()))
+              for p in nights.frame_files(seq)[0]]
+    data = ex.export(trace, r, n, frames)
+    explore_dir().mkdir(parents=True, exist_ok=True)
+    dest = explore_dir() / f"{seq.replace('#', '_')}.js"
+    dest.write_text("window.EXPLORE = " + json.dumps(data, separators=(",", ":"), allow_nan=False)
+                    + ";\n")
+    explorer_page()
+    print(f"{seq}: {r['status']}{'' if r['status'] == 'solved' else ', ' + r['reason']}")
     return dest
 
 
@@ -200,6 +268,16 @@ def main(argv: list[str]) -> None:
         indexed = nights.sequences()   # an added result's overlay came with it
         for seq in args or [r["seq"] for r in summary() if "n_tracks" in r and r["seq"] in indexed]:
             print(render(seq))
+    elif cmd == "animate":
+        kept, full = "--kept" in args, "--full" in args
+        mark = args[args.index("--mark") + 1].split(",") if "--mark" in args else []
+        skip = {"--kept", "--full", "--mark", *([",".join(mark)] if mark else [])}
+        for seq in [a for a in args if a not in skip]:
+            print(animate(seq, only_kept=kept, full_frame=full, mark=mark))
+    elif cmd == "explore":
+        for seq in args:
+            print(explore(seq))
+        print(f"open {explorer_page()}?b=<block>, or the block's card in the gallery")
     elif cmd == "agree":
         indexed = nights.sequences()
         rows = summary()

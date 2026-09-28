@@ -4,7 +4,9 @@ Reads the cache's solves/summary.json and solves/solve_weather.json (weather.py)
 star_solve_<block>.jpg overlays in the cache's overlays/ that `calibrate solve` draws
 (overlay.py: tracks and fitted stars on the block's own frame). Writes gallery/index.html in
 the cache, with 480 px thumbnails beside it; the page links the full overlays by relative
-path, so it is not self-contained. A block with no overlay still gets its card.
+path, so it is not self-contained. A block with no overlay still gets its card. A block
+with a video in animations/ (`calibrate animate`, on request) plays it in its detail view,
+and one with a replay in explore/ (`calibrate explore`) links explore.html, the browser replay.
 
     python -m star_calibration.hpwren.calibrate overlay   # redraw any missing overlays
     python -m star_calibration.hpwren.weather
@@ -24,7 +26,8 @@ from pathlib import Path
 import cv2
 
 from . import cache_dir, nights
-from .calibrate import overlays_dir, solves_dir, summary
+from .calibrate import (animations_dir, explore_dir, explorer_page, overlays_dir, solves_dir,
+                        summary)
 
 THUMB_W = 480
 
@@ -61,6 +64,8 @@ def rows() -> list[dict]:
     out = []
     for r in summary():
         img = overlays_dir() / f"star_solve_{r['seq'].replace('#', '_')}.jpg"
+        video = animations_dir() / f"star_solve_{r['seq'].replace('#', '_')}.mp4"
+        replay = explore_dir() / f"{r['seq'].replace('#', '_')}.js"
         w = weather.get(r["seq"], {})
         out.append({
             "seq": r["seq"], "camera": r.get("camera") or blocks[r["seq"]]["camera"],
@@ -73,6 +78,8 @@ def rows() -> list[dict]:
             "fc": w.get("forecast"), "ra": w.get("reanalysis"),
             "img": f"../overlays/{img.name}" if img.exists() else None,
             "thumb": thumb(img) if img.exists() else None,
+            "video": f"../animations/{video.name}" if video.exists() else None,
+            "explore": f"explore.html?b={replay.stem}" if replay.exists() else None,
         })
     return out
 
@@ -83,6 +90,7 @@ def main() -> None:
             .replace("/*__DATA__*/[]", json.dumps(data, default=float)))
     out = gallery_dir() / "index.html"
     out.write_text(page)
+    explorer_page()
     missing = [r["seq"] for r in data if not r["img"]]
     print(f"wrote {out} ({len(data)} solves, {len(missing)} without an overlay)")
 

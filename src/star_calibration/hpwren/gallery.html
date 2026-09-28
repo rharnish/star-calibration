@@ -75,7 +75,10 @@ svg .axis-title { fill: var(--ink-2); font-size: 12px; }
 dialog { width: min(1400px, 96vw); max-height: 94vh; border: 1px solid var(--ring); border-radius: 12px;
   background: var(--surface); color: var(--ink); padding: 14px; }
 dialog::backdrop { background: rgba(0,0,0,.6); }
-dialog img { width: 100%; display: block; border-radius: 6px; background: #000; }
+dialog img, dialog video { width: 100%; display: block; border-radius: 6px; background: #000; }
+a.replay { display: inline-block; margin: 0 0 10px; color: var(--ink); background: var(--wash); border: 1px solid var(--ring);
+  border-radius: 6px; padding: 5px 10px; text-decoration: none; font-size: 13px; }
+a.replay:hover { border-color: var(--ink-2); }
 .dlg-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; margin-bottom: 8px; }
 .dlg-head button { font: inherit; background: var(--wash); color: var(--ink); border: 1px solid var(--ring); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
 .facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-top: 12px; }
@@ -366,6 +369,7 @@ function gallery(rows) {
       const q = r.status === "solved" || r.n_stars != null && r.median_px != null
         ? `${r.n_tracks} tracks · ${r.n_stars}★ · ${r.median_px.toFixed(2)} px` : `${r.n_tracks} tracks`;
       body.appendChild(h("div", "m", r.cls === "solved" ? q : `${q} · ${r.reason}`));
+      if (r.video || r.explore) body.appendChild(h("div", "m", [r.video && "▶ solve video", r.explore && "◇ replay"].filter(Boolean).join(" · ")));
       const w = h("div", "w");
       w.appendChild(document.createTextNode(`${VARS[state.x].label}: ${fmtX(r)}`));
       w.appendChild(spark(profile(r, state.x, state.src), r.cls));
@@ -393,7 +397,17 @@ function openDlg(r) {
   head.appendChild(t);
   const x = h("button", null, "Close"); x.addEventListener("click", () => d.close()); head.appendChild(x);
   d.appendChild(head);
-  if (r.img) { const im = h("img"); im.src = r.img; im.alt = "star solve overlay"; d.appendChild(im); }
+  if (r.explore) {
+    // the browser replay (calibrate explore): every step of the solve, to scrub and inspect
+    const a = h("a", "replay", "◇ Open the replay: step through the solve and inspect it"); a.href = r.explore;
+    d.appendChild(a);
+  }
+  if (r.video) {
+    // the solve played back (calibrate animate); the overlay is its poster and its last scene
+    const v = h("video"); v.src = r.video; v.controls = true; v.preload = "metadata";
+    if (r.img) v.poster = r.img;
+    d.appendChild(v);
+  } else if (r.img) { const im = h("img"); im.src = r.img; im.alt = "star solve overlay"; d.appendChild(im); }
   const facts = h("div", "facts");
   const add = (l, v, node) => { const f = h("div", "fact"); f.appendChild(h("div", "l", l)); const vv = h("div", "v", v); f.appendChild(vv); if (node) f.appendChild(node); facts.appendChild(f); };
   add("Tracks used / raw", `${r.n_tracks} / ${r.n_tracks_raw}`);
@@ -410,6 +424,7 @@ function openDlg(r) {
   d.showModal();
 }
 $("dlg").addEventListener("click", e => { if (e.target === $("dlg")) $("dlg").close(); });
+$("dlg").addEventListener("close", () => $("dlg").querySelectorAll("video").forEach(v => v.pause()));
 
 // ---- controls
 function tiles() {

@@ -1,0 +1,423 @@
+# Records
+
+This package and its HPWREN pipeline produce a set of records: the camera table, the pose
+ledger, and a local cache of frames, tracks, solves, weather and pictures. This page lists
+them, says what produces each one from what, gives every field with its units, and sets out
+the rules they obey. The READMEs explain how to run things. This page describes what the runs
+leave behind.
+
+The frames are HPWREN's (<https://www.hpwren.ucsd.edu/>), fetched from its public CDN. They
+and everything derived from them in the cache stay on the machine that fetched them. None of
+it is committed to this repository.
+
+## At a glance
+
+| Record | Where | Written by | Read by | Can it be rebuilt? |
+|---|---|---|---|---|
+| `cams.json` | package | derived from `sites.js` | everything | yes, from `sites.js` |
+| `sites.js` | package | copied verbatim from HPWREN | people deriving `cams.json` | from HPWREN |
+| `pose_ledger.json` | package | `calibrate ledger`, copied in on purpose | `ledger.lookup`, plume-triangulation | yes, from `summary.json` |
+| `nights/…/<epoch>.jpg` | cache | `calibrate fetch` / `nights` | tracks, overlays, videos | **only for ~89 days** (see below) |
+| `nights.json` | cache | `nights.index` | every step after fetch | yes, from `nights/` |
+| `tracks/tracks_<block>.pkl` | cache | `calibrate solve` (first time) | solve, overlay, animate, weather | yes, from frames |
+| `solves/solve_<block>.json` | cache | `calibrate solve`, `calibrate add` | `calibrate overlay`, people | yes, from tracks (not FIgLib rows) |
+| `solves/summary.json` | cache | `calibrate solve`, `calibrate add` | gallery, weather, ledger, `agree`, `overlay` | yes, from the per-block files |
+| `solves/solve_weather.json` | cache | `weather` | gallery | yes, from Open-Meteo |
+| `solves/weather_cache.json` | cache | `weather` | `weather` | yes, from Open-Meteo |
+| `overlays/star_solve_<block>.jpg` | cache | `calibrate solve`, `overlay`, `add` | gallery | yes, from frames and solve |
+| `animations/star_solve_<block>.mp4`, `…_full.mp4` | cache | `calibrate animate`, on request | gallery | yes, from frames and tracks |
+| `explore/<block>.js` | cache | `calibrate explore`, on request | `gallery/explore.html` | yes, from frames and tracks |
+| `gallery/index.html`, `gallery/thumbs/`, `gallery/explore.html` | cache | `gallery`, `calibrate explore` | people | yes |
+
+The cache is `$HPWREN_CACHE`, `~/.cache/hpwren` by default. plume-triangulation uses the same
+one, so both projects read one copy of the frames, and there is one gallery.
+
+## How they depend on each other
+
+```
+HPWREN CDN ──fetch──▶ nights/ ──index──▶ nights.json
+                         │
+                         ├──tracks.collect──▶ tracks/*.pkl ──solve_wide──▶ solves/solve_<block>.json
+                         │                                                        │
+                         │                        plume (calibrate.add) ─────────▶│
+                         │                                                        ▼
+                         │                                              solves/summary.json
+                         │                                               │      │       │
+                         ├──overlay.draw◀─────────────────────────────────┘      │       │
+                         │      ▼                                                │       │
+                         │  overlays/*.jpg ──────────────────▶ gallery ◀── weather ◀─────┤
+                         │                                       ▲                       │
+                         ├──animate (re-solves)──▶ animations/ ──┤       ledger.build ◀──┘
+                         └──explore (re-solves)──▶ explore/ ─────┘
+                                                                              ▼
+                                                        cache pose_ledger.json ──(on purpose)──▶ package
+```
+
+A change upstream makes everything downstream stale, and nothing records that it is:
+
+- **Changing the detector or linker (`tracks.py`)** leaves the old `tracks/*.pkl` in place.
+  `load_tracks` reads a pickle if it exists, and the pickle records neither the detector's
+  parameters nor the code version. Delete `tracks/` to rebuild.
+- **Changing the solver** leaves `solves/` as it was until `calibrate solve` runs again.
+- **Changing the catalog or its corrections** changes `sky_model`, and `ledger.load` then
+  refuses a ledger that mixes the old and new models.
+
+## What can't be rebuilt
+
+- **Frames older than about 89 days.** The CDN keeps recent JPGs public; older ones move to
+  Glacier Deep Archive, and only HPWREN staff can restore them. After that, the cache's
+  `nights/` may be the only copy of a block's frames anywhere outside HPWREN. Back up
+  `nights/` if you need to re-track old blocks.
+- **FIgLib rows** (`"source": "figlib"`). Their frames are FIgLib archives that only
+  plume-triangulation reads. There are no frames or tracks for them here. Re-solve them in
+  plume and publish again with `python -m src.figlib.stars.publish`.
+
+## Conventions
+
+These hold for every record below unless it says otherwise.
+
+| Quantity | Convention |
+|---|---|
+| Angles | degrees |
+| `d_az` | azimuth correction to the published pose, positive clockwise (toward east from north) |
+| `d_pitch` | elevation correction, positive up |
+| `d_roll` | roll correction, positive turns the image's right edge upward |
+| Pixels | full-frame pixels, origin at the top-left corner, x right, y down |
+| Frame size | `W` × `H`; 3072 × 2048 for today's CDN frames |
+| `k`, `k_ratio` | lens scale: `k` in px per radian; `k_ratio` = `k` / nameplate scale, where the nameplate scale is `(W / 2) / (fov / 2 in radians)` |
+| `k1` | radial term of `r = k·θ·(1 + k1·θ²)`, θ in radians |
+| Epochs | Unix seconds, UTC |
+| Offsets | seconds from the block's `t0` (the epoch of its median frame) |
+| Block names | `hpwren_<YYYYMMDD>_Q<n>_<camera>` (a 3-hour block, Q1 = 00:00–02:59 Pacific), `hpwren_<YYYYMMDD>_N_<camera>` (a whole night), or plume's FIgLib names |
+
+The shared lens is `K_RATIO` 0.886 and `K1` −0.078 (`fisheye.py`). The lens centre is
+assumed to be the frame's middle, `(W/2, H/2)`. See [Planned: per-camera intrinsics](#planned-per-camera-intrinsics).
+
+## Shipped records
+
+These are in the package (`src/star_calibration/hpwren/`), versioned with it, and public.
+
+### `cams.json`
+
+HPWREN's published camera table, one record per camera name (505 as of 2026-09), derived
+from `sites.js` and kept beside it verbatim.
+
+| Field | Meaning |
+|---|---|
+| `site` | site code, the camera name's first part |
+| `lat`, `lon` | degrees |
+| `elev` | site elevation, metres |
+| `az` | published (nameplate) azimuth of the boresight, degrees |
+| `fov` | published horizontal field of view, degrees |
+| `imager` | `color`, `monochrome`, `ptz`, `experimental`, `VNIR`, `SWIR`, `ir-color`, `ir-thermal` |
+| `pitch`, `roll`, `yaw` | degrees; zero placeholders almost everywhere |
+| `agl` | camera height above ground, metres |
+
+It is the *published* pose. What a camera actually does is what the solves measure, as
+corrections relative to this table.
+
+### `pose_ledger.json`
+
+The solved poses: one entry per solved CDN block, 106 solves of 73 cameras as of
+2026-09-26. `calibrate ledger` writes a fresh one to the cache; the package's copy changes
+only when someone copies it in on purpose.
+
+| Field | Meaning |
+|---|---|
+| `camera` | camera name |
+| `epoch` | the block's `t0` |
+| `frame_w` | frame width the solve was made in |
+| `d_az`, `d_pitch`, `d_roll` | the solved pose, as corrections to `cams.json` |
+| `k_ratio`, `k1` | the solved lens |
+| `n_stars`, `median_px` | how many catalog stars matched, and their median residual |
+| `source` | `star:<block>` |
+| `sky_model` | the catalog and corrections the solve used (`catalog.model_id()`) |
+| `solver` | the solver that made the solve, as in solve results; only on entries built from rows that have it |
+
+Rules (`ledger.py`):
+
+- **A pose is a measurement on one date.** `lookup(camera, epoch)` applies one only if the
+  first of these rules fires: *same night* (solves within 3 days: their median), *bracketed*
+  (the nearest solve each side agree within 1°: their mean; if they disagree, the camera
+  moved in between and no correction applies), or *one-sided* (the nearest solve within
+  365 days).
+- **A solve never crosses a change of frame format.** A 2048×1536 unit replaced by a
+  3072×2048 one under the same name is a new installation.
+- **One sky model per ledger.** `load` refuses a file whose entries mix `sky_model`s.
+- **Only this package's own CDN solves.** Rows with a `source` (FIgLib) are left out.
+
+This file is an interface: plume-triangulation reads it through the package, at a pinned
+release. Adding a field is safe. Renaming, removing or changing the meaning of one needs a
+release and a coordinated change in plume.
+
+## Cache records
+
+### `nights/` and `nights.json`
+
+Frames live at `nights/<camera>/<YYYYMMDD>_Q<n>/<epoch>.jpg` (a whole night:
+`<YYYYMMDD>_N/`), about one a minute. A 320×240 frame is the CDN's "No Images!" placeholder,
+served when the camera sent nothing (`nights.PLACEHOLDER_WH`).
+
+`nights.json` indexes them by block name. `nights.index()` rebuilds it from disk, and a
+directory with fewer than 8 frames is left out.
+
+| Field | Meaning |
+|---|---|
+| `seq` | block name |
+| `camera` | camera name |
+| `day` | `YYYYMMDD`, local date of the block |
+| `q` | 1–8 (3-hour block, local time), or `null` for a whole night |
+| `t0` | epoch of the median frame; track offsets count from it |
+| `lat`, `lon` | the camera's, from `cams.json` |
+| `n_frames` | frames on disk |
+| `dir` | directory relative to `nights/` |
+
+### `tracks/tracks_<block>.pkl`
+
+A pickle of `{"tracks": [...], "WH": (W, H)}`. Each track is a dict from offset (seconds) to
+`(x, y, amp)`: pixel position and peak amplitude of the point in that frame. These are the
+moving point sources `tracks.collect` linked across frames. Most are stars; some are noise.
+The pickle is a cache, not an interface: it can change with `tracks.py`, and nothing records
+the code or parameters that made it (see above).
+
+### `solves/solve_<block>.json` and `solves/summary.json`
+
+One solve result per block, and `summary.json`, the list of all of them sorted solved-first,
+one row per `seq` (a re-solve replaces the row). The fields a row has depend on how far the
+solve got.
+
+**Always present**
+
+| Field | Meaning |
+|---|---|
+| `seq` | block name |
+| `camera` | camera name |
+| `status` | `solved` or `failed` |
+| `reason` | `null` when solved; otherwise why (below) |
+
+**Once tracks exist**
+
+| Field | Meaning |
+|---|---|
+| `imager` | from `cams.json` |
+| `sky_model` | `catalog.model_id()`. May be missing on older FIgLib failure rows. |
+| `solver` | which solver made the row (`star_calibration.solver_id()`): the package version, plus `+g<commit>` when run from a git checkout of this repository, and `.dirty` if the package's files had uncommitted changes. Rows solved before 2026-09-27 don't have it. |
+| `W`, `H` | frame size |
+| `n_tracks_raw` | tracks the detector produced |
+| `n_tracks` | tracks the solve used, after `window` clipping and `prune` |
+| `window` | only if the solve was given one: `[start, end)` offsets, seconds |
+
+**Once the coarse search ran**
+
+| Field | Meaning |
+|---|---|
+| `ref_offset` | the reference frame: the offset where the most tracks were seen |
+| `pole` | pole-search attempts only: `norm` (\|p\|, 1 for a coherent sky under the right lens), `inlier_frac`, `median_res_rel` (fit residual as a fraction of the sidereal rate), `p_cam` (the pole in camera coordinates) |
+| `published_coincidence` | `inliers` and `predicted`: bright stars that land on a track under the published pose, and how many were predicted in the sky band |
+| `coarse_top` | up to 5 starts handed to refinement: `score`, `inliers`, `predicted`, `pose` (`[d_az, d_pitch, d_roll]`) |
+
+**Once refinement found a fit**, even one that failed the acceptance test:
+
+| Field | Meaning |
+|---|---|
+| `pose` | `d_az`, `d_pitch`, `d_roll`, `k_ratio`, `k1` |
+| `k_ratio_start` | the lens scale the attempt started from |
+| `n_stars` | catalog stars matched to tracks |
+| `median_px`, `rmse_px` | residual over every matched point, pixels |
+| `runs_agreeing` | `"a/b"`: how many of the starts that converged matched the same set of stars |
+| `matches` | star name → index into the block's raw track list |
+| `per_star_px` | star name → its median residual, pixels |
+| `mags` | star name → catalog magnitude |
+
+**Added by `solve_wide`**
+
+| Field | Meaning |
+|---|---|
+| `found_by` | `grid` (around the published pose) or `pole` (global, from the pole) |
+| `lens_from_pole` | the lens scale the trails measure (`pole.lens_scale`), or `null` |
+
+**Added by `calibrate add`**, for results from frames the cache doesn't hold:
+
+| Field | Meaning |
+|---|---|
+| `source` | the project that filed it, e.g. `figlib` |
+| `t0`, `lat`, `lon` | what the index would otherwise supply, for the weather |
+
+`add` refuses a result without `camera`, `t0`, `lat`, `lon` and `ref_offset`. This contract
+is an interface: plume-triangulation's `stars.publish` writes to it.
+
+**Acceptance test.** A fit is `solved` when it has at least 8 stars (`min_stars`), a median
+under 3.0 px, and a lens scale within 0.70–0.95 (pole search, or a given lens) or 0.85–0.92
+(grid). `solve_wide` runs up to three attempts (grid; pole under the shared lens; pole under
+the trails' lens) and keeps the best: solved first, then most stars, then lowest median.
+
+**Reasons and outcomes.** The gallery sorts failures by `gallery.outcome`:
+
+| Outcome | Reason starts with | Meaning |
+|---|---|---|
+| `solved` | — | passed |
+| `noimg` | `no images:` | most frames were the CDN placeholder; not solved |
+| `dark` | `only N moving tracks` | fewer than 8 usable tracks: cloud, fog, dew, or a dead camera |
+| `stars` | `no start converged`, `best: N stars, …`, `no pole fit`, `no coherent sky rotation`, or an exception | the tracks were there, and the fit or the search failed |
+
+### `solves/solve_weather.json` and `solves/weather_cache.json`
+
+`weather` reads Open-Meteo at each solve's reference hour and site.
+`solve_weather.json` has one row per solve:
+
+| Field | Meaning |
+|---|---|
+| `seq` | block name |
+| `epoch` | the reference frame's epoch (`t0 + ref_offset`) |
+| `lat`, `lon` | the site, rounded to 4 places |
+| `forecast` | historical-forecast archive (what the models forecast at the time) |
+| `reanalysis` | ERA5, the after-the-fact estimate; no `visibility` |
+
+Each of `forecast` and `reanalysis` maps a variable (`cloud_cover`, `cloud_cover_low`,
+`cloud_cover_mid`, `cloud_cover_high`, `visibility`, `relative_humidity_2m`,
+`dew_point_2m`, `temperature_2m`, `precipitation`, `wind_speed_10m`) to
+`{"at": value at the nearest hour, "profile": hourly values from −6 h to +6 h}`, plus
+`hour_utc`. Open-Meteo's units apply: % for cloud and humidity, metres for visibility, °C,
+mm, km/h.
+
+`weather_cache.json` keeps Open-Meteo's raw hourly response per
+`"<source>|<lat>|<lon>|<UTC day>"`, so a re-run only asks about new site-days.
+
+### `overlays/`, `animations/`, `explore/`, `gallery/`
+
+- **`overlays/star_solve_<block>.jpg`**: the solve drawn on its reference frame
+  (`overlay.py`, whose docstring gives the colours). A `noimg` block's overlay is a copy of
+  one of its placeholder frames.
+- **`animations/star_solve_<block>.mp4`**: the solve played back (`animate.py`), made only
+  on request by `calibrate animate`. H.264 when ffmpeg is on the PATH, MPEG-4 otherwise.
+  `--full` draws the whole frame instead of the sky band and writes `…_full.mp4`, which the
+  gallery doesn't link; `--mark` adds a closing scene naming chosen stars.
+- **`explore/<block>.js`**: the solve as data for the browser replay, made only on request by
+  `calibrate explore`, which re-solves the block with a trace and doesn't file the result.
+  The file sets `window.EXPLORE` (a script, not JSON, so the page works from `file://`,
+  where browsers refuse to fetch local files). Its fields are below.
+- **`gallery/explore.html`**: the replay page, copied from the package's `hpwren/explore.html`
+  by `calibrate explore` and `gallery`. It shows one block, `explore.html?b=<block>`, with
+  `&t=<seconds>` to open at a moment. It reads frames from `nights/` where they are, so
+  nothing is copied, and a block whose frames have expired can't be replayed.
+- **`gallery/index.html`**: every row of `summary.json`, with weather and overlays and, when
+  they exist, the video and a link to the replay. It links overlays, videos and replays by
+  relative path, so it is not self-contained. There is one gallery; don't make another.
+
+#### The replay's data (`explore.export`)
+
+Pixels are the frame's own (`W` by `H`), rounded to 0.1 px; `null` marks a point off the
+sky's side of the lens (more than 100° from the boresight, where the lens polynomial folds
+back). Everything projected is projected in Python by the solver's model, so the page only
+draws. Internal: the page and the export change together, and `format` says which shape.
+
+| Field | Meaning |
+|---|---|
+| `format` | the shape's version, 1 |
+| `seq`, `camera`, `imager`, `W`, `H`, `t0`, `ref` | the block, its frame size, and the reference offset (s from `t0`) |
+| `result` | the re-solve's `status`, `reason`, `pose`, `n_stars`, `median_px`, `rmse_px`, `matches`, `per_star_px`, `mags`, `n_tracks`, `n_tracks_raw`, `solver`, `found_by` (those present) |
+| `frames` | `[offset, url]` per frame, in time order; the URL is relative to the page |
+| `tracks` | per raw track, as the solver's window clipped it: `[offset, x, y]` per point |
+| `used` | the raw indices of the tracks the solver used |
+| `kept` | which attempt `solve_wide` returned |
+| `attempts` | one per attempt, below |
+| `final` | the returned result drawn, below |
+
+Each of `attempts`:
+
+| Field | Meaning |
+|---|---|
+| `wide`, `k_ratio`, `title`, `kept` | the search, the lens it was given (`null`: the shared lens), a description, and whether it was the one kept |
+| `lens`, `lens_ratio` | `[k, k1]` it started from, and `k` over the camera's `initial_k` |
+| `ladder` | `[thr, free_lens]` per rung |
+| `pole` | pole attempts: `fit` (as the solve's `pole`), `steps` (`[x, y, ux, uy, track]` per velocity sample: midpoint and unit direction), `kept` (a string of `1` kept and `0` trimmed per step, or `null` when it can't be matched to the steps), `xy` (the celestial pole in pixels) |
+| `published` | `names` and `xy` of the bright stars (mag ≤ 3.5) in frame at the published pose, under this attempt's lens, at the reference frame |
+| `scan` | `label`, `x` (psi, or grid rank), `scores`, `poses`, in the order the page sweeps them; `starts` (indices into those of the poses handed to refinement); `samples` (`i`, `xy`: the bright stars in frame under the pose at index `i`, for ~160 poses and every start) |
+| `starts` | `pose`, `score` of each start |
+| `rungs` | per rung of every start: `start`, `thr`, `free_lens`, `dropped`, `median_px`, `before`, `after` (the five pose parameters), `pairs` (`[star, raw track]`), `arcs` (per paired star, its path over its track's offsets `before` and `after` the refit, thinned to 24 points) |
+| `verdict` | `status`, `reason`, `start`, `tests` (`[text, passed]`) |
+
+`final` holds `fitted_arcs` and `published_arcs` (each matched star's path under the fitted
+pose, and under the published pose with the fitted lens), `arrows` (`[star, x0, y0, x1, y1]`
+from published to fitted at the reference frame) and, for a failure with no fit,
+`bright_arcs` (mag ≤ 3 stars at the published pose and shared lens). `sky` is
+`[name, mag, x, y]` for every catalog star in frame at the reference frame under the fitted
+pose, or the published one, for labels.
+
+## In memory only
+
+- **`solve.Night`**: one camera's tracks, its `cams.json` record, `t0`, frame size and label.
+  Everything a solve reads.
+- **The trace**: pass `trace=[]` to `solve` or `solve_wide` to get one dict per step, for
+  `animate.py` and `explore.py`. Nothing reads it back, so it never changes a result. It is
+  not saved (`explore/` keeps a drawn version of it), and its shape can change freely.
+
+| `stage` | Fields |
+|---|---|
+| `attempt` | `wide`, `k_ratio`, `tracks` (raw indices used) |
+| `setup` | `lens` (`k`, `k1`), `ref`, `coarse_px`, `ladder` |
+| `pole` | `fit` (as `pole` above), `inliers` (per velocity sample, in `pole.samples` order) |
+| `scan` | `poses`, `scores`, and `psi` for a pole attempt |
+| `starts` | `poses`, `scores` |
+| `rung` | `start`, `thr`, `free_lens`, `before`, `after` (`null` if the start was dropped), `pairs` (star, raw track index), `median_px` |
+| `verdict` | `status`, `reason`, and for a fit `start` and `tests` (each acceptance test, passed or not) |
+| `kept` | `attempt`: which attempt `solve_wide` returned (last event) |
+
+## What is an interface
+
+| Stable: change only with a release and plume in step | Internal: change freely |
+|---|---|
+| `pose_ledger.json` fields and `ledger.lookup`'s rules | `tracks/*.pkl` |
+| `cams.json` fields | the trace |
+| the `calibrate add` contract | gallery rows and the pages; the replay's data |
+| `pose` and `status` in solve results | overlays and videos |
+| `sky_model` strings | `weather_cache.json` |
+
+The other solve-result fields are read by people and by this package's own commands. Keep
+them compatible where it's cheap, and list any change in the release notes.
+
+## Known gaps
+
+- **Older results don't say which solver made them.** Rows solved before `solver` was
+  added (2026-09-27), including every entry in the shipped `pose_ledger.json`, carry no
+  version or commit. A `.dirty` solver means the code differed from the named commit, so
+  the row can't be reproduced from the repository alone.
+- **Track caches don't say what made them** (see [How they depend on each other](#how-they-depend-on-each-other)).
+- **Older FIgLib failure rows lack `sky_model`.**
+
+## Planned: per-camera intrinsics
+
+Today every 3072-px camera is solved under the shared lens with its centre at the frame's
+middle, and each solve fits its own pose and lens. The solves show that this isn't enough.
+Over 130 solved blocks, each camera's image centre is typically 14–37 px from the middle
+(median 23 px), and stable night to night (cp-w-mobo-c: 12 nights within 6 px). Fitting it
+halves the median residual (1.26 → 0.74 px) and rescues several failures. A camera's lens and
+centre (its *intrinsics*) belong to the hardware and shouldn't change when it is re-aimed,
+unlike its pose.
+
+The plan is a record per camera, beside the pose ledger:
+
+- **Intrinsics per camera and per series:** `k_ratio`, `k1`, `cx`, `cy` (centre offset from
+  the frame's middle, pixels), with their uncertainties, and the nights and stars behind
+  them.
+- **Estimated jointly across nights:** one set of intrinsics per series, one pose per night.
+  A single night can't separate a centre shift from a small change in pointing; several
+  nights with stars in different places can. The estimate sharpens as nights accumulate.
+- **Series with change points:** a night that disagrees with the series beyond the noise
+  starts a new one, the way disagreeing solves mean the camera moved. Legitimate causes are
+  a swapped unit under the same name, service, or a firmware change to crop or scaling. A
+  series never crosses a frame-format change.
+- **Poses refer to the intrinsics they were solved under**, so a pose and a lens from
+  different series are never combined.
+- **The solver uses a camera's intrinsics when it has them**, and the shared lens and the
+  frame's middle when it doesn't.
+
+Adopting this will move poses in the shipped ledger and in plume-triangulation, even for
+blocks that already solve, so it will ship as a release with a coordinated re-run there.
+
+## Keeping this page right
+
+When a change adds, removes or renames a field in any record above, update this page in the
+same commit. `tests/test_records.py` fails when a solve result, summary row, ledger entry,
+index entry or camera record has a field this page doesn't mention. It can't check meaning
+or units, so read the table you're touching.

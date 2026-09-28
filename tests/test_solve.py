@@ -64,3 +64,23 @@ def test_too_few_tracks_fails_with_a_reason():
     n.tracks = n.tracks[:5]
     r = solve(n)
     assert r["status"] == "failed" and "moving tracks" in r["reason"]
+
+
+def test_a_trace_records_the_solve_without_changing_it():
+    import json
+    night = synthetic_night("hp-s-mobo-c", (2.4, -0.7, 0.9))
+    for run in (solve, solve_wide):
+        trace = []
+        with_trace, plain = run(night, trace=trace), run(night)
+        assert json.dumps(with_trace, default=float) == json.dumps(plain, default=float)
+        stages = [e["stage"] for e in trace]
+        assert stages.count("verdict") == stages.count("attempt") >= 1
+        assert "rung" in stages and "scan" in stages
+    assert stages[-1] == "kept" and "pole" in stages
+
+
+def test_a_result_names_the_solver_that_made_it():
+    import star_calibration
+    r = solve(synthetic_night("hp-s-mobo-c", (0.0, 0.0, 0.0)))
+    assert r["solver"] == star_calibration.solver_id()
+    assert r["solver"].split("+")[0] == star_calibration.__version__

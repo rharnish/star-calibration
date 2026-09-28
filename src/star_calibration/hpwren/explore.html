@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solve Replay</title>
+<!-- Template: hpwren/calibrate.py copies this to gallery/explore.html in the HPWREN cache.
+     It shows one block, named in the query (?b=<block>), from explore/<block>.js, which
+     `calibrate explore <block>` writes (star_calibration.explore.export). -->
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10); --wash: rgba(11,11,11,0.05);
+  --solved: #2a78d6; --failed: #d95926; --accent: #2a78d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10); --wash: rgba(255,255,255,0.06);
+    --solved: #3987e5; --failed: #e0703f; --accent: #3987e5;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10); --wash: rgba(255,255,255,0.06);
+  --solved: #3987e5; --failed: #e0703f; --accent: #3987e5;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.app { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100vh; }
+header { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; padding: 10px 16px;
+  border-bottom: 1px solid var(--ring); }
+header h1 { font-size: 16px; margin: 0; overflow-wrap: anywhere; }
+header .sub { color: var(--ink-2); font-size: 13px; }
+header a { color: var(--ink-2); font-size: 13px; margin-left: auto; }
+.badge { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; color: #fff; }
+.body { display: grid; grid-template-columns: minmax(0, 1fr) 360px; min-height: 0; }
+.stage { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-width: 0; min-height: 0; background: #000; }
+.banner { color: #fff; background: #000; padding: 8px 14px; min-height: 52px; font-size: 13px; }
+.banner .t { font-weight: 600; }
+.banner .d { color: #c9c9c4; }
+.view { position: relative; min-height: 0; overflow: hidden; cursor: grab; touch-action: none; }
+.view.drag { cursor: grabbing; }
+canvas { display: block; width: 100%; height: 100%; }
+.hint { position: absolute; right: 10px; bottom: 8px; color: #8a8a85; font-size: 11px; pointer-events: none; }
+.controls { display: flex; gap: 10px; align-items: center; padding: 8px 12px 10px; background: var(--surface);
+  border-top: 1px solid var(--ring); }
+.controls button { font: inherit; font-size: 13px; min-width: 64px; color: var(--ink); background: var(--wash);
+  border: 1px solid var(--ring); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.timeline { position: relative; flex: 1; height: 30px; display: flex; gap: 2px; cursor: pointer; user-select: none; }
+.seg { height: 100%; border-radius: 3px; background: var(--wash); border: 1px solid var(--ring); min-width: 3px;
+  overflow: hidden; white-space: nowrap; font-size: 10px; color: var(--muted); padding: 7px 4px 0; }
+.seg.on { border-color: var(--ink-2); color: var(--ink); }
+.seg.fail { box-shadow: inset 0 -3px 0 var(--failed); }
+.seg.pass { box-shadow: inset 0 -3px 0 var(--solved); }
+.head { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); pointer-events: none; }
+.clock { font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: 12px; min-width: 90px; text-align: right; }
+aside { border-left: 1px solid var(--ring); background: var(--surface); overflow-y: auto; padding: 12px 14px 30px; }
+aside h2 { font-size: 13px; margin: 18px 0 6px; color: var(--ink-2); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+aside h2:first-child { margin-top: 0; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 13px; }
+.facts .k { color: var(--ink-2); }
+.facts .v { font-variant-numeric: tabular-nums; }
+.plot svg { width: 100%; height: auto; display: block; }
+.plot text { fill: var(--muted); font-size: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; font-variant-numeric: tabular-nums; }
+th { text-align: left; color: var(--ink-2); font-weight: 500; padding: 2px 4px; }
+td { padding: 2px 4px; border-top: 1px solid var(--ring); }
+.ladder td { text-align: center; cursor: pointer; font-size: 11px; line-height: 1.2; padding: 3px 2px; }
+.ladder td.ok { color: var(--solved); }
+.ladder td.drop { color: var(--failed); }
+.ladder td.now { outline: 2px solid var(--ink); outline-offset: -2px; }
+.ladder td.best { font-weight: 700; }
+.stars tr { cursor: default; }
+.stars tr:hover td { background: var(--wash); }
+.tests div { font-size: 13px; }
+.tests .ok { color: var(--solved); } .tests .no { color: var(--failed); }
+.layers label { display: flex; gap: 8px; align-items: center; font-size: 13px; padding: 2px 0; }
+.layers input[type=range] { flex: 1; }
+.chapters { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+.chapters .g { color: var(--muted); font-size: 11px; margin-top: 6px; text-transform: uppercase; letter-spacing: .04em; }
+.chapters button { font: inherit; color: var(--ink); background: none; border: 0; padding: 2px 6px; width: 100%;
+  text-align: left; border-radius: 4px; cursor: pointer; }
+.chapters button.on { background: var(--wash); font-weight: 600; }
+.note { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+.tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--ring);
+  border-radius: 8px; padding: 6px 9px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.25); z-index: 20; max-width: 300px; display: none; }
+.tip b { font-size: 13px; }
+.msg { padding: 40px 20px; max-width: 700px; margin: 0 auto; }
+.msg code { background: var(--wash); padding: 1px 4px; border-radius: 4px; }
+@media (max-width: 900px) {
+  .app { height: auto; }
+  .body { grid-template-columns: minmax(0, 1fr); }
+  .view { height: 62vh; }
+  aside { border-left: 0; border-top: 1px solid var(--ring); }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <h1 id="title">Solve replay</h1><span class="badge" id="badge"></span><span class="sub" id="sub"></span>
+    <a href="index.html">← gallery</a>
+  </header>
+  <div class="body" id="body">
+    <div class="stage">
+      <div class="banner"><div class="t" id="bt"></div><div class="d" id="bd"></div></div>
+      <div class="view" id="view"><canvas id="cv"></canvas>
+        <div class="hint">scroll to zoom · drag to pan · double-click to fit · space plays · ←/→ chapters</div></div>
+      <div class="controls">
+        <button id="play">▶ Play</button>
+        <div class="timeline" id="tl"><div class="head" id="head"></div></div>
+        <div class="clock" id="clock"></div>
+      </div>
+    </div>
+    <aside>
+      <h2 id="ph">Step</h2>
+      <div id="panel"></div>
+      <h2>Layers</h2>
+      <div class="layers" id="layers"></div>
+      <h2>Chapters</h2>
+      <ul class="chapters" id="chapters"></ul>
+    </aside>
+  </div>
+</div>
+<div class="tip" id="tip"></div>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const SVGNS = "http://www.w3.org/2000/svg";
+const sv = (tag, attrs) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+// overlay.py's colours
+const C = { green: "rgb(60,220,60)", magenta: "rgb(255,60,255)", grey: "rgb(150,150,150)", cyan: "rgb(60,210,230)",
+            orange: "rgb(255,140,0)", yellow: "rgb(255,255,0)", red: "rgb(255,60,60)", white: "#fff" };
+const fmt = (v, d = 2) => v == null ? "–" : Number(v).toFixed(d);
+const mins = (o, d = 0) => `${o < 0 ? "−" : "+"}${Math.abs(o / 60).toFixed(d)} min`;   // an offset from t0
+
+const B = new URLSearchParams(location.search).get("b");
+if (!B) fail("No block named. Open this page from a gallery card, or as <code>explore.html?b=&lt;block&gt;</code>.");
+else {
+  const s = document.createElement("script");
+  s.src = `../explore/${encodeURIComponent(B)}.js`;
+  s.onload = () => window.EXPLORE ? init(window.EXPLORE) : fail("The data file is empty.");
+  s.onerror = () => fail(`No replay for <code>${B}</code> yet. Make one with<br><code>python -m star_calibration.hpwren.calibrate explore ${B}</code>`);
+  document.head.appendChild(s);
+}
+function fail(html) { const m = h("div", "msg"); m.innerHTML = html; $("body").replaceWith(m); }
+
+function init(D) {
+  const W = D.W, H = D.H, R = D.result;
+  const used = new Set(D.used);
+  const cv = $("cv"), ctx = cv.getContext("2d"), view = $("view");
+  const trackEnd = D.tracks.map(t => t.length ? t[t.length - 1][0] : 0);
+
+  // ---- header
+  document.title = `Replay · ${D.seq}`;
+  $("title").textContent = D.seq;
+  const solved = R.status === "solved";
+  $("badge").textContent = solved ? "solved" : "failed";
+  $("badge").style.background = `var(--${solved ? "solved" : "failed"})`;
+  $("sub").textContent = [R.reason, D.imager, R.solver && `solver ${R.solver}`].filter(Boolean).join(" · ");
+
+  // ---- frames: the originals, decoded as they're needed. A frame decodes to ~25 MB, so
+  // only the last few are held; holding the whole night can cost the canvas its memory.
+  const imgs = new Map();
+  const image = url => {
+    let im = imgs.get(url);
+    if (im) { imgs.delete(url); imgs.set(url, im); }   // most recently used last
+    else {
+      im = new Image(); im.onload = () => request(); im.src = url; imgs.set(url, im);
+      for (const k of imgs.keys()) { if (imgs.size <= 8) break; if (k !== REF) imgs.delete(k); }
+    }
+    return im.complete && im.naturalWidth ? im : null;
+  };
+  const nearest = o => D.frames.reduce((b, f) => Math.abs(f[0] - o) < Math.abs(b[0] - o) ? f : b, D.frames[0]);
+  const REF = D.frames.length ? nearest(D.ref)[1] : null;   // the frame the replay is drawn on
+  let lastBg = null;
+
+  // ---- chapters: the solve as a sequence of steps, each with a play time
+  const steps = [];
+  const push = s => { s.t0 = steps.length ? steps[steps.length - 1].t0 + steps[steps.length - 1].dur : 0; steps.push(s); };
+  push({ kind: "night", dur: Math.max(4000, D.frames.length * 110), label: "The night", group: "Night" });
+  D.attempts.forEach((A, a) => {
+    const g = `Attempt ${a + 1}${A.kept ? " · kept" : ""}`;
+    if (A.pole) push({ kind: "pole", a, dur: 5000, label: "Pole", group: g });
+    if (A.published) push({ kind: "published", a, dur: 2500, label: "Published pose", group: g });
+    if (A.scan) push({ kind: "scan", a, dur: 7000, label: "Coarse scan", group: g });
+    for (const s of [...new Set(A.rungs.map(r => r.start))]) {
+      const rungs = A.rungs.filter(r => r.start === s);
+      const ok = !rungs[rungs.length - 1].dropped;
+      push({ kind: "refine", a, s, rungs, dur: rungs.reduce((t, r) => t + (r.dropped ? 1400 : 1000), 0) + 400,
+             label: `Start ${s + 1}`, group: g, mark: ok ? "pass" : "fail" });
+    }
+    if (A.verdict) push({ kind: "verdict", a, dur: 3000, label: "Verdict", group: g,
+                          mark: A.verdict.status === "solved" ? "pass" : "fail" });
+  });
+  push({ kind: "result", dur: 6000, label: "Result", group: "Result", mark: solved ? "pass" : "fail" });
+  const T = steps[steps.length - 1].t0 + steps[steps.length - 1].dur;
+  const locate = t => {
+    let i = steps.findIndex(s => t < s.t0 + s.dur); if (i < 0) i = steps.length - 1;
+    return { i, st: steps[i], u: Math.min(0.9999, Math.max(0, (t - steps[i].t0) / steps[i].dur)) };
+  };
+  // where a refine step is at: which rung, and how far its refit has slid
+  const rungAt = (st, u) => {
+    let ms = u * st.dur;
+    for (let k = 0; k < st.rungs.length; k++) {
+      const d = st.rungs[k].dropped ? 1400 : 1000;
+      if (ms < d || k === st.rungs.length - 1) return { k, r: st.rungs[k], a: st.rungs[k].dropped ? 0 : Math.min(1, ms / 600) };
+      ms -= d;
+    }
+  };
+
+  // ---- state
+  const S = { t: 0, playing: false, gain: 2, hl: null, layers: { tracks: true, stars: true, samples: true, labels: true } };
+  const V = { s: 1, x: 0, y: 0 };
+  let dpr = 1;
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    const r = view.getBoundingClientRect();
+    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+    request();
+  }
+  function fit() {
+    // the band of sky the tracks occupy, as the video and the overlays crop it
+    const yMax = Math.max(0, ...D.tracks.flatMap(t => t.map(p => p[2])));
+    const band = Math.min(H, Math.max(0.55 * H, yMax + 160));
+    const r = view.getBoundingClientRect();
+    V.s = Math.min(r.width / W, r.height / band);
+    V.x = (r.width - W * V.s) / 2;
+    V.y = H * V.s <= r.height ? (r.height - H * V.s) / 2 : 0;   // the whole frame if it fits
+    request();
+  }
+  const toImg = (cx, cy) => [(cx - V.x) / V.s, (cy - V.y) / V.s];
+
+  // ---- drawing, in the frame's own pixels
+  let pending = false;
+  function request() { if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; draw(); }); } }
+  const lw = px => px / V.s;   // a line width in screen pixels
+  function line(pts, color, width, alpha = 1) {
+    const p = pts.filter(q => q[0] != null);
+    if (p.length < 2) return;
+    ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = lw(width);
+    ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]); for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  function dot(x, y, r, color, fill = true) {
+    ctx.beginPath(); ctx.arc(x, y, lw(r), 0, 2 * Math.PI);
+    if (fill) { ctx.fillStyle = color; ctx.fill(); } else { ctx.strokeStyle = color; ctx.lineWidth = lw(1.5); ctx.stroke(); }
+  }
+  function label(x, y, text, color, size = 12) {
+    ctx.font = `${lw(size)}px system-ui, sans-serif`; ctx.fillStyle = color;
+    ctx.shadowColor = "#000"; ctx.shadowBlur = lw(3);
+    ctx.fillText(text, x + lw(8), y - lw(6)); ctx.shadowBlur = 0;
+  }
+  function arrow(x0, y0, x1, y1, color, width, head = 7) {
+    ctx.strokeStyle = color; ctx.lineWidth = lw(width);
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1);
+    const a = Math.atan2(y1 - y0, x1 - x0), L = lw(head);
+    ctx.moveTo(x1, y1); ctx.lineTo(x1 - L * Math.cos(a - 0.45), y1 - L * Math.sin(a - 0.45));
+    ctx.moveTo(x1, y1); ctx.lineTo(x1 - L * Math.cos(a + 0.45), y1 - L * Math.sin(a + 0.45));
+    ctx.stroke();
+  }
+  const track = (j, color, width, upto, alpha) =>
+    line((upto == null ? D.tracks[j] : D.tracks[j].filter(p => p[0] <= upto)).map(p => [p[1], p[2]]), color, width, alpha);
+  const lerp = (A, B, a) => A.map((p, i) => p[0] == null || !B || B[i][0] == null ? p : [p[0] + a * (B[i][0] - p[0]), p[1] + a * (B[i][1] - p[1])]);
+
+  function background(url, dim) {
+    const im = url && image(url);
+    if (im) lastBg = im;
+    const b = im || lastBg;
+    if (!b) return;
+    ctx.filter = `brightness(${S.gain * dim})`;
+    ctx.drawImage(b, 0, 0, W, H);
+    ctx.filter = "none";
+  }
+
+  // what each kind of step draws; each returns the banner's two lines
+  const scenes = {
+    night(st, u) {
+      const i = Math.min(D.frames.length - 1, Math.floor(u * D.frames.length));
+      const [o, url] = D.frames[i] || [0, null];
+      background(url, 1);
+      if (S.layers.tracks) for (const j of used) track(j, C.cyan, 2, o);
+      return [`${D.seq}`, `the night: ${used.size} moving tracks, ${mins(o)} (frame ${i + 1} of ${D.frames.length})`];
+    },
+    pole(st, u) {
+      const A = D.attempts[st.a], P = A.pole;
+      background(REF, 0.6);
+      if (S.layers.tracks) for (const j of used) track(j, C.cyan, 1, null, 0.7);
+      if (S.layers.samples && P.steps.length) {
+        const kept = P.kept, L = lw(16);
+        const n = [0, 0];
+        P.steps.forEach((q, i) => {
+          const k = kept ? kept[i] === "1" : true;
+          n[k ? 0 : 1]++;
+          if (k && i % 4) return;   // every kept step would be a solid smear
+          arrow(q[0], q[1], q[0] + q[2] * (k ? L : L * 1.2), q[1] + q[3] * (k ? L : L * 1.2), k ? C.yellow : C.red, k ? 1 : 2, 5);
+        });
+      }
+      const f = P.fit;
+      if (u > 0.5 && P.xy) {
+        const [x, y] = P.xy;
+        if (x >= 0 && x < W && y >= 0 && y < H) {
+          ctx.strokeStyle = C.white; ctx.lineWidth = lw(3); const L = lw(20);
+          ctx.beginPath(); ctx.moveTo(x - L, y); ctx.lineTo(x + L, y); ctx.moveTo(x, y - L); ctx.lineTo(x, y + L); ctx.stroke();
+          label(x, y, "pole", C.white, 15);
+        } else {
+          const ex = Math.min(W - 40, Math.max(40, x)), ey = Math.min(H - 40, Math.max(40, y));
+          arrow(W / 2 + (ex - W / 2) * 0.75, H / 2 + (ey - H / 2) * 0.75, ex, ey, C.white, 3, 16);
+          label(ex, ey, "pole (off frame)", C.white, 15);
+        }
+      }
+      const nk = P.kept ? [...P.kept].filter(c => c === "1").length : null;
+      return [A.title, u > 0.5 && f
+        ? `celestial pole in closed form: |p| ${fmt(f.norm, 3)} (1 = a coherent sky), ${fmt(100 * f.inlier_frac, 0)}% inliers`
+        : nk != null ? `the fit's input: ${P.steps.length} frame-to-frame steps, ${nk} kept (yellow, every 4th drawn), ${P.steps.length - nk} trimmed (red)`
+                     : "the trails' motion: the sky turns about one axis, so it fixes the pole"];
+    },
+    published(st) {
+      const A = D.attempts[st.a];
+      background(REF, 0.6);
+      if (S.layers.tracks) for (const j of used) track(j, C.cyan, 2);
+      if (S.layers.stars) A.published.xy.forEach((p, i) => { dot(p[0], p[1], 5, C.orange); if (S.layers.labels) label(p[0], p[1], A.published.names[i], C.orange, 11); });
+      return [A.title, "the published pose: where the camera table puts the bright stars (orange), under this attempt's lens"];
+    },
+    scan(st, u) {
+      const A = D.attempts[st.a], Sc = A.scan;
+      background(REF, 0.6);
+      if (S.layers.tracks) for (const j of used) track(j, C.cyan, 2);
+      const k = u > 0.85 && Sc.starts.length ? Sc.starts[0] : Math.min(Sc.scores.length - 1, Math.floor(u / 0.85 * Sc.scores.length));
+      const smp = Sc.samples.reduce((b, s) => s.i <= k ? s : b, Sc.samples[0]);
+      if (S.layers.stars) for (const p of smp.xy) dot(p[0], p[1], 5, C.orange);
+      st.cursor = k;
+      return [A.title, u > 0.85
+        ? `${Sc.starts.length} distinct best poses go on to refinement; the best one is shown`
+        : `${A.wide ? "turning the sky about the pole" : "the grid's best 200 poses, worst to best"}: stars (orange) that land on a track score`];
+    },
+    refine(st, u) {
+      const A = D.attempts[st.a], { k, r, a } = rungAt(st, u);
+      st.cursor = k;
+      background(REF, 0.6);
+      const ids = new Set(r.pairs.map(p => p[1]));
+      if (S.layers.tracks) {
+        for (const j of used) if (!ids.has(j)) track(j, C.cyan, 1, null, 0.8);
+        for (const j of ids) track(j, S.hl === j ? C.white : C.green, 5);
+      }
+      if (S.layers.stars) for (const n in r.arcs) {
+        const arc = r.dropped ? r.arcs[n].before : lerp(r.arcs[n].before, r.arcs[n].after, a);
+        line(arc, C.magenta, 2);
+        if (S.layers.labels && a >= 1) { const m = arc[arc.length >> 1]; if (m[0] != null) label(m[0], m[1], n, C.magenta, 11); }
+      }
+      return [A.title, r.dropped
+        ? `start ${st.s + 1}: only ${r.pairs.length} stars within ${r.thr} px, fewer than 4, so this start is dropped`
+        : `start ${st.s + 1}, tolerance ${r.thr} px${r.free_lens ? ", lens free" : ""}: ${r.pairs.length} stars paired, median ${fmt(r.median_px)} px (green = track, magenta = star under this pose)`];
+    },
+    verdict(st) {
+      const A = D.attempts[st.a], v = A.verdict;
+      const rungs = v.start == null ? [] : A.rungs.filter(r => r.start === v.start);
+      const r = rungs[rungs.length - 1];
+      background(REF, 0.45);
+      if (r) {
+        const ids = new Set(r.pairs.map(p => p[1]));
+        if (S.layers.tracks) for (const j of used) track(j, ids.has(j) ? C.green : C.cyan, ids.has(j) ? 5 : 1, null, ids.has(j) ? 1 : 0.6);
+        if (S.layers.stars) for (const n in r.arcs) line(r.arcs[n].after || r.arcs[n].before, C.magenta, 2);
+      } else if (S.layers.tracks) for (const j of used) track(j, C.cyan, 1);
+      return [A.title, v.tests.length ? v.tests.map(([t, ok]) => `${ok ? "✓" : "✗"} ${t}`).join("   ") : `failed: ${v.reason}`];
+    },
+    result() {
+      const F = D.final, matched = new Set(Object.values(R.matches || {}));
+      background(REF, 1);
+      const hasPose = !!R.pose;
+      if (S.layers.tracks) D.tracks.forEach((_, j) => {
+        if (hasPose && matched.has(j)) track(j, S.hl === j ? C.white : C.green, 7);
+        else if (hasPose) track(j, C.grey, 1);
+        else if (used.has(j)) track(j, C.cyan, 2);
+      });
+      if (S.layers.stars) {
+        for (const n in F.published_arcs) line(F.published_arcs[n], C.orange, 2);
+        for (const n in F.fitted_arcs) line(F.fitted_arcs[n], C.magenta, 2);
+        for (const n in F.bright_arcs) { line(F.bright_arcs[n], C.orange, 2); const m = F.bright_arcs[n][F.bright_arcs[n].length >> 1]; if (m[0] != null) label(m[0], m[1], n, C.orange); }
+        for (const [, x0, y0, x1, y1] of F.arrows) if (x0 != null) arrow(x0, y0, x1, y1, C.yellow, 2, 9);
+      }
+      if (S.layers.labels) for (const [n, mag, x, y] of F.sky) {
+        dot(x, y, Math.max(3, 9 - 1.5 * mag), "rgba(255,255,255,.9)", false);
+        label(x, y, n, "rgba(255,255,160,.95)", 11);
+      }
+      return [hasPose ? `${solved ? "Solved" : "Below the cutoff, best fit"}: ${R.n_stars} stars, median ${fmt(R.median_px)} px`
+                      : `Failed: ${R.reason}`,
+              hasPose ? `d_az ${fmt(R.pose.d_az)}  d_pitch ${fmt(R.pose.d_pitch)}  d_roll ${fmt(R.pose.d_roll)}  k ${fmt(R.pose.k_ratio, 3)}x  k1 ${fmt(R.pose.k1, 3)} · green = track, magenta = fitted, orange = published pose, yellow = published → fitted; labels are the catalog under the fitted pose`
+                      : "cyan = tracks used, orange = bright stars at the published pose and shared lens"];
+    },
+  };
+
+  let lastI = -1;
+  function draw() {
+    const { i, st, u } = locate(S.t);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.setTransform(dpr * V.s, 0, 0, dpr * V.s, dpr * V.x, dpr * V.y);
+    // a scene that throws says so in the banner rather than leaving the view blank
+    let t1, t2; try { [t1, t2] = scenes[st.kind](st, u); } catch (e) { t1 = `this step failed to draw: ${e.message}`; t2 = ""; }
+    $("bt").textContent = t1; $("bd").textContent = t2;
+    if (i !== lastI) { lastI = i; panel(st); }
+    tick(st, u);
+    placeHead();
+    $("clock").textContent = `${(S.t / 1000).toFixed(1)} / ${(T / 1000).toFixed(0)} s`;
+  }
+
+  // ---- side panel: what this step is, with its numbers
+  let ticker = () => {};
+  function seek(t) { S.t = Math.max(0, Math.min(T - 1, t)); request(); }
+  const seekStep = (i, frac = 0) => seek(steps[i].t0 + frac * steps[i].dur);
+  function facts(rows) {
+    const f = h("div", "facts");
+    for (const [k, v] of rows) if (v != null) { f.appendChild(h("div", "k", k)); f.appendChild(h("div", "v", v)); }
+    return f;
+  }
+  function scorePlot(A, st) {
+    const Sc = A.scan, w = 330, ht = 120, n = Sc.scores.length, top = Math.max(1e-9, ...Sc.scores);
+    const X = i => 6 + i * (w - 12) / Math.max(1, n - 1), Y = v => ht - 16 - v / top * (ht - 28);
+    const s = sv("svg", { viewBox: `0 0 ${w} ${ht}` });
+    s.appendChild(sv("path", { d: Sc.scores.map((v, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(""),
+                               fill: "none", stroke: C.orange, "stroke-width": 1.2 }));
+    Sc.starts.forEach((i, k) => {
+      s.appendChild(sv("circle", { cx: X(i), cy: Y(Sc.scores[i]), r: 4, fill: C.magenta }));
+      const t = sv("text", { x: X(i) + (X(i) > w - 20 ? -12 : 5), y: Y(Sc.scores[i]) - 5 }); t.textContent = k + 1; s.appendChild(t);
+    });
+    const t = sv("text", { x: 6, y: ht - 3 }); t.textContent = Sc.label; s.appendChild(t);
+    const cur = sv("line", { y1: 8, y2: ht - 14, stroke: "currentColor", "stroke-width": 1 }); s.appendChild(cur);
+    s.style.cursor = "crosshair"; s.style.color = "var(--ink)";
+    s.addEventListener("click", e => {
+      const r = s.getBoundingClientRect(), i = Math.round(((e.clientX - r.left) / r.width * w - 6) / (w - 12) * (n - 1));
+      seekStep(steps.indexOf(st), Math.max(0, Math.min(n - 1, i)) / n * 0.85); pause();
+    });
+    ticker = () => { const x = X(st.cursor || 0); cur.setAttribute("x1", x); cur.setAttribute("x2", x); };
+    return s;
+  }
+  function ladder(A, a, current) {
+    const tbl = h("table", "ladder"), hr = h("tr");
+    hr.appendChild(h("th", null, ""));
+    A.ladder.forEach(([thr, free]) => hr.appendChild(h("th", null, `${thr}${free ? "+k" : ""}`)));
+    tbl.appendChild(hr);
+    const cells = new Map();
+    const bestStart = A.verdict && A.verdict.start;
+    for (const s of [...new Set(A.rungs.map(r => r.start))]) {
+      const tr = h("tr"); tr.appendChild(h("th", null, `start ${s + 1}`));
+      const rs = A.rungs.filter(r => r.start === s);
+      A.ladder.forEach((_, k) => {
+        const r = rs[k], td = h("td");
+        if (r) {
+          td.className = (r.dropped ? "drop" : "ok") + (s === bestStart && k === rs.length - 1 ? " best" : "");
+          td.innerHTML = `${r.pairs.length}<br>${r.dropped ? "drop" : fmt(r.median_px, 1)}`;
+          td.title = r.dropped ? `only ${r.pairs.length} stars within ${r.thr} px` : `${r.pairs.length} stars paired, median ${fmt(r.median_px)} px`;
+          const i = steps.findIndex(x => x.kind === "refine" && x.a === a && x.s === s);
+          td.addEventListener("click", () => { const st = steps[i]; let ms = 0; for (let q = 0; q < k; q++) ms += st.rungs[q].dropped ? 1400 : 1000; seek(st.t0 + ms + 700); pause(); });
+          cells.set(`${s}:${k}`, td);
+        }
+        tr.appendChild(td);
+      });
+      tbl.appendChild(tr);
+    }
+    ticker = (st) => { cells.forEach(c => c.classList.remove("now")); const c = current && cells.get(`${st.s}:${st.cursor}`); if (c) c.classList.add("now"); };
+    return tbl;
+  }
+  function starTable() {
+    const rows = Object.entries(R.per_star_px || {}).sort((a, b) => a[1] - b[1]);
+    const tbl = h("table", "stars"), hr = h("tr");
+    for (const t of ["star", "mag", "px", "track"]) hr.appendChild(h("th", null, t));
+    tbl.appendChild(hr);
+    for (const [n, px] of rows) {
+      const tr = h("tr"), j = R.matches[n];
+      for (const v of [n, fmt(R.mags && R.mags[n], 1), fmt(px), `#${j}`]) tr.appendChild(h("td", null, v));
+      tr.addEventListener("mouseenter", () => { S.hl = j; request(); });
+      tr.addEventListener("mouseleave", () => { S.hl = null; request(); });
+      tbl.appendChild(tr);
+    }
+    return tbl;
+  }
+  function panel(st) {
+    const p = $("panel"); p.replaceChildren(); ticker = () => {};
+    $("ph").textContent = st.group === st.label ? st.label : `${st.group} · ${st.label}`;
+    const A = st.a != null ? D.attempts[st.a] : null;
+    if (A) p.appendChild(facts([["search", A.title], ["lens", A.lens_ratio != null ? `k ${fmt(A.lens_ratio, 3)}x, k1 ${fmt(A.lens[1], 3)}` : null],
+                                ["kept", D.attempts.length > 1 ? (A.kept ? "yes, this attempt's result is the one kept" : "no") : null]]));
+    if (st.kind === "night") {
+      p.appendChild(facts([["frames", D.frames.length], ["tracks used / raw", `${used.size} / ${D.tracks.length}`],
+                           ["reference", mins(D.ref, 1)], ["attempts", D.attempts.length]]));
+      p.appendChild(h("p", "note", "Each cyan track grows as its star moves. The rest of the replay is drawn on the frame nearest the reference, the one the most tracks were seen in."));
+    } else if (st.kind === "pole") {
+      const f = A.pole.fit, nk = A.pole.kept ? [...A.pole.kept].filter(c => c === "1").length : null;
+      p.appendChild(h("h2", null, "Pole fit"));
+      p.appendChild(facts(f ? [["|p|", fmt(f.norm, 3)], ["inliers", `${fmt(100 * f.inlier_frac, 0)}%`],
+                               ["median residual", `${fmt(f.median_res_rel, 3)} of sidereal`],
+                               ["steps kept / trimmed", nk != null ? `${nk} / ${A.pole.steps.length - nk}` : null]]
+                             : [["fit", "none"]]));
+      p.appendChild(h("p", "note", "|p| measures the lens: it is 1 only when the trails turn about one axis at the sidereal rate under the lens assumed. Red steps are the ones the fit trimmed; a cluster of them on one track marks that track as noise."));
+    } else if (st.kind === "published") {
+      p.appendChild(h("p", "note", "The grid search starts here and looks ±30° in azimuth, ±15° in pitch and ±10° in roll around it. If no orange dot is anywhere near a track, the published table is far off, or the sky isn't clear."));
+    } else if (st.kind === "scan") {
+      p.appendChild(h("h2", null, "Coincidence score"));
+      p.appendChild(h("div", "plot")).appendChild(scorePlot(A, st));
+      p.appendChild(h("p", "note", "The score counts bright stars that land within the catch radius of a track. The numbered marks are the distinct best poses handed to refinement. Click the plot to look at any pose."));
+    } else if (st.kind === "refine" || st.kind === "verdict") {
+      p.appendChild(h("h2", null, "Tolerance ladder (pairs, median px)"));
+      p.appendChild(ladder(A, st.a, st.kind === "refine"));
+      p.appendChild(h("p", "note", "Each start refits under a tightening tolerance; +k frees the lens. Stars dropping out as it tightens while the arcs sit beside the tracks on one side point to a systematic model error, such as the image centre. Click a cell to jump to it."));
+      if (st.kind === "verdict") {
+        const v = A.verdict, t = h("div", "tests");
+        if (v.tests.length) v.tests.forEach(([s, ok]) => t.appendChild(h("div", ok ? "ok" : "no", `${ok ? "✓" : "✗"} ${s}`)));
+        else t.appendChild(h("div", "no", `✗ ${v.reason}`));
+        p.appendChild(h("h2", null, "Acceptance")); p.appendChild(t);
+      }
+    } else if (st.kind === "result") {
+      p.appendChild(facts([["status", R.status], ["reason", R.reason], ["found by", R.found_by],
+                           ["stars", R.n_stars], ["median / rmse", R.median_px != null ? `${fmt(R.median_px)} / ${fmt(R.rmse_px, 1)} px` : null],
+                           ["pose", R.pose ? `az ${fmt(R.pose.d_az)}  pitch ${fmt(R.pose.d_pitch)}  roll ${fmt(R.pose.d_roll)}` : null],
+                           ["lens", R.pose ? `k ${fmt(R.pose.k_ratio, 3)}x  k1 ${fmt(R.pose.k1, 3)}` : null],
+                           ["tracks used / raw", `${R.n_tracks} / ${R.n_tracks_raw}`]]));
+      if (R.per_star_px) { p.appendChild(h("h2", null, "Matched stars")); p.appendChild(starTable()); }
+    }
+    document.querySelectorAll(".chapters button").forEach((b, k) => b.classList.toggle("on", k === steps.indexOf(st)));
+    document.querySelectorAll(".seg").forEach((b, k) => b.classList.toggle("on", k === steps.indexOf(st)));
+  }
+  function tick(st, u) { ticker(st, u); }
+
+  // ---- timeline and chapters
+  const tl = $("tl");
+  steps.forEach((st, i) => {
+    const seg = h("div", "seg" + (st.mark ? " " + st.mark : ""), st.kind === "refine" ? `${st.s + 1}` : st.label);
+    seg.style.flex = `${st.dur} 1 0`; seg.title = `${st.group} · ${st.label}`;
+    tl.insertBefore(seg, $("head"));
+  });
+  // the head sits over segments with gaps between them: map x to time by segment
+  function timeAt(clientX) {
+    const segs = [...tl.querySelectorAll(".seg")];
+    for (let i = 0; i < segs.length; i++) {
+      const r = segs[i].getBoundingClientRect();
+      if (clientX < r.right + 1 || i === segs.length - 1)
+        return steps[i].t0 + Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * steps[i].dur;
+    }
+  }
+  let scrubbing = false;
+  tl.addEventListener("pointerdown", e => { scrubbing = true; tl.setPointerCapture(e.pointerId); pause(); seek(timeAt(e.clientX)); });
+  tl.addEventListener("pointermove", e => { if (scrubbing) seek(timeAt(e.clientX)); });
+  tl.addEventListener("pointerup", () => { scrubbing = false; });
+  // the head's position by segment, not by raw time, so it lines up with the gaps
+  const placeHead = () => {
+    const { i, u } = locate(S.t), seg = tl.querySelectorAll(".seg")[i];
+    if (!seg) return;
+    const r0 = tl.getBoundingClientRect(), r = seg.getBoundingClientRect();
+    $("head").style.left = `${r.left - r0.left + u * r.width}px`;
+  };
+  const ch = $("chapters");
+  let g = null;
+  steps.forEach((st, i) => {
+    if (st.group !== g) { g = st.group; ch.appendChild(h("li", "g", g)); }
+    const li = h("li"), b = h("button", null, st.kind === "refine" ? `Refine, start ${st.s + 1}${st.mark === "fail" ? " (dropped)" : ""}` : st.label);
+    b.addEventListener("click", () => { pause(); seekStep(i, st.kind === "pole" ? 0.6 : st.kind === "scan" ? 0.9 : st.kind === "night" ? 0.5 : 0); });
+    li.appendChild(b); ch.appendChild(li);
+  });
+
+  // ---- layers
+  const lay = $("layers");
+  for (const [k, text] of [["tracks", "tracks"], ["stars", "stars and predicted arcs"], ["samples", "pole-fit samples"], ["labels", "star names"]]) {
+    const l = h("label"), c = h("input"); c.type = "checkbox"; c.checked = S.layers[k];
+    c.addEventListener("change", () => { S.layers[k] = c.checked; request(); });
+    l.appendChild(c); l.appendChild(document.createTextNode(text)); lay.appendChild(l);
+  }
+  const gl = h("label"), gr = h("input"); gr.type = "range"; gr.min = 0.5; gr.max = 5; gr.step = 0.1; gr.value = S.gain;
+  gr.addEventListener("input", () => { S.gain = +gr.value; request(); });
+  gl.appendChild(document.createTextNode("frame gain")); gl.appendChild(gr); lay.appendChild(gl);
+
+  // ---- playback
+  let last = 0;
+  function frame(now) {
+    if (!S.playing) return;
+    S.t += Math.min(100, now - last); last = now;
+    if (S.t >= T - 1) { S.t = T - 1; pause(); }
+    draw();
+    requestAnimationFrame(frame);
+  }
+  function play() { if (S.t >= T - 1) S.t = 0; S.playing = true; $("play").textContent = "❚❚ Pause"; last = performance.now(); requestAnimationFrame(frame); }
+  function pause() { S.playing = false; $("play").textContent = "▶ Play"; }
+  $("play").addEventListener("click", () => S.playing ? pause() : play());
+  window.addEventListener("keydown", e => {
+    if (e.target.tagName === "INPUT") return;
+    const { i } = locate(S.t);
+    if (e.key === " ") { e.preventDefault(); S.playing ? pause() : play(); }
+    else if (e.key === "ArrowRight") { pause(); seekStep(Math.min(steps.length - 1, i + 1)); }
+    else if (e.key === "ArrowLeft") { pause(); seekStep(S.t - steps[i].t0 > 300 ? i : Math.max(0, i - 1)); }
+  });
+
+  // ---- zoom, pan, hover
+  view.addEventListener("wheel", e => {
+    e.preventDefault();
+    const r = view.getBoundingClientRect(), cx = e.clientX - r.left, cy = e.clientY - r.top;
+    const f = Math.exp(-e.deltaY * 0.0015), s = Math.max(0.05, Math.min(20, V.s * f));
+    V.x = cx - (cx - V.x) * s / V.s; V.y = cy - (cy - V.y) * s / V.s; V.s = s; request();
+  }, { passive: false });
+  let drag = null;
+  view.addEventListener("pointerdown", e => { drag = [e.clientX, e.clientY, V.x, V.y]; view.setPointerCapture(e.pointerId); view.classList.add("drag"); });
+  view.addEventListener("pointerup", () => { drag = null; view.classList.remove("drag"); });
+  view.addEventListener("dblclick", fit);
+  const tip = $("tip");
+  view.addEventListener("pointerleave", () => { tip.style.display = "none"; });
+  view.addEventListener("pointermove", e => {
+    if (drag) { V.x = drag[2] + e.clientX - drag[0]; V.y = drag[3] + e.clientY - drag[1]; request(); tip.style.display = "none"; return; }
+    const r = view.getBoundingClientRect(), [x, y] = toImg(e.clientX - r.left, e.clientY - r.top);
+    const html = hover(x, y, 10 / V.s);
+    if (!html) { tip.style.display = "none"; return; }
+    tip.innerHTML = html; tip.style.display = "block";
+    tip.style.left = `${Math.min(innerWidth - 310, e.clientX + 14)}px`; tip.style.top = `${e.clientY + 14}px`;
+  });
+  const segDist = (x, y, a, b) => {
+    const dx = b[1] - a[1], dy = b[2] - a[2], L = dx * dx + dy * dy;
+    const t = L ? Math.max(0, Math.min(1, ((x - a[1]) * dx + (y - a[2]) * dy) / L)) : 0;
+    return Math.hypot(x - a[1] - t * dx, y - a[2] - t * dy);
+  };
+  function hover(x, y, tol) {
+    const { st, u } = locate(S.t);
+    // a named star under the cursor first, then a track
+    const named = [];
+    if (st.kind === "result" && S.layers.labels) for (const [n, mag, sx, sy] of D.final.sky) named.push([n, sx, sy, `mag ${fmt(mag, 1)}${R.per_star_px && R.per_star_px[n] != null ? ` · matched to track #${R.matches[n]}, ${fmt(R.per_star_px[n])} px` : ""}`]);
+    if (st.kind === "published" && S.layers.stars) { const P = D.attempts[st.a].published; P.xy.forEach((p, i) => named.push([P.names[i], p[0], p[1], "bright star at the published pose"])); }
+    let best = null;
+    for (const q of named) { const d = Math.hypot(q[1] - x, q[2] - y); if (d < tol && (!best || d < best[0])) best = [d, q]; }
+    if (best) return `<b>${best[1][0]}</b><br>${best[1][3]}`;
+    if (!S.layers.tracks) return null;
+    const pairs = st.kind === "refine" ? new Map(rungAt(st, u).r.pairs.map(p => [p[1], p[0]])) : null;
+    let bj = null, bd = tol;
+    D.tracks.forEach((t, j) => {
+      if (st.kind !== "result" && !used.has(j)) return;
+      for (let i = 1; i < t.length; i++) { const d = segDist(x, y, t[i - 1], t[i]); if (d < bd) { bd = d; bj = j; } }
+    });
+    if (bj == null) return null;
+    const t = D.tracks[bj], star = Object.keys(R.matches || {}).find(n => R.matches[n] === bj);
+    const lines = [`<b>track #${bj}</b>`, `${t.length} points, ${mins(t[0][0])} to ${mins(trackEnd[bj])}${used.has(bj) ? "" : " · not used"}`];
+    if (pairs) lines.push(pairs.has(bj) ? `paired with ${pairs.get(bj)} on this rung` : "not paired on this rung");
+    if (star) lines.push(`result: ${star}, ${fmt(R.per_star_px[star])} px, mag ${fmt(R.mags[star], 1)}`);
+    return lines.join("<br>");
+  }
+
+  new ResizeObserver(() => { resize(); placeHead(); }).observe(view);
+  resize(); fit();
+  // open on the result, or at ?t=<seconds>; play replays the whole solve
+  const t0 = parseFloat(new URLSearchParams(location.search).get("t"));
+  if (isFinite(t0)) seek(1000 * t0); else seekStep(steps.length - 1);
+  setTimeout(placeHead, 0);
+  // read the night's frames ahead of playback, a few at a time, into the browser's cache
+  // (not decoded, and not held here)
+  let q = 0;
+  const ahead = () => { for (let k = 0; k < 4 && q < D.frames.length; k++, q++) new Image().src = D.frames[q][1]; if (q < D.frames.length) setTimeout(ahead, 250); };
+  ahead();
+}
+</script>
+</body>
+</html>

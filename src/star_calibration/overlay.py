@@ -11,7 +11,8 @@ the published table were right, which is usually the fastest way to see why it d
 A fit that fell below the acceptance cutoff is drawn like a solve, and labelled as such.
 
 `draw` takes the result, the `Night` it was solved from, and one decoded frame (BGR, as
-cv2.imdecode gives it), ideally the one nearest `reference_offset`. It returns the picture;
+cv2.imdecode gives it), ideally the one nearest `reference_offset`. It returns the picture,
+cropped to the band of sky with something drawn in it unless `full` is set;
 where it goes is the caller's business (hpwren.calibrate writes the cache's overlays/).
 """
 from __future__ import annotations
@@ -32,7 +33,7 @@ def reference_offset(result: dict, night: Night) -> int:
     return result.get("ref_offset", offs[len(offs) // 2])
 
 
-def draw(result: dict, night: Night, frame: np.ndarray) -> np.ndarray:
+def draw(result: dict, night: Night, frame: np.ndarray, full: bool = False) -> np.ndarray:
     r, tracks, c = result, night.tracks, night.cam
     offs = sorted({o for t in tracks for o in t}) or [0]
     ref = reference_offset(r, night)
@@ -99,7 +100,8 @@ def draw(result: dict, night: Night, frame: np.ndarray) -> np.ndarray:
                 y_max = max(y_max, float(a[1]))
             cv2.arrowedLine(canvas, a, b, (0, 255, 255), 2, cv2.LINE_AA, tipLength=0.08)
 
-    canvas = canvas[: int(min(H, max(0.55 * H, y_max + 120)))]
+    if not full:   # the band of sky with something drawn in it, unless asked for the whole frame
+        canvas = canvas[: int(min(H, max(0.55 * H, y_max + 120)))]
     if solved:
         p = r["pose"]
         tag = "SOLVED" if r["status"] == "solved" else "BELOW CUTOFF, best fit"
