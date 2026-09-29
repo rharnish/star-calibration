@@ -55,9 +55,10 @@ HPWREN CDN ──fetch──▶ nights/ ──index──▶ nights.json
 
 A change upstream makes everything downstream stale, and nothing records that it is:
 
-- **Changing the detector or linker (`tracks.py`)** leaves the old `tracks/*.pkl` in place.
-  `load_tracks` reads a pickle if it exists, and the pickle records neither the detector's
-  parameters nor the code version. Delete `tracks/` to rebuild.
+- **Changing the detector, linker or cleaning (`tracks.py`)** leaves the old `tracks/*.pkl`
+  in place unless it changes a recipe. Each pickle records the recipe `load_tracks` linked
+  and cleaned it with (`link`, `clean`), and a pickle made with another recipe is rebuilt.
+  A code change that keeps the recipe goes unnoticed: delete `tracks/` to rebuild.
 - **Changing the solver** leaves `solves/` as it was until `calibrate solve` runs again.
 - **Changing the catalog or its corrections** changes `sky_model`, and `ledger.load` then
   refuses a ledger that mixes the old and new models.
@@ -174,11 +175,49 @@ directory with fewer than 8 frames is left out.
 
 ### `tracks/tracks_<block>.pkl`
 
-A pickle of `{"tracks": [...], "WH": (W, H)}`. Each track is a dict from offset (seconds) to
-`(x, y, amp)`: pixel position and peak amplitude of the point in that frame. These are the
-moving point sources `tracks.collect` linked across frames. Most are stars; some are noise.
-The pickle is a cache, not an interface: it can change with `tracks.py`, and nothing records
-the code or parameters that made it (see above).
+A pickle of one block's tracks, written by `calibrate.load_tracks`. Each track is a dict from
+offset (seconds) to `(x, y, amp)`: pixel position and peak amplitude of the point in that
+frame. The pickle is a cache, not an interface: it can change with `tracks.py`.
+
+| Field | Meaning |
+|---|---|
+| `linked` | the moving tracks `tracks.collect` linked across frames, before cleaning |
+| `link` | the linking recipe: `linker` (`nearest` for colour cameras, `predictive` for monochrome) and `max_gap_s` (a track unseen that long closes) |
+| `tracks` | the tracks the solver uses: `linked` after `tracks.clean`. A solve's `matches` index this list |
+| `clean` | the cleaning recipe: `banner_px`, the rows of burned-in text at the top of the frame |
+| `cleaning` | counts from `tracks.clean`: `linked`, `squiggly` (dropped), `split` (tracks split or trimmed), `banner` (dropped), `duplicate` (dropped), `kept` |
+| `WH` | frame width and height |
+
+Pickles written before 2026-09-28 hold only `tracks` (uncleaned, linked with no gap limit
+within a block) and `WH`. `load_tracks` rebuilds them.
+
+#### Track cleaning
+
+Nearest-neighbour linking (`tracks.link_tracks`) makes three kinds of tracks that aren't one
+star. They were measured on the 3,105 tracks matched to a star in the 130 solved CDN blocks
+of 2026-09-28, against each star's path under its solved pose:
+
+- **Hand-overs.** 628 of those tracks leave their star for at least two points. About half
+  of the switches come after a gap: a track left open is taken over by a later star passing
+  its last position (Markab, then Algenib 70 min later on the same pixels, hp-e 07-14). The
+  rest are hops between close stars (the Pleiades), and faint, bloated stars whose centroid
+  wanders and fragments. 39% of the off-path points sit on another catalog star.
+  `load_tracks` now closes a colour camera's track after 300 s unseen (180 s lost two
+  blocks), and `tracks.split` cuts at gaps over 600 s and separates each star's points by
+  fitting a cubic path in time (RANSAC, 3 px). On those tracks it kept 98% of each star's
+  points and dropped 91% of the off-path points. It left the tracks that stay on their star
+  unchanged.
+- **Squiggles.** Cloud texture, haze and noise wander: `tracks.squiggly` flags a median turn
+  over 40 degrees between steps of at least 10 px, or more than 30% of steps reversing. A
+  squiggly track keeps only its largest smooth part, and only if that part holds half its
+  points (57% of flagged star tracks qualify, 15% of the others).
+- **Banner tracks.** HPWREN burns a line of text into the top ~35 rows. Its clock digits
+  change every frame and link into slow tracks, which dragged the pole fit toward |p| 0.5
+  on five solved blocks. `clean` drops tracks with a median row under `banner_px` (60) that
+  move less than 60 px/h. Real stars cross the banner too, and move far faster.
+
+Over those blocks' old tracks, `clean` kept a track of 8 or more points on 3,065 of the
+3,105 matched stars.
 
 ### `solves/solve_<block>.json` and `solves/summary.json`
 
@@ -382,7 +421,7 @@ them compatible where it's cheap, and list any change in the release notes.
   added (2026-09-27), including every entry in the shipped `pose_ledger.json`, carry no
   version or commit. A `.dirty` solver means the code differed from the named commit, so
   the row can't be reproduced from the repository alone.
-- **Track caches don't say what made them** (see [How they depend on each other](#how-they-depend-on-each-other)).
+- **Track caches record their recipe, not their code** (see [How they depend on each other](#how-they-depend-on-each-other)).
 - **Older FIgLib failure rows lack `sky_model`.**
 
 ## Planned: per-camera intrinsics

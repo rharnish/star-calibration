@@ -84,3 +84,20 @@ def test_a_result_names_the_solver_that_made_it():
     r = solve(synthetic_night("hp-s-mobo-c", (0.0, 0.0, 0.0)))
     assert r["solver"] == star_calibration.solver_id()
     assert r["solver"].split("+")[0] == star_calibration.__version__
+
+
+def test_coincidence_counts_no_star_behind_the_camera():
+    # the wide scan's pool is every star above the horizon; those behind the camera are NaN
+    # in projection and must count as out of frame, not crash or land in it
+    from scipy.spatial import cKDTree
+    from star_calibration.fisheye import K1, K_RATIO, initial_k
+    from star_calibration.solve import make_coincidence
+
+    cam = {"lat": 33.0, "lon": -116.8, "az": 180.0, "fov": 90.0}
+    W, H = 3072, 2048
+    az = np.array([180.0, 0.0, 10.0, 350.0])                 # one ahead, three behind
+    alt = np.array([10.0, 10.0, 20.0, 5.0])
+    tree = cKDTree(np.array([[W / 2, H / 2 - 400]]))
+    lens = (K_RATIO * initial_k(cam, W), K1)
+    score, n_in, n_pred = make_coincidence(cam, W, H, lens, tree, H, az, alt, 20.0)((0, 0, 0))
+    assert n_pred == 1

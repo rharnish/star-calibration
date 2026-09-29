@@ -43,7 +43,9 @@ to a third of a pixel.
 1. **Tracks** (`tracks.py`). Detect point sources in every dark frame and link them frame to
    frame. Keep what persists and moves: hot pixels and lens artefacts stay put, stars drift at
    the sidereal rate. The monochrome (NIR) units get a noise-scaled detector and a
-   constant-velocity linker.
+   constant-velocity linker. Then `clean` takes out what isn't one star: it splits tracks
+   the linker handed from one star to another, and drops cloud texture that wanders instead
+   of drifting and the burned-in banner's clock digits.
 2. **Pole** (`pole.py`). For a star at direction *d*, *ḋ = ω (p × d)*, which is linear in the
    celestial pole *p*. One least-squares solve over all trails gives the pole in camera
    coordinates, with no catalog and no search. Its length measures the lens scale.
@@ -70,12 +72,13 @@ Leave out `[opencv]` if your environment already has an OpenCV build.
 **As a library,** with frames from anywhere:
 
 ```python
-from star_calibration.tracks import collect
+from star_calibration.tracks import clean, collect
 from star_calibration.solve import Night, solve_wide
 
 t0 = 1789112704  # the epoch track offsets count from
 frames = [...]   # (epoch, epoch - t0, jpeg bytes), in time order
-tracks, decoded = collect(frames, lat=33.1, lon=-116.8)
+tracks, decoded = collect(frames, lat=33.1, lon=-116.8, max_gap_s=300)
+tracks, counts = clean(tracks, banner_px=0)   # rows of burned-in text at the top, if any
 cam = {"lat": 33.1, "lon": -116.8, "elev": 1600, "az": 180, "fov": 90}  # published pose
 r = solve_wide(Night(camera="my-cam", cam=cam, t0=t0, tracks=tracks))
 r["status"], r["pose"]   # 'solved', {'d_az', 'd_pitch', 'd_roll', 'k_ratio', 'k1'}
@@ -95,7 +98,7 @@ python -m star_calibration.hpwren.calibrate agree
 |---|---|
 | `catalog` | bright-star catalog (HYG, mag ≤ 4) and apparent alt/az for any epoch and site |
 | `fisheye` | the lens model, pixel ↔ direction, and the shared HPWREN lens |
-| `tracks` | point-source detection and linking |
+| `tracks` | point-source detection, linking, and cleaning |
 | `pole` | the pole from trails, and the pose family it implies |
 | `solve` | `Night`, `solve`, `solve_wide` |
 | `cross_night` | night-to-night agreement |

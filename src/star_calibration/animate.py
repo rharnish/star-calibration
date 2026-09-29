@@ -100,7 +100,8 @@ class _Stage:
         return cv2.resize(f, (OUT_W, self.view_h), interpolation=cv2.INTER_AREA)
 
     def px(self, xy) -> np.ndarray:
-        return (np.asarray(xy, float) * self.s).astype(np.int32)
+        # NaN (a star out of the picture) lands far off-canvas, where every caller skips it
+        return np.nan_to_num(np.asarray(xy, float) * self.s, nan=-1e6).astype(np.int32)
 
     def project(self, az, alt, p5) -> np.ndarray:
         x, y = project_fisheye(self.c, az, alt, self.W, self.H, *p5)

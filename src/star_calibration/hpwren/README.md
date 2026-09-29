@@ -81,7 +81,7 @@ describes every record below, field by field.
 ```
 nights/<cam>/<YYYYMMDD>_Q<n>/<epoch>.jpg    frames (nights.py)
 nights.json                                 the index: block name -> camera, t0, directory
-tracks/tracks_<block>.pkl                   moving tracks per block
+tracks/tracks_<block>.pkl                   linked and cleaned tracks per block
 solves/solve_<block>.json, summary.json     per-block results
 overlays/star_solve_<block>.jpg             each solve drawn on its frame (overlay.py)
 animations/star_solve_<block>.mp4           a solve played back, on request (animate.py)

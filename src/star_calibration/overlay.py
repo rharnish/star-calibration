@@ -94,6 +94,8 @@ def draw(result: dict, night: Night, frame: np.ndarray, full: bool = False) -> n
             if ins.sum() >= 2:
                 cv2.polylines(canvas, [pts[ins].astype(np.int32)], False, (0, 140, 255), 2,
                               cv2.LINE_AA)
+            if not np.isfinite([xp[j_ref], yp[j_ref], xf[j_ref], yf[j_ref]]).all():
+                continue
             a = (int(xp[j_ref] * W), int(yp[j_ref] * H))
             b = (int(xf[j_ref] * W), int(yf[j_ref] * H))
             if 0 <= a[0] < W and 0 <= a[1] < H:

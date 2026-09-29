@@ -6,7 +6,7 @@ with no site visit and no surveyed landmark.
 
   catalog      bright-star catalog (HYG, mag <= 4), and apparent alt/az for any epoch and site
   fisheye      the equidistant-plus-one-term lens model, and pixel <-> direction
-  tracks       point-source detection in each frame, and linking into moving tracks
+  tracks       point-source detection in each frame, linking into moving tracks, cleaning
   pole         the celestial pole from the trails alone, and the pose family it implies
   solve        pose (and lens) from one night's tracks: `solve`, `solve_wide`, `Night`
   cross_night  whether two nights' solves of one camera agree

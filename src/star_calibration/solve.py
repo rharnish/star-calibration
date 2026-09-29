@@ -321,7 +321,7 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
         pairs = []
         for thr, free in ladder:
             C = costs(p5)
-            ri, ci = linear_sum_assignment(np.minimum(C, 1e3))
+            ri, ci = linear_sum_assignment(np.minimum(np.nan_to_num(C, nan=1e3), 1e3))
             pairs = [(i, j) for i, j in zip(ri, ci) if C[i, j] < thr]
             named = [(names[i], keep[j]) for i, j in pairs]   # raw track indices, as `matches`
             if len(pairs) < 4:

@@ -31,7 +31,7 @@ import numpy as np
 
 from . import catalog as SG
 from .animate import _attempts, _describe, _first
-from .fisheye import K1, K_RATIO, _basis, _unit, initial_k, project_fisheye
+from .fisheye import K1, K_RATIO, initial_k, project_fisheye
 from .solve import Night, prune, windowed
 
 FORMAT = 1
@@ -59,17 +59,9 @@ class _Sky:
         self._arcs: dict[str, tuple[np.ndarray, np.ndarray]] = {}
 
     def project(self, az, alt, p5) -> np.ndarray:
-        """Pixels, NaN for a star too far off the boresight to be in the picture. The lens
-        polynomial turns back on itself past theta = sqrt(-1/(3 k1)) (~115 deg at k1 -0.08),
-        so a star behind the camera would otherwise land in the frame."""
+        """Pixels; NaN for a star too far off the boresight to be in the picture."""
         x, y = project_fisheye(self.c, az, alt, self.W, self.H, *p5)
-        xy = np.c_[np.atleast_1d(x) * self.W, np.atleast_1d(y) * self.H]
-        k1 = p5[4] if len(p5) > 4 else 0.0
-        limit = min(100.0, math.degrees(math.sqrt(-1 / (3 * k1)))) if k1 < 0 else 100.0
-        t = _unit(np.atleast_1d(np.asarray(az, float)), np.atleast_1d(np.asarray(alt, float)))
-        theta = np.degrees(np.arccos(np.clip(t @ _basis(self.c, *p5[:3])[0], -1, 1)))
-        xy[theta > limit] = np.nan
-        return xy
+        return np.c_[np.atleast_1d(x) * self.W, np.atleast_1d(y) * self.H]
 
     def inside(self, xy: np.ndarray, pad: float = 0.0) -> np.ndarray:
         return ((xy[:, 0] >= -pad) & (xy[:, 0] < self.W + pad)

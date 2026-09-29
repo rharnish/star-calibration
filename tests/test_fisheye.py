@@ -38,3 +38,17 @@ def test_pitch_makes_azimuth_depend_on_the_row():
     pitched = [unproject_fisheye(CAM, 0.8, y, W, H, 0, 16.8, 0, k, -0.078)[0] for y in (0.5, 0.8)]
     assert abs(level[0] - level[1]) < 1e-9
     assert abs(pitched[0] - pitched[1]) > 1.0
+
+
+def test_directions_behind_the_camera_do_not_fold_into_the_frame():
+    # k1 < 0 folds the lens curve back past ~118 deg: a star behind the camera used to land
+    # in the picture. Everything past theta_limit_deg is NaN now.
+    from star_calibration.fisheye import theta_limit_deg
+
+    k = 0.886 * initial_k(CAM, W)
+    off = np.array([0.0, 60.0, 99.0, 101.0, 150.0, 175.0])      # degrees off the boresight
+    x, y = project_fisheye(CAM, CAM["az"] + off, np.zeros_like(off), W, H, 0, 0, 0, k, -0.078)
+    assert np.isfinite(x[:3]).all() and np.isnan(x[3:]).all() and np.isnan(y[3:]).all()
+    assert theta_limit_deg(-0.078) == 100.0
+    assert theta_limit_deg(-0.3) == pytest.approx(np.degrees(np.sqrt(1 / 0.9)))
+    assert theta_limit_deg(0.0) == 100.0
