@@ -20,6 +20,10 @@ also a unit vector; theta is the angle between it and the boresight (via the dot
 valid at any angle, unlike a tangent-plane difference), and phi is its bearing within the
 local basis. Pixel offset is (k*theta) in the direction of phi -- polar coordinates in the
 image plane, not a small-angle tangent-plane approximation.
+
+The optical centre is where the boresight lands. It defaults to the frame's middle; a camera
+record with `cx`, `cy` (pixels right and down from the middle) moves it there. HPWREN's
+units sit a median 32 px off (hpwren/intrinsics.json).
 """
 from __future__ import annotations
 
@@ -98,8 +102,8 @@ def project_fisheye(cam: dict, az_deg: np.ndarray, elev_deg: np.ndarray, width: 
     ux, uy = t_perp_x / safe, t_perp_y / safe  # unit bearing direction, well-defined at theta=0
 
     r = k_scale * theta * (1.0 + k1 * theta ** 2)
-    dx_px = r * ux
-    dy_px = -r * uy  # image y grows downward; "up" should decrease y
+    dx_px = r * ux + cam.get("cx", 0.0)
+    dy_px = -r * uy + cam.get("cy", 0.0)  # image y grows downward; "up" should decrease y
 
     out = theta > math.radians(theta_limit_deg(k1))
     return (np.where(out, np.nan, 0.5 + dx_px / width),
@@ -120,8 +124,8 @@ def unproject_fisheye(cam: dict, x_frac, y_frac, width: int, height: int,
     if k_scale is None:
         k_scale = initial_k(cam, width)
     boresight, right, up = _basis(cam, d_az, d_pitch, d_roll)
-    dx = (np.asarray(x_frac, float) - 0.5) * width
-    dy = (np.asarray(y_frac, float) - 0.5) * height
+    dx = (np.asarray(x_frac, float) - 0.5) * width - cam.get("cx", 0.0)
+    dy = (np.asarray(y_frac, float) - 0.5) * height - cam.get("cy", 0.0)
     r = np.hypot(dx, dy)
     theta = r / k_scale
     for _ in range(30):

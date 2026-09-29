@@ -21,7 +21,11 @@ python -m star_calibration.hpwren.calibrate fetch 20260912 hp-s-mobo-c vo-n-mobo
 python -m star_calibration.hpwren.calibrate solve
 python -m star_calibration.hpwren.calibrate agree
 
-# 4. Solved blocks -> a pose ledger (defaults to the cache; name a file to write elsewhere)
+# 4. Each camera's optical centre from all its solved nights, then solve again through it
+python -m star_calibration.hpwren.calibrate intrinsics   # rewrites hpwren/intrinsics.json
+python -m star_calibration.hpwren.calibrate solve
+
+# 5. Solved blocks -> a pose ledger (defaults to the cache; name a file to write elsewhere)
 python -m star_calibration.hpwren.calibrate ledger
 ```
 
@@ -111,6 +115,10 @@ gallery/explore.html                        the replay page, one block at a time
   - It was assembled in plume-triangulation (tag `results-2026-09-26`, from its recent-corpus
     ledger) before the split. New solves from `calibrate ledger` extend it.
   - [`ledger.py`](../ledger.py) has the rules for when a pose applies to another date.
+- **`intrinsics.json`** — each camera's optical centre, fitted from all its solved nights at
+  once ([`intrinsics.py`](../intrinsics.py)). The lens's centre sits a median 32 px from the
+  frame's middle on these units (47 of 76 cameras fitted), stable night to night. The solver reads it, and each solve
+  and ledger entry records the centre it used.
 
 ## Data credit
 

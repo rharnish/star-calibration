@@ -7,8 +7,12 @@ applying it to a detection on another date is a claim that the camera didn't mov
 between. This module makes that claim explicit, and conservative.
 
 Entries come from star-track solves (solve.py), one per solve (`build`):
-    {"camera", "epoch", "frame_w", "d_az", "d_pitch", "d_roll", "k_ratio", "k1",
+    {"camera", "epoch", "frame_w", "d_az", "d_pitch", "d_roll", "k_ratio", "k1", "cx", "cy",
      "n_stars", "median_px", "source", "sky_model"}
+
+`cx`, `cy` are the optical centre the solve assumed, in pixels right and down from the
+frame's middle (intrinsics.py); a pose is only right together with its centre. Entries from
+before they existed have none, and mean (0, 0).
 
 `sky_model` is catalog.model_id() at solve time: the catalog and which corrections
 (proper motion, precession, refraction) were applied. Poses solved under different models
@@ -60,14 +64,15 @@ def load(p: Path | str) -> list[dict]:
     return _cache[str(p)]
 
 
-LENS_KEYS = ("d_pitch", "d_roll", "k_ratio", "k1")
+LENS_KEYS = ("d_pitch", "d_roll", "k_ratio", "k1", "cx", "cy")
 
 
 def lookup(entries: list[dict], camera: str, epoch: float,
            frame_w: int | None = None) -> dict | None:
-    """{"d_az", "rule", "sources", "d_pitch", "d_roll", "k_ratio", "k1"} for `camera` at
-    `epoch`, or None when no rule applies. The rule picks the solves and sets d_az; the rest
-    of the solved camera is the mean over those same solves.
+    """{"d_az", "rule", "sources", "d_pitch", "d_roll", "k_ratio", "k1", "cx", "cy"} for
+    `camera` at `epoch`, or None when no rule applies. The rule picks the solves and sets
+    d_az; the rest of the solved camera is the mean over those same solves (an entry without
+    a centre counts as (0, 0)).
 
     With `frame_w`, only solves recorded in that frame width count.
     """
@@ -76,6 +81,7 @@ def lookup(entries: list[dict], camera: str, epoch: float,
         src = [e for e in entries if e["source"] in hit["sources"]]
         hit.update({k: statistics.fmean(e[k] for e in src) for k in LENS_KEYS
                     if all(k in e for e in src)})
+        hit.update({k: statistics.fmean(e.get(k, 0.0) for e in src) for k in ("cx", "cy")})
     return hit
 
 
@@ -115,7 +121,8 @@ def build(solve_summary: list[dict], t0_by_seq: dict[str, float],
         out.append({"camera": r["camera"], "epoch": int(t0_by_seq[r["seq"]]), "frame_w": r.get("W"),
                     "d_az": round(p["d_az"], 3), "d_pitch": round(p["d_pitch"], 3),
                     "d_roll": round(p["d_roll"], 3), "k_ratio": round(p["k_ratio"], 4),
-                    "k1": round(p["k1"], 4), "n_stars": r["n_stars"],
+                    "k1": round(p["k1"], 4), "cx": round(r.get("cx", 0.0), 1),
+                    "cy": round(r.get("cy", 0.0), 1), "n_stars": r["n_stars"],
                     "median_px": round(r["median_px"], 2), "source": f"star:{r['seq']}",
                     "sky_model": r.get("sky_model", LEGACY_MODEL)}
                    | ({"solver": r["solver"]} if r.get("solver") else {}))

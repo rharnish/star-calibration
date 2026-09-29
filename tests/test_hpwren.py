@@ -74,7 +74,8 @@ def test_ledger_build_dates_each_solve_by_its_block(tmp_path):
     assert rows == ledger.load(tmp_path / "l.json")
     assert rows == [{"camera": "hp-s-mobo-c", "epoch": 1789113600, "frame_w": 3072,
                      "d_az": 0.312, "d_pitch": 0.0, "d_roll": -0.5, "k_ratio": 0.8861,
-                     "k1": -0.078, "n_stars": 20, "median_px": 1.23, "source": "star:b1",
+                     "k1": -0.078, "cx": 0.0, "cy": 0.0, "n_stars": 20, "median_px": 1.23,
+                     "source": "star:b1",
                      "sky_model": "m"}]
 
 

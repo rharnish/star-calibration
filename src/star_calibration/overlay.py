@@ -35,6 +35,8 @@ def reference_offset(result: dict, night: Night) -> int:
 
 def draw(result: dict, night: Night, frame: np.ndarray, full: bool = False) -> np.ndarray:
     r, tracks, c = result, night.tracks, night.cam
+    if "cx" in r:   # drawn through the centre it was solved with, whatever the camera has now
+        c = {**c, "cx": r["cx"], "cy": r["cy"]}
     offs = sorted({o for t in tracks for o in t}) or [0]
     ref = reference_offset(r, night)
     H, W = frame.shape[:2]

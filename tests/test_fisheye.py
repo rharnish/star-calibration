@@ -52,3 +52,11 @@ def test_directions_behind_the_camera_do_not_fold_into_the_frame():
     assert theta_limit_deg(-0.078) == 100.0
     assert theta_limit_deg(-0.3) == pytest.approx(np.degrees(np.sqrt(1 / 0.9)))
     assert theta_limit_deg(0.0) == 100.0
+
+
+def test_the_optical_centre_moves_the_boresight_and_unproject_follows():
+    cam = {**CAM, "cx": 23.0, "cy": -14.0}
+    x, y = project_fisheye(cam, np.array([CAM["az"]]), np.array([0.0]), W, H)
+    assert (x[0] - 0.5) * W == pytest.approx(23.0) and (y[0] - 0.5) * H == pytest.approx(-14.0)
+    az, el = unproject_fisheye(cam, x, y, W, H)
+    assert az[0] == pytest.approx(CAM["az"]) and el[0] == pytest.approx(0.0, abs=1e-9)

@@ -17,11 +17,13 @@ re-run only does what it hasn't done:
     python -m star_calibration.hpwren.calibrate animate [--kept] [--full] [--mark A-B,C] block ...
     python -m star_calibration.hpwren.calibrate explore block ...       # replay in the browser
     python -m star_calibration.hpwren.calibrate agree                  # night-to-night check
+    python -m star_calibration.hpwren.calibrate intrinsics [dest.json] # solved -> optical centres
     python -m star_calibration.hpwren.calibrate ledger [dest.json]     # solved -> pose ledger
 
 `solve` runs `solve.solve_wide`: the pole-based global search under the shared lens and under
 the lens the trails measure, then the published-pose grid unless a pole attempt already
-solved with 12 or more stars, best result kept. Whole-night
+solved with 12 or more stars, best result kept. Each camera's optical centre comes from
+hpwren/intrinsics.json (`calibrate intrinsics` fits it from the solves). Whole-night
 blocks (<day>_N) are for window studies, not the ledger, and are left out of `solve` unless
 named. Each solved (or failed) block's overlay is drawn as it finishes, so the gallery
 (gallery.py) has a picture for every card. A block the camera sent nothing for -- the CDN's
@@ -45,11 +47,11 @@ import cv2
 import numpy as np
 
 from .. import animate as anim
-from .. import cross_night, ledger, overlay
+from .. import cross_night, intrinsics, ledger, overlay
 from .. import explore as ex
 from ..solve import Night, solve_wide
 from ..tracks import clean, collect
-from . import cache_dir, cameras, nights
+from . import cache_dir, camera, cameras, intrinsics_path, nights
 
 
 def tracks_dir() -> Path:
@@ -135,8 +137,8 @@ def night(seq: str) -> Night:
     """An indexed block as the solver's input."""
     s = nights.sequences()[seq]
     tracks, (W, H) = load_tracks(seq)
-    return Night(camera=s["camera"], cam=cameras()[s["camera"]], t0=s["t0"], tracks=tracks,
-                 W=W, H=H, label=seq)
+    return Night(camera=s["camera"], cam=camera(s["camera"], W, H, s["t0"]), t0=s["t0"],
+                 tracks=tracks, W=W, H=H, label=seq)
 
 
 def block(r: dict, indexed: dict | None = None) -> dict:
@@ -312,6 +314,15 @@ def main(argv: list[str]) -> None:
         indexed = nights.sequences()
         rows = summary()
         cross_night.report(rows, {r["seq"]: block(r, indexed)["t0"] for r in rows}, cameras())
+    elif cmd == "intrinsics":
+        dest = Path(args[0]) if args else intrinsics_path()
+        indexed = nights.sequences()
+        rows = intrinsics.build([r for r in summary() if "source" not in r and r["seq"] in indexed
+                                 and "_N_" not in r["seq"]], night, cameras(), dest)
+        moved = [r for r in rows if r["cx"] or r["cy"]]
+        print(f"wrote {dest}: {len(rows)} segments on {len({r['camera'] for r in rows})} "
+              f"cameras, {len(moved)} with a centre")
+        print("re-solve (`calibrate solve`) for the solves to use it")
     elif cmd == "ledger":
         t0 = {k: v["t0"] for k, v in nights.sequences().items()}
         dest = Path(args[0]) if args else cache_dir() / "pose_ledger.json"

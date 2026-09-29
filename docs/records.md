@@ -17,6 +17,7 @@ it is committed to this repository.
 | `cams.json` | package | derived from `sites.js` | everything | yes, from `sites.js` |
 | `sites.js` | package | copied verbatim from HPWREN | people deriving `cams.json` | from HPWREN |
 | `pose_ledger.json` | package | `calibrate ledger`, copied in on purpose | `ledger.lookup`, plume-triangulation | yes, from `summary.json` |
+| `intrinsics.json` | package | `calibrate intrinsics` | the solver, through `hpwren.camera` | yes, from solves and tracks |
 | `nights/…/<epoch>.jpg` | cache | `calibrate fetch` / `nights` | tracks, overlays, videos | **only for ~89 days** (see below) |
 | `nights.json` | cache | `nights.index` | every step after fetch | yes, from `nights/` |
 | `tracks/tracks_<block>.pkl` | cache | `calibrate solve` (first time) | solve, overlay, animate, weather | yes, from frames |
@@ -87,12 +88,15 @@ These hold for every record below unless it says otherwise.
 | Frame size | `W` × `H`; 3072 × 2048 for today's CDN frames |
 | `k`, `k_ratio` | lens scale: `k` in px per radian; `k_ratio` = `k` / nameplate scale, where the nameplate scale is `(W / 2) / (fov / 2 in radians)` |
 | `k1` | radial term of `r = k·θ·(1 + k1·θ²)`, θ in radians |
+| `cx`, `cy` | the optical centre: where the boresight lands, in pixels right and down from the frame's middle `(W/2, H/2)` |
 | Epochs | Unix seconds, UTC |
 | Offsets | seconds from the block's `t0` (the epoch of its median frame) |
 | Block names | `hpwren_<YYYYMMDD>_Q<n>_<camera>` (a 3-hour block, Q1 = 00:00–02:59 Pacific), `hpwren_<YYYYMMDD>_N_<camera>` (a whole night), or plume's FIgLib names |
 
-The shared lens is `K_RATIO` 0.886 and `K1` −0.078 (`fisheye.py`). The lens centre is
-assumed to be the frame's middle, `(W/2, H/2)`. See [Planned: per-camera intrinsics](#planned-per-camera-intrinsics).
+The shared lens is `K_RATIO` 0.886 and `K1` −0.078 (`fisheye.py`). A camera's optical
+centre comes from `intrinsics.json`, and is the frame's middle where that has nothing. A
+pose is only right together with the centre it was solved under, so every solve and ledger
+entry records its `cx`, `cy`.
 
 ## Shipped records
 
@@ -130,6 +134,7 @@ only when someone copies it in on purpose.
 | `frame_w` | frame width the solve was made in |
 | `d_az`, `d_pitch`, `d_roll` | the solved pose, as corrections to `cams.json` |
 | `k_ratio`, `k1` | the solved lens |
+| `cx`, `cy` | the optical centre the solve assumed. Entries without them (all before 2026-09-29) mean (0, 0), and `lookup` averages them that way |
 | `n_stars`, `median_px` | how many catalog stars matched, and their median residual |
 | `source` | `star:<block>` |
 | `sky_model` | the catalog and corrections the solve used (`catalog.model_id()`) |
@@ -147,9 +152,42 @@ Rules (`ledger.py`):
 - **One sky model per ledger.** `load` refuses a file whose entries mix `sky_model`s.
 - **Only this package's own CDN solves.** Rows with a `source` (FIgLib) are left out.
 
+`lookup` returns `cx` and `cy` with the rest of the solved camera. A caller that turns
+pixels into directions with a ledger pose must use its centre too.
+
 This file is an interface: plume-triangulation reads it through the package, at a pinned
 release. Adding a field is safe. Renaming, removing or changing the meaning of one needs a
 release and a coordinated change in plume.
+
+### `intrinsics.json`
+
+Each camera's optical centre, fitted from all its solved nights at once
+(`intrinsics.py`). A list of segments; a camera's nights in one frame size form one or more
+segments, a new one starting where the centre jumps (two consecutive nights each more than
+25 px from the segment so far).
+
+| Field | Meaning |
+|---|---|
+| `camera`, `W`, `H` | the camera and frame size |
+| `from`, `to` | the `t0` of the segment's first and last night |
+| `cx`, `cy` | the centre the solver uses; (0, 0) when the segment has fewer than 2 nights and fewer than 20 matched stars |
+| `k_ratio`, `k1` | the joint fit's lens, for reference: the solver still fits its own |
+| `n_nights`, `n_stars` | nights, and matched stars summed over them |
+| `median_px`, `median_px_centred` | the joint fit's median residual with the centre held at the middle, and fitted |
+| `nights` | the blocks it was fitted from |
+| `own` | each night's centre fitted alone, `[cx, cy]`: the scatter the segment hides |
+
+`hpwren.camera(name, W, H, epoch)` gives the solver a camera's record with the centre of
+the segment that starts at or before the date (the first segment for earlier dates).
+`calibrate intrinsics` rewrites the file from the current solves. Re-solve afterwards.
+
+The first fit (2026-09-29, from 137 solved CDN blocks) gave 47 of 76 cameras a centre, a
+median 32 px from the middle (max 75, bm-e-mobo-c). A camera's single-night centres sit a
+median 2.5 px from its joint centre (worst 10 px). Solving through the centres dropped the
+solves' median residual from 1.23 to 0.78 px, added bm-s 09-11 and (with the level-prior
+starts) bi-s 09-20, and moved poses a median 0.76° (max 3.1°, bm-e). Two solves of one
+camera within 30 days now agree to 0.015° median and 0.05° worst, against 0.026° and 0.75°
+before.
 
 ## Cache records
 
@@ -239,6 +277,7 @@ solve got.
 | Field | Meaning |
 |---|---|
 | `imager` | from `cams.json` |
+| `cx`, `cy` | the optical centre the solve assumed (from `intrinsics.json` for this package's blocks) |
 | `sky_model` | `catalog.model_id()`. May be missing on older FIgLib failure rows. |
 | `solver` | which solver made the row (`star_calibration.solver_id()`): the package version, plus `+g<commit>` when run from a git checkout of this repository, and `.dirty` if the package's files had uncommitted changes. Rows solved before 2026-09-27 don't have it. |
 | `W`, `H` | frame size |
@@ -406,7 +445,7 @@ pose, or the published one, for labels.
 
 | Stable: change only with a release and plume in step | Internal: change freely |
 |---|---|
-| `pose_ledger.json` fields and `ledger.lookup`'s rules | `tracks/*.pkl` |
+| `pose_ledger.json` fields (now with `cx`, `cy`) and `ledger.lookup`'s rules | `tracks/*.pkl` |
 | `cams.json` fields | the trace |
 | the `calibrate add` contract | gallery rows and the pages; the replay's data |
 | `pose` and `status` in solve results | overlays and videos |
@@ -423,36 +462,6 @@ them compatible where it's cheap, and list any change in the release notes.
   the row can't be reproduced from the repository alone.
 - **Track caches record their recipe, not their code** (see [How they depend on each other](#how-they-depend-on-each-other)).
 - **Older FIgLib failure rows lack `sky_model`.**
-
-## Planned: per-camera intrinsics
-
-Today every 3072-px camera is solved under the shared lens with its centre at the frame's
-middle, and each solve fits its own pose and lens. The solves show that this isn't enough.
-Over 130 solved blocks, each camera's image centre is typically 14–37 px from the middle
-(median 23 px), and stable night to night (cp-w-mobo-c: 12 nights within 6 px). Fitting it
-halves the median residual (1.26 → 0.74 px) and rescues several failures. A camera's lens and
-centre (its *intrinsics*) belong to the hardware and shouldn't change when it is re-aimed,
-unlike its pose.
-
-The plan is a record per camera, beside the pose ledger:
-
-- **Intrinsics per camera and per series:** `k_ratio`, `k1`, `cx`, `cy` (centre offset from
-  the frame's middle, pixels), with their uncertainties, and the nights and stars behind
-  them.
-- **Estimated jointly across nights:** one set of intrinsics per series, one pose per night.
-  A single night can't separate a centre shift from a small change in pointing; several
-  nights with stars in different places can. The estimate sharpens as nights accumulate.
-- **Series with change points:** a night that disagrees with the series beyond the noise
-  starts a new one, the way disagreeing solves mean the camera moved. Legitimate causes are
-  a swapped unit under the same name, service, or a firmware change to crop or scaling. A
-  series never crosses a frame-format change.
-- **Poses refer to the intrinsics they were solved under**, so a pose and a lens from
-  different series are never combined.
-- **The solver uses a camera's intrinsics when it has them**, and the shared lens and the
-  frame's middle when it doesn't.
-
-Adopting this will move poses in the shipped ledger and in plume-triangulation, even for
-blocks that already solve, so it will ship as a release with a coordinated re-run there.
 
 ## Keeping this page right
 

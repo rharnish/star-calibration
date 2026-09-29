@@ -136,7 +136,7 @@ def scan_context(night: Night, k_ratio: float | None = None, wide: bool = True,
     az_b = np.array([v["az"] for v in vis])[b]
     coarse_px = 60.0 if (wide and k_ratio is not None) else 20.0
     coin = make_coincidence(c, W, H, lens, tree, y_band, az_b, alt_b, coarse_px)
-    fit = POLE.estimate(tracks, W, H, *lens)
+    fit = POLE.estimate(tracks, W, H, *lens, c.get("cx", 0.0), c.get("cy", 0.0))
     psi = np.arange(0.0, 360.0, 0.1)
     poses = POLE.pose_from_axes(POLE.cam_from_pole(fit["p_hat"], c["lat"], psi), c) if fit else None
     scores = np.array([coin(tuple(q))[0] for q in poses]) if fit else None
@@ -210,7 +210,8 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
     c, W, H = night.cam, night.W, night.H
     # every solve says which catalog and corrections it was made under; the ledger checks it
     out = {"seq": night.label, "camera": night.camera, "imager": c.get("imager"),
-           "sky_model": SG.model_id(), "solver": solver_id()}
+           "sky_model": SG.model_id(), "solver": solver_id(),
+           "cx": float(c.get("cx", 0.0)), "cy": float(c.get("cy", 0.0))}   # the centre assumed
     if window is not None:
         out["window"] = window
     raw, keep = windowed(night.tracks, window)
@@ -266,7 +267,7 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
 
     grid = []
     if wide:
-        fit = POLE.estimate(tracks, W, H, *lens)
+        fit = POLE.estimate(tracks, W, H, *lens, c.get("cx", 0.0), c.get("cy", 0.0))
         out["pole"] = None if fit is None else {
             "norm": fit["norm"], "inlier_frac": fit["inlier_frac"],
             "median_res_rel": fit["median_res_rel"], "p_cam": list(fit["p_hat"])}
@@ -418,7 +419,8 @@ def solve_wide(night: Night, min_stars: int = 8, window: tuple[float, float] | N
     tracks = [raw[i] for i in keep]
     cands = []
     if len(tracks) >= 8:
-        ls = POLE.lens_scale(tracks, night.W, night.H, initial_k(night.cam, night.W), K1)
+        ls = POLE.lens_scale(tracks, night.W, night.H, initial_k(night.cam, night.W), K1,
+                             cx=night.cam.get("cx", 0.0), cy=night.cam.get("cy", 0.0))
         if ls is not None and 0.6 <= ls["k_ratio"] <= 1.2 and abs(ls["k_ratio"] - K_RATIO) > 0.005:
             cands.append(ls["k_ratio"])
     cands = [None] + cands

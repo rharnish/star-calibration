@@ -13,6 +13,7 @@ with no site visit and no surveyed landmark.
   overlay      a solve drawn on its own frame, fitted stars against tracks
   animate      a solve played back as video, step by step, from its trace
   explore      the same trace as data for the browser replay (hpwren's explore.html)
+  intrinsics   each camera's optical centre, fitted jointly from all its solved nights
   ledger       per-camera, per-date poses, and the rule for when one applies to another date
   sun, moon    their positions, for dark-frame selection and moonlit nights
 

@@ -107,6 +107,7 @@ python -m star_calibration.hpwren.calibrate agree
 | `overlay` | a solve drawn on its own frame: tracks, fitted stars, and the published pose's error |
 | `animate` | a solve played back as video from its trace: pole, coarse search, refinement, verdict |
 | `explore` | the same trace as data for a browser replay, every star already projected |
+| `intrinsics` | each camera's optical centre, fitted jointly from all its nights |
 | `ledger` | per-camera, per-date poses, and when one applies |
 | `sun`, `moon` | dark-frame selection; moonlit nights solve as well as dark ones |
 | `hpwren/` | HPWREN's camera table, CDN nights, a command-line calibrator, the solved ledger |
