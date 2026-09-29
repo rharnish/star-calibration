@@ -253,7 +253,7 @@ solve got.
 | `ref_offset` | the reference frame: the offset where the most tracks were seen |
 | `pole` | pole-search attempts only: `norm` (\|p\|, 1 for a coherent sky under the right lens), `inlier_frac`, `median_res_rel` (fit residual as a fraction of the sidereal rate), `p_cam` (the pole in camera coordinates) |
 | `published_coincidence` | `inliers` and `predicted`: bright stars that land on a track under the published pose, and how many were predicted in the sky band |
-| `coarse_top` | up to 5 starts handed to refinement: `score`, `inliers`, `predicted`, `pose` (`[d_az, d_pitch, d_roll]`) |
+| `coarse_top` | the starts handed to refinement: up to 5 from the coarse score and, in a pole search, up to 2 near where pitch and roll are both small (the level prior): `score`, `inliers`, `predicted`, `pose` (`[d_az, d_pitch, d_roll]`) |
 
 **Once refinement found a fit**, even one that failed the acceptance test:
 

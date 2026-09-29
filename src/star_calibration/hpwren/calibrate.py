@@ -19,8 +19,9 @@ re-run only does what it hasn't done:
     python -m star_calibration.hpwren.calibrate agree                  # night-to-night check
     python -m star_calibration.hpwren.calibrate ledger [dest.json]     # solved -> pose ledger
 
-`solve` runs `solve.solve_wide`: the published-pose grid, then the pole-based global search
-under the shared lens and under the lens the trails measure, best result kept. Whole-night
+`solve` runs `solve.solve_wide`: the pole-based global search under the shared lens and under
+the lens the trails measure, then the published-pose grid unless a pole attempt already
+solved with 12 or more stars, best result kept. Whole-night
 blocks (<day>_N) are for window studies, not the ledger, and are left out of `solve` unless
 named. Each solved (or failed) block's overlay is drawn as it finishes, so the gallery
 (gallery.py) has a picture for every card. A block the camera sent nothing for -- the CDN's

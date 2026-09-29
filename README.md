@@ -50,8 +50,10 @@ to a third of a pixel.
    celestial pole *p*. One least-squares solve over all trails gives the pole in camera
    coordinates, with no catalog and no search. Its length measures the lens scale.
 3. **Scan** (`solve.py`). The pole fixes two angles. Scan the turn about it at 0.1°, scoring
-   how many bright catalog stars land on *any* track. A grid around the published pose runs
-   too, as a separate attempt.
+   how many bright catalog stars land on *any* track. The best few angles start refinement,
+   plus the angles near where the camera comes out level, since most are mounted close to
+   it. A grid around the published pose runs too, unless the pole search has already solved
+   with 12 or more stars.
 4. **Assign and refit.** Match catalog stars to whole tracks (Hungarian assignment on median
    track distance) and refit pose — then pose and lens — with a robust loss, tightening the
    match radius as it converges. A solve needs ≥ 8 stars under 3 px median, and the lens inside

@@ -15,7 +15,7 @@ from test_solve import H, W, synthetic_night  # noqa: E402
 def test_frames_play_every_attempt_at_one_size(tmp_path):
     night = synthetic_night("hp-s-mobo-c", (40.0, 1.0, -0.5))
     trace = []
-    r = solve_wide(night, trace=trace)
+    r = solve_wide(night, trace=trace, grid="always")   # every attempt, not just a sure pole
     offs = sorted({o for t in night.tracks for o in t})[::10]
     images = ((o, np.full((H, W, 3), 20, np.uint8)) for o in offs)
     pics = list(animate.frames(trace, r, night, images))
