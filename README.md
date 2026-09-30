@@ -3,18 +3,20 @@
 **Measure a fixed outdoor camera's azimuth, pitch, roll and lens from the stars it already
 records at night.** No site visit, no surveyed landmark, no calibration target.
 
-![From star trails to camera pose, on a camera whose published azimuth is 23° off](docs/figures/star_solve_process.jpg)
+![From star trails to camera pose: tracks, the celestial pole, the scan about it, the fitted stars](docs/figures/star_solve_process.jpg)
 
 *One 90-minute block from HPWREN's Big Black Mountain South camera. 1: moving point sources,
 linked into tracks. 2: the trails' flow field gives the celestial pole in closed form, with no
 star named. 3: the pole fixes two angles; a 1-D scan finds the third. 4: stars assigned to
-whole tracks and refit — 23 stars at a median 0.78 px — against the published pose (orange),
-which is 23.3° off.*
+whole tracks and refit — 23 stars at a median 0.78 px — with the published pose in orange
+for reference.*
 
-Built for [HPWREN](https://www.hpwren.ucsd.edu/)'s wildfire cameras, where the published
-camera table is a nameplate: azimuths rounded to a compass quadrant, a nominal field of view,
-no lens model. Every bearing drawn from those cameras inherits that error. The same method
-applies to any fixed camera that sees a patch of night sky.
+Built for [HPWREN](https://www.hpwren.ucsd.edu/)'s wildfire cameras. HPWREN's camera table
+gives each camera's site precisely, and its heading and field of view as the direction it
+watches and the lens it carries: what a network built to show people the landscape needs.
+Locating smoke by triangulating between cameras asks for more, bearings to a fraction of a
+degree and a lens model, and this measures both from frames the cameras already record. The
+same method applies to any fixed camera that sees a patch of night sky.
 
 ## What it found on HPWREN
 
@@ -22,19 +24,17 @@ From 18 nights between 2026-07-14 and 2026-09-27, on frames from HPWREN's public
 ([`hpwren/pose_ledger.json`](src/star_calibration/hpwren/pose_ledger.json)):
 
 - **137 solves on 76 cameras**, at a median residual of 0.78 px and 27 stars per solve.
-- **47 of the 76 cameras point more than 1° from their published azimuth,** 13 of them by more
-  than 5°. smer-tcs8-mobo-c is off by 39°.
-- **Nights agree to hundredths of a degree.** The acceptance test that matters is a second
-  night landing on the same pose, not a star count (`cross_night.py`).
-- **The lens is not what the table implies.** The 90° units are equidistant fisheyes at
-  0.881–0.894 of the nameplate scale, spanning about ±55°, not rectilinear ±45°. Big Black
-  Mountain's cameras are a second lens group at 0.772–0.776. Near the frame edge the difference is
-  worth up to 8° of bearing.
-- **The lens's centre is not the frame's middle.** It sits a median 32 px off on the 47
-  cameras where it is fitted (`intrinsics.py`). Solved as if centred, a pose tilts to make up
-  for it, by up to 3°.
-- **Cameras get re-aimed,** so a pose is a measurement on a date. The ledger says when one
-  applies to another date, and refuses to bridge an apparent re-aim (`ledger.py`).
+- **Nights agree to hundredths of a degree.** Two nights of the same camera land on the same
+  pose, the acceptance test that matters more than any star count (`cross_night.py`).
+- **A lens model for every camera.** The 90° units are equidistant fisheyes at 0.881–0.894 of
+  the nameplate scale, spanning about ±55°. Big Black Mountain's cameras are a second lens
+  group at 0.772–0.776. Near the frame edge, modelling the lens is worth up to 8° of bearing.
+- **Each camera's optical centre**, fitted from all its nights at once (`intrinsics.py`): a
+  median 32 px from the frame's middle on the 47 cameras where it is fitted, and steady from
+  night to night.
+- **Dated poses.** Cameras get serviced and re-aimed, so a pose is a measurement on a date.
+  The ledger says when one applies to another date, and refuses to bridge an apparent re-aim
+  (`ledger.py`).
 
 Downstream, in [plume-triangulation](https://github.com/rharnish/plume-triangulation), these
 poses are scored in kilometres of wildfire-location error. They are also checked against

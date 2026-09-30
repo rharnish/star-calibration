@@ -35,17 +35,17 @@ A solved block gives its pose relative to the published table. The two cameras a
 | block | stars | median | d_az | d_pitch | d_roll | k_ratio |
 |---|---|---|---|---|---|---|
 | hpwren_20260911_Q1_hp-s-mobo-c | 15 | 1.23 px | +1.77° | +0.49° | −0.48° | 0.889 |
-| hpwren_20260911_Q1_vo-n-mobo-c | 16 | 0.90 px | **+12.07°** | +0.47° | −0.39° | 0.891 |
+| hpwren_20260911_Q1_vo-n-mobo-c | 16 | 0.90 px | +12.07° | +0.47° | −0.39° | 0.891 |
 
-`d_az` is how far the camera actually points from its published azimuth, in degrees
-(positive is clockwise). vo-n-mobo-c points 12° east of its nameplate north. `k_ratio` is the
-lens scale as a fraction of the nameplate one.
+`d_az`, `d_pitch` and `d_roll` are the measured pose as corrections to the published one, in
+degrees (`d_az` positive is clockwise). `k_ratio` is the lens scale as a fraction of the
+nameplate one.
 
 Each solve is also drawn on its own frame, in the cache's `overlays/`. Matched tracks are
 green with the fitted stars in magenta on top of them. The same stars under the published
-pose are orange, with a yellow arrow from published to fitted, so a camera that points 12° off
-its nameplate shows twelve degrees of arrow. A failed block shows its tracks in cyan against
-where the published pose says the bright stars should be.
+pose are orange, with a yellow arrow from published to fitted: the correction, drawn. A
+failed block shows its tracks in cyan against where the published pose says the bright stars
+should be.
 
 To see how a block got there, `calibrate animate <block>` re-solves it and plays the solve
 back as video, in the cache's `animations/`: the frames, the pole the trails imply, the
@@ -101,13 +101,12 @@ gallery/explore.html                        the replay page, one block at a time
   longitude, elevation. Per camera: azimuth, horizontal field of view, roll/pitch/yaw, height
   above ground, and imager type (199 colour, 187 monochrome, 109 PTZ, and VNIR, SWIR and
   thermal singles).
-  - **Read the orientation fields carefully.** Only position is a survey. `az` is exactly
-    0/90/180/270 on 482 cameras, and `fov` exactly 90 or 60 on 483. `pitch`, `roll` and
-    `yaw` are non-zero on only 9, 14 and 3 cameras; everywhere else they are `0.0`
-    placeholders.
-  - That is a cardinal heading and a spec sheet, not a calibration. It is entirely adequate
-    for what the network was built for, which is giving people pictures. It is what this
-    package measures against.
+  - **What the orientation fields are.** Position is surveyed. `az` gives the direction a
+    camera watches, 0/90/180/270 on 482 cameras, and `fov` the lens's rating, 90 or 60 on
+    483. `pitch`, `roll` and `yaw` are set on 9, 14 and 3 cameras and `0.0` elsewhere.
+  - That describes the view each camera gives, which is what the network was built for. It
+    is the reference this package measures against, and the solved poses are corrections
+    to it.
 - **`pose_ledger.json`** — 137 solves on 76 cameras, from 18 nights between 2026-07-14 and
   2026-09-27.
   - Each entry is one camera-night: the pose offsets, lens, optical centre, star count,
