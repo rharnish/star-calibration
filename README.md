@@ -18,18 +18,21 @@ applies to any fixed camera that sees a patch of night sky.
 
 ## What it found on HPWREN
 
-From ten nights between 2026-07-14 and 2026-09-25, on frames from HPWREN's public CDN
+From 18 nights between 2026-07-14 and 2026-09-27, on frames from HPWREN's public CDN
 ([`hpwren/pose_ledger.json`](src/star_calibration/hpwren/pose_ledger.json)):
 
-- **106 solves on 73 cameras**, at a median residual of 1.3 px and 21 stars per solve.
-- **44 of the 73 cameras point more than 1° from their published azimuth,** 10 of them by more
-  than 5°. mlo-s-mobo-c is off by 23°.
+- **137 solves on 76 cameras**, at a median residual of 0.78 px and 27 stars per solve.
+- **47 of the 76 cameras point more than 1° from their published azimuth,** 13 of them by more
+  than 5°. smer-tcs8-mobo-c is off by 39°.
 - **Nights agree to hundredths of a degree.** The acceptance test that matters is a second
   night landing on the same pose, not a star count (`cross_night.py`).
 - **The lens is not what the table implies.** The 90° units are equidistant fisheyes at
-  0.877–0.894 of the nameplate scale, spanning about ±55°, not rectilinear ±45°. Big Black
-  Mountain's cameras are a second lens group at 0.775–0.779. Near the frame edge the difference is
+  0.881–0.894 of the nameplate scale, spanning about ±55°, not rectilinear ±45°. Big Black
+  Mountain's cameras are a second lens group at 0.772–0.776. Near the frame edge the difference is
   worth up to 8° of bearing.
+- **The lens's centre is not the frame's middle.** It sits a median 32 px off on the 47
+  cameras where it is fitted (`intrinsics.py`). Solved as if centred, a pose tilts to make up
+  for it, by up to 3°.
 - **Cameras get re-aimed,** so a pose is a measurement on a date. The ledger says when one
   applies to another date, and refuses to bridge an apparent re-aim (`ledger.py`).
 

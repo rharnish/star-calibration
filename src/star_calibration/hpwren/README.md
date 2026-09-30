@@ -34,17 +34,17 @@ A solved block gives its pose relative to the published table. The two cameras a
 
 | block | stars | median | d_az | d_pitch | d_roll | k_ratio |
 |---|---|---|---|---|---|---|
-| hpwren_20260911_Q1_hp-s-mobo-c | 14 | 1.69 px | +0.79° | −0.07° | −0.45° | 0.888 |
-| hpwren_20260911_Q1_vo-n-mobo-c | 9 | 1.09 px | **+11.31°** | +1.46° | −0.38° | 0.892 |
+| hpwren_20260911_Q1_hp-s-mobo-c | 15 | 1.23 px | +1.77° | +0.49° | −0.48° | 0.889 |
+| hpwren_20260911_Q1_vo-n-mobo-c | 16 | 0.90 px | **+12.07°** | +0.47° | −0.39° | 0.891 |
 
 `d_az` is how far the camera actually points from its published azimuth, in degrees
-(positive is clockwise). vo-n-mobo-c points 11° east of its nameplate north. `k_ratio` is the
+(positive is clockwise). vo-n-mobo-c points 12° east of its nameplate north. `k_ratio` is the
 lens scale as a fraction of the nameplate one.
 
 Each solve is also drawn on its own frame, in the cache's `overlays/`. Matched tracks are
 green with the fitted stars in magenta on top of them. The same stars under the published
-pose are orange, with a yellow arrow from published to fitted, so a camera that points 11° off
-its nameplate shows eleven degrees of arrow. A failed block shows its tracks in cyan against
+pose are orange, with a yellow arrow from published to fitted, so a camera that points 12° off
+its nameplate shows twelve degrees of arrow. A failed block shows its tracks in cyan against
 where the published pose says the bright stars should be.
 
 To see how a block got there, `calibrate animate <block>` re-solves it and plays the solve
@@ -108,12 +108,13 @@ gallery/explore.html                        the replay page, one block at a time
   - That is a cardinal heading and a spec sheet, not a calibration. It is entirely adequate
     for what the network was built for, which is giving people pictures. It is what this
     package measures against.
-- **`pose_ledger.json`** — 106 solves on 73 cameras, from ten nights between 2026-07-14 and
-  2026-09-25.
-  - Each entry is one camera-night: the pose offsets, lens, star count, residual, source
-    block and sky model.
-  - It was assembled in plume-triangulation (tag `results-2026-09-26`, from its recent-corpus
-    ledger) before the split. New solves from `calibrate ledger` extend it.
+- **`pose_ledger.json`** — 137 solves on 76 cameras, from 18 nights between 2026-07-14 and
+  2026-09-27.
+  - Each entry is one camera-night: the pose offsets, lens, optical centre, star count,
+    residual, source block, sky model and solver.
+  - It is `calibrate ledger` over this package's own CDN solves, made with v0.3.0. It replaces
+    the 106-solve ledger assembled in plume-triangulation (tag `results-2026-09-26`) before
+    the split; every camera-night of that one is still in it.
   - [`ledger.py`](../ledger.py) has the rules for when a pose applies to another date.
 - **`intrinsics.json`** — each camera's optical centre, fitted from all its solved nights at
   once ([`intrinsics.py`](../intrinsics.py)). The lens's centre sits a median 32 px from the

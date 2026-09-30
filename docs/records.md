@@ -123,8 +123,8 @@ corrections relative to this table.
 
 ### `pose_ledger.json`
 
-The solved poses: one entry per solved CDN block, 106 solves of 73 cameras as of
-2026-09-26. `calibrate ledger` writes a fresh one to the cache; the package's copy changes
+The solved poses: one entry per solved CDN block, 137 solves of 76 cameras as of
+2026-09-29 (v0.3.0). `calibrate ledger` writes a fresh one to the cache; the package's copy changes
 only when someone copies it in on purpose.
 
 | Field | Meaning |
