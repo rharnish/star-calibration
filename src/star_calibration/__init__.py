@@ -25,7 +25,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 _solver_id: str | None = None
 
