@@ -38,12 +38,14 @@ MIN_STARS = 20
 
 
 def observations(result: dict, night) -> dict | None:
-    """One solved night's matched track points and their stars' (az, alt): the fit's input."""
+    """One solved night's matched track points and their stars' (az, alt): the fit's input.
+    `star` gives each point's index into `names`, so a caller can pick stars out
+    (`ablation.py`)."""
     if result.get("status") != "solved" or not result.get("matches"):
         return None
     c = night.cam
-    X, Y, AZ, AL = [], [], [], []
-    for name, j in result["matches"].items():
+    X, Y, AZ, AL, S = [], [], [], [], []
+    for s, (name, j) in enumerate(result["matches"].items()):
         t = night.tracks[j]
         o = np.array(sorted(t), float)
         alt, az = SG.star_altaz(name, night.t0 + o, c["lat"], c["lon"], c.get("elev") or 1600.0)
@@ -51,10 +53,12 @@ def observations(result: dict, night) -> dict | None:
         Y += [t[k][1] for k in sorted(t)]
         AZ.append(az)
         AL.append(alt)
+        S += [s] * len(t)
     p = result["pose"]
     return {"seq": result["seq"], "t0": night.t0, "W": night.W, "H": night.H,
             "n_stars": len(result["matches"]), "x": np.array(X), "y": np.array(Y),
             "az": np.concatenate(AZ), "alt": np.concatenate(AL),
+            "star": np.array(S), "names": list(result["matches"]),
             "pose": [p["d_az"], p["d_pitch"], p["d_roll"]], "k_ratio": p["k_ratio"], "k1": p["k1"]}
 
 
