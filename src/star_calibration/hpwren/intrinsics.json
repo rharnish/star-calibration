@@ -1,0 +1,2131 @@
+[
+ {
+  "camera": "bh-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789803904,
+  "to": 1789890304,
+  "cx": 40.7,
+  "cy": 10.1,
+  "k_ratio": 0.8817,
+  "k1": -0.0748,
+  "n_nights": 2,
+  "n_stars": 80,
+  "median_px": 1.78,
+  "median_px_centred": 0.65,
+  "nights": [
+   "hpwren_20260919_Q1_bh-e-mobo-c",
+   "hpwren_20260920_Q1_bh-e-mobo-c"
+  ],
+  "own": [
+   [
+    40.8,
+    10.7
+   ],
+   [
+    40.4,
+    9.3
+   ]
+  ]
+ },
+ {
+  "camera": "bh-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112704,
+  "to": 1789112704,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.885,
+  "k1": -0.0789,
+  "n_nights": 1,
+  "n_stars": 15,
+  "median_px": 1.35,
+  "median_px_centred": 1.01,
+  "nights": [
+   "hpwren_20260911_Q1_bh-n-mobo-c"
+  ],
+  "own": [
+   [
+    -12.2,
+    5.1
+   ]
+  ]
+ },
+ {
+  "camera": "bh-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112705,
+  "to": 1789112705,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.884,
+  "k1": -0.0793,
+  "n_nights": 1,
+  "n_stars": 12,
+  "median_px": 2.05,
+  "median_px_centred": 0.88,
+  "nights": [
+   "hpwren_20260911_Q1_bh-s-mobo-c"
+  ],
+  "own": [
+   [
+    -29.1,
+    -12.7
+   ]
+  ]
+ },
+ {
+  "camera": "bh-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199106,
+  "to": 1789371905,
+  "cx": 25.7,
+  "cy": 13.9,
+  "k_ratio": 0.886,
+  "k1": -0.078,
+  "n_nights": 3,
+  "n_stars": 106,
+  "median_px": 1.27,
+  "median_px_centred": 0.65,
+  "nights": [
+   "hpwren_20260912_Q1_bh-w-mobo-c",
+   "hpwren_20260913_Q1_bh-w-mobo-c",
+   "hpwren_20260914_Q1_bh-w-mobo-c"
+  ],
+  "own": [
+   [
+    26.0,
+    13.8
+   ],
+   [
+    25.6,
+    13.9
+   ],
+   [
+    25.5,
+    13.9
+   ]
+  ]
+ },
+ {
+  "camera": "bi-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789803906,
+  "to": 1789890307,
+  "cx": 7.4,
+  "cy": -7.4,
+  "k_ratio": 0.8856,
+  "k1": -0.0794,
+  "n_nights": 2,
+  "n_stars": 70,
+  "median_px": 0.93,
+  "median_px_centred": 0.84,
+  "nights": [
+   "hpwren_20260919_Q1_bi-e-mobo-c",
+   "hpwren_20260920_Q1_bi-e-mobo-c"
+  ],
+  "own": [
+   [
+    8.3,
+    -7.0
+   ],
+   [
+    5.9,
+    -8.3
+   ]
+  ]
+ },
+ {
+  "camera": "bi-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789803968,
+  "to": 1789890368,
+  "cx": 13.4,
+  "cy": -31.9,
+  "k_ratio": 0.886,
+  "k1": -0.0812,
+  "n_nights": 2,
+  "n_stars": 24,
+  "median_px": 1.69,
+  "median_px_centred": 1.12,
+  "nights": [
+   "hpwren_20260919_Q1_bi-s-mobo-c",
+   "hpwren_20260920_Q1_bi-s-mobo-c"
+  ],
+  "own": [
+   [
+    15.7,
+    -34.3
+   ],
+   [
+    8.9,
+    -26.0
+   ]
+  ]
+ },
+ {
+  "camera": "bi-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199109,
+  "to": 1789285508,
+  "cx": -7.4,
+  "cy": 10.6,
+  "k_ratio": 0.8876,
+  "k1": -0.0818,
+  "n_nights": 2,
+  "n_stars": 76,
+  "median_px": 1.01,
+  "median_px_centred": 0.98,
+  "nights": [
+   "hpwren_20260912_Q1_bi-w-mobo-c",
+   "hpwren_20260913_Q1_bi-w-mobo-c"
+  ],
+  "own": [
+   [
+    -7.5,
+    10.6
+   ],
+   [
+    -7.3,
+    10.7
+   ]
+  ]
+ },
+ {
+  "camera": "blkrc-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199113,
+  "to": 1789199113,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8874,
+  "k1": -0.0795,
+  "n_nights": 1,
+  "n_stars": 8,
+  "median_px": 2.05,
+  "median_px_centred": 0.76,
+  "nights": [
+   "hpwren_20260912_Q1_blkrc-s-mobo-c"
+  ],
+  "own": [
+   [
+    32.6,
+    46.1
+   ]
+  ]
+ },
+ {
+  "camera": "bm-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112714,
+  "to": 1789890315,
+  "cx": -63.2,
+  "cy": 39.4,
+  "k_ratio": 0.7725,
+  "k1": -0.0385,
+  "n_nights": 3,
+  "n_stars": 36,
+  "median_px": 2.27,
+  "median_px_centred": 0.44,
+  "nights": [
+   "hpwren_20260911_Q1_bm-e-mobo-c",
+   "hpwren_20260919_Q1_bm-e-mobo-c",
+   "hpwren_20260920_Q1_bm-e-mobo-c"
+  ],
+  "own": [
+   [
+    -65.1,
+    38.4
+   ],
+   [
+    -61.9,
+    40.5
+   ],
+   [
+    -61.2,
+    41.0
+   ]
+  ]
+ },
+ {
+  "camera": "bm-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112714,
+  "to": 1789112714,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8867,
+  "k1": -0.0785,
+  "n_nights": 1,
+  "n_stars": 9,
+  "median_px": 1.51,
+  "median_px_centred": 0.56,
+  "nights": [
+   "hpwren_20260911_Q1_bm-n-mobo-c"
+  ],
+  "own": [
+   [
+    -23.5,
+    18.1
+   ]
+  ]
+ },
+ {
+  "camera": "bm-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1784015115,
+  "to": 1789112715,
+  "cx": -30.8,
+  "cy": 11.8,
+  "k_ratio": 0.776,
+  "k1": -0.0385,
+  "n_nights": 2,
+  "n_stars": 33,
+  "median_px": 0.96,
+  "median_px_centred": 0.43,
+  "nights": [
+   "hpwren_20260714_Q1_bm-s-mobo-c",
+   "hpwren_20260911_Q1_bm-s-mobo-c"
+  ],
+  "own": [
+   [
+    -30.8,
+    11.9
+   ],
+   [
+    -30.3,
+    12.2
+   ]
+  ]
+ },
+ {
+  "camera": "bm-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112716,
+  "to": 1789890316,
+  "cx": 30.4,
+  "cy": 8.7,
+  "k_ratio": 0.7745,
+  "k1": -0.0383,
+  "n_nights": 3,
+  "n_stars": 43,
+  "median_px": 1.03,
+  "median_px_centred": 0.45,
+  "nights": [
+   "hpwren_20260911_Q1_bm-w-mobo-c",
+   "hpwren_20260919_Q1_bm-w-mobo-c",
+   "hpwren_20260920_Q1_bm-w-mobo-c"
+  ],
+  "own": [
+   [
+    31.8,
+    9.1
+   ],
+   [
+    30.4,
+    8.4
+   ],
+   [
+    29.4,
+    8.8
+   ]
+  ]
+ },
+ {
+  "camera": "buff-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199117,
+  "to": 1789285516,
+  "cx": 10.8,
+  "cy": 10.0,
+  "k_ratio": 0.8807,
+  "k1": -0.0736,
+  "n_nights": 2,
+  "n_stars": 55,
+  "median_px": 0.6,
+  "median_px_centred": 0.44,
+  "nights": [
+   "hpwren_20260912_Q1_buff-e-mobo-c",
+   "hpwren_20260913_Q1_buff-e-mobo-c"
+  ],
+  "own": [
+   [
+    10.3,
+    9.2
+   ],
+   [
+    11.3,
+    10.6
+   ]
+  ]
+ },
+ {
+  "camera": "ch-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789890320,
+  "to": 1789890320,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8856,
+  "k1": -0.0783,
+  "n_nights": 1,
+  "n_stars": 12,
+  "median_px": 1.39,
+  "median_px_centred": 0.74,
+  "nights": [
+   "hpwren_20260920_Q1_ch-e-mobo-c"
+  ],
+  "own": [
+   [
+    -15.7,
+    24.7
+   ]
+  ]
+ },
+ {
+  "camera": "ch-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199120,
+  "to": 1789199120,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8904,
+  "k1": -0.0835,
+  "n_nights": 1,
+  "n_stars": 13,
+  "median_px": 1.32,
+  "median_px_centred": 0.92,
+  "nights": [
+   "hpwren_20260912_Q1_ch-n-mobo-c"
+  ],
+  "own": [
+   [
+    0.1,
+    12.3
+   ]
+  ]
+ },
+ {
+  "camera": "ch-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199121,
+  "to": 1789199121,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8854,
+  "k1": -0.0795,
+  "n_nights": 1,
+  "n_stars": 11,
+  "median_px": 1.45,
+  "median_px_centred": 1.09,
+  "nights": [
+   "hpwren_20260912_Q1_ch-s-mobo-c"
+  ],
+  "own": [
+   [
+    10.6,
+    6.5
+   ]
+  ]
+ },
+ {
+  "camera": "cp-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112725,
+  "to": 1789112725,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8878,
+  "k1": -0.0809,
+  "n_nights": 1,
+  "n_stars": 12,
+  "median_px": 1.75,
+  "median_px_centred": 1.08,
+  "nights": [
+   "hpwren_20260911_Q1_cp-s-mobo-c"
+  ],
+  "own": [
+   [
+    17.1,
+    17.3
+   ]
+  ]
+ },
+ {
+  "camera": "cp-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1784015126,
+  "to": 1789371926,
+  "cx": -4.4,
+  "cy": -23.8,
+  "k_ratio": 0.886,
+  "k1": -0.0769,
+  "n_nights": 12,
+  "n_stars": 447,
+  "median_px": 1.4,
+  "median_px_centred": 0.61,
+  "nights": [
+   "hpwren_20260714_Q1_cp-w-mobo-c",
+   "hpwren_20260829_Q1_cp-w-mobo-c",
+   "hpwren_20260831_Q1_cp-w-mobo-c",
+   "hpwren_20260901_Q1_cp-w-mobo-c",
+   "hpwren_20260902_Q1_cp-w-mobo-c",
+   "hpwren_20260903_Q1_cp-w-mobo-c",
+   "hpwren_20260904_Q1_cp-w-mobo-c",
+   "hpwren_20260905_Q1_cp-w-mobo-c",
+   "hpwren_20260911_Q1_cp-w-mobo-c",
+   "hpwren_20260912_Q1_cp-w-mobo-c",
+   "hpwren_20260913_Q1_cp-w-mobo-c",
+   "hpwren_20260914_Q1_cp-w-mobo-c"
+  ],
+  "own": [
+   [
+    -2.6,
+    -24.7
+   ],
+   [
+    -0.7,
+    -23.8
+   ],
+   [
+    -3.8,
+    -23.3
+   ],
+   [
+    -6.0,
+    -23.6
+   ],
+   [
+    -5.6,
+    -23.2
+   ],
+   [
+    -5.6,
+    -23.0
+   ],
+   [
+    -6.6,
+    -22.9
+   ],
+   [
+    -4.8,
+    -22.7
+   ],
+   [
+    -6.1,
+    -23.4
+   ],
+   [
+    -6.9,
+    -23.3
+   ],
+   [
+    -5.6,
+    -23.9
+   ],
+   [
+    -4.0,
+    -24.8
+   ]
+  ]
+ },
+ {
+  "camera": "hp-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1784015129,
+  "to": 1789112729,
+  "cx": 46.4,
+  "cy": -3.4,
+  "k_ratio": 0.8854,
+  "k1": -0.0787,
+  "n_nights": 2,
+  "n_stars": 65,
+  "median_px": 2.11,
+  "median_px_centred": 0.68,
+  "nights": [
+   "hpwren_20260714_Q1_hp-e-mobo-c",
+   "hpwren_20260911_Q1_hp-e-mobo-c"
+  ],
+  "own": [
+   [
+    51.5,
+    -3.6
+   ],
+   [
+    44.9,
+    -3.0
+   ]
+  ]
+ },
+ {
+  "camera": "hp-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112730,
+  "to": 1789112730,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8912,
+  "k1": -0.0823,
+  "n_nights": 1,
+  "n_stars": 19,
+  "median_px": 1.41,
+  "median_px_centred": 1.05,
+  "nights": [
+   "hpwren_20260911_Q1_hp-n-mobo-c"
+  ],
+  "own": [
+   [
+    -10.7,
+    3.5
+   ]
+  ]
+ },
+ {
+  "camera": "hp-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1784015130,
+  "to": 1789112730,
+  "cx": 28.3,
+  "cy": -16.4,
+  "k_ratio": 0.8893,
+  "k1": -0.0813,
+  "n_nights": 2,
+  "n_stars": 54,
+  "median_px": 1.54,
+  "median_px_centred": 0.98,
+  "nights": [
+   "hpwren_20260714_Q1_hp-s-mobo-c",
+   "hpwren_20260911_Q1_hp-s-mobo-c"
+  ],
+  "own": [
+   [
+    30.9,
+    -16.7
+   ],
+   [
+    25.7,
+    -16.6
+   ]
+  ]
+ },
+ {
+  "camera": "hp-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1787989531,
+  "to": 1789112731,
+  "cx": -7.0,
+  "cy": -2.2,
+  "k_ratio": 0.8889,
+  "k1": -0.0788,
+  "n_nights": 7,
+  "n_stars": 282,
+  "median_px": 0.75,
+  "median_px_centred": 0.72,
+  "nights": [
+   "hpwren_20260829_Q1_hp-w-mobo-c",
+   "hpwren_20260901_Q1_hp-w-mobo-c",
+   "hpwren_20260902_Q1_hp-w-mobo-c",
+   "hpwren_20260903_Q1_hp-w-mobo-c",
+   "hpwren_20260904_Q1_hp-w-mobo-c",
+   "hpwren_20260905_Q1_hp-w-mobo-c",
+   "hpwren_20260911_Q1_hp-w-mobo-c"
+  ],
+  "own": [
+   [
+    -4.7,
+    -2.3
+   ],
+   [
+    -4.2,
+    -2.4
+   ],
+   [
+    -7.7,
+    -2.1
+   ],
+   [
+    -8.6,
+    -2.2
+   ],
+   [
+    -8.8,
+    -1.7
+   ],
+   [
+    -9.2,
+    -1.4
+   ],
+   [
+    -4.1,
+    -1.3
+   ]
+  ]
+ },
+ {
+  "camera": "lp-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112734,
+  "to": 1789112734,
+  "cx": 12.6,
+  "cy": -0.6,
+  "k_ratio": 0.8864,
+  "k1": -0.0751,
+  "n_nights": 1,
+  "n_stars": 29,
+  "median_px": 0.68,
+  "median_px_centred": 0.58,
+  "nights": [
+   "hpwren_20260911_Q1_lp-e-mobo-c"
+  ],
+  "own": [
+   [
+    12.6,
+    -0.6
+   ]
+  ]
+ },
+ {
+  "camera": "lp-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112735,
+  "to": 1789371935,
+  "cx": 4.8,
+  "cy": -37.8,
+  "k_ratio": 0.8862,
+  "k1": -0.0803,
+  "n_nights": 4,
+  "n_stars": 72,
+  "median_px": 3.58,
+  "median_px_centred": 0.82,
+  "nights": [
+   "hpwren_20260911_Q1_lp-n-mobo-c",
+   "hpwren_20260912_Q1_lp-n-mobo-c",
+   "hpwren_20260913_Q1_lp-n-mobo-c",
+   "hpwren_20260914_Q1_lp-n-mobo-c"
+  ],
+  "own": [
+   [
+    5.4,
+    -38.0
+   ],
+   [
+    4.7,
+    -38.1
+   ],
+   [
+    3.4,
+    -37.5
+   ],
+   [
+    5.5,
+    -37.7
+   ]
+  ]
+ },
+ {
+  "camera": "lp-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112735,
+  "to": 1789112735,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.887,
+  "k1": -0.0793,
+  "n_nights": 1,
+  "n_stars": 10,
+  "median_px": 1.34,
+  "median_px_centred": 1.1,
+  "nights": [
+   "hpwren_20260911_Q1_lp-s-mobo-c"
+  ],
+  "own": [
+   [
+    7.7,
+    5.7
+   ]
+  ]
+ },
+ {
+  "camera": "lp-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112736,
+  "to": 1789112736,
+  "cx": 1.9,
+  "cy": 63.1,
+  "k_ratio": 0.8866,
+  "k1": -0.0791,
+  "n_nights": 1,
+  "n_stars": 35,
+  "median_px": 2.51,
+  "median_px_centred": 0.84,
+  "nights": [
+   "hpwren_20260911_Q1_lp-w-mobo-c"
+  ],
+  "own": [
+   [
+    1.9,
+    63.1
+   ]
+  ]
+ },
+ {
+  "camera": "lp-w-mobo-m",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112736,
+  "to": 1789112736,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8874,
+  "k1": -0.0754,
+  "n_nights": 1,
+  "n_stars": 16,
+  "median_px": 1.07,
+  "median_px_centred": 0.47,
+  "nights": [
+   "hpwren_20260911_Q1_lp-w-mobo-m"
+  ],
+  "own": [
+   [
+    -21.0,
+    25.8
+   ]
+  ]
+ },
+ {
+  "camera": "mg-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1784015142,
+  "to": 1789112742,
+  "cx": -23.3,
+  "cy": -51.9,
+  "k_ratio": 0.8866,
+  "k1": -0.0776,
+  "n_nights": 2,
+  "n_stars": 40,
+  "median_px": 2.15,
+  "median_px_centred": 0.63,
+  "nights": [
+   "hpwren_20260714_Q1_mg-e-mobo-c",
+   "hpwren_20260911_Q1_mg-e-mobo-c"
+  ],
+  "own": [
+   [
+    -27.3,
+    -51.3
+   ],
+   [
+    -20.3,
+    -51.4
+   ]
+  ]
+ },
+ {
+  "camera": "mg-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112742,
+  "to": 1789112742,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8868,
+  "k1": -0.0818,
+  "n_nights": 1,
+  "n_stars": 17,
+  "median_px": 0.97,
+  "median_px_centred": 0.92,
+  "nights": [
+   "hpwren_20260911_Q1_mg-n-mobo-c"
+  ],
+  "own": [
+   [
+    1.3,
+    4.4
+   ]
+  ]
+ },
+ {
+  "camera": "mg-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1784015143,
+  "to": 1789112743,
+  "cx": 34.8,
+  "cy": 14.9,
+  "k_ratio": 0.8866,
+  "k1": -0.0768,
+  "n_nights": 2,
+  "n_stars": 37,
+  "median_px": 1.56,
+  "median_px_centred": 0.53,
+  "nights": [
+   "hpwren_20260714_Q1_mg-s-mobo-c",
+   "hpwren_20260911_Q1_mg-s-mobo-c"
+  ],
+  "own": [
+   [
+    37.7,
+    15.0
+   ],
+   [
+    29.8,
+    15.2
+   ]
+  ]
+ },
+ {
+  "camera": "mg-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112743,
+  "to": 1789112743,
+  "cx": -11.2,
+  "cy": 27.1,
+  "k_ratio": 0.8869,
+  "k1": -0.0797,
+  "n_nights": 1,
+  "n_stars": 35,
+  "median_px": 1.47,
+  "median_px_centred": 0.77,
+  "nights": [
+   "hpwren_20260911_Q1_mg-w-mobo-c"
+  ],
+  "own": [
+   [
+    -11.2,
+    27.1
+   ]
+  ]
+ },
+ {
+  "camera": "mlo-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112745,
+  "to": 1789112745,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8846,
+  "k1": -0.0806,
+  "n_nights": 1,
+  "n_stars": 14,
+  "median_px": 0.98,
+  "median_px_centred": 0.82,
+  "nights": [
+   "hpwren_20260911_Q1_mlo-s-mobo-c"
+  ],
+  "own": [
+   [
+    14.1,
+    -2.0
+   ]
+  ]
+ },
+ {
+  "camera": "mp-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112747,
+  "to": 1789112747,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8882,
+  "k1": -0.08,
+  "n_nights": 1,
+  "n_stars": 9,
+  "median_px": 0.9,
+  "median_px_centred": 0.65,
+  "nights": [
+   "hpwren_20260911_Q1_mp-n-mobo-c"
+  ],
+  "own": [
+   [
+    -7.7,
+    13.5
+   ]
+  ]
+ },
+ {
+  "camera": "mp-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1790235949,
+  "to": 1790322350,
+  "cx": 0.6,
+  "cy": 43.1,
+  "k_ratio": 0.8867,
+  "k1": -0.0792,
+  "n_nights": 2,
+  "n_stars": 57,
+  "median_px": 2.79,
+  "median_px_centred": 0.94,
+  "nights": [
+   "hpwren_20260924_Q1_mp-w-mobo-c",
+   "hpwren_20260925_Q1_mp-w-mobo-c"
+  ],
+  "own": [
+   [
+    1.2,
+    43.6
+   ],
+   [
+    -0.3,
+    42.6
+   ]
+  ]
+ },
+ {
+  "camera": "mpo-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789803950,
+  "to": 1789890350,
+  "cx": 36.5,
+  "cy": -18.8,
+  "k_ratio": 0.884,
+  "k1": -0.0732,
+  "n_nights": 2,
+  "n_stars": 57,
+  "median_px": 1.58,
+  "median_px_centred": 0.49,
+  "nights": [
+   "hpwren_20260919_Q1_mpo-e-mobo-c",
+   "hpwren_20260920_Q1_mpo-e-mobo-c"
+  ],
+  "own": [
+   [
+    37.8,
+    -18.6
+   ],
+   [
+    34.7,
+    -19.1
+   ]
+  ]
+ },
+ {
+  "camera": "mpo-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199152,
+  "to": 1789285550,
+  "cx": -1.9,
+  "cy": 15.8,
+  "k_ratio": 0.8901,
+  "k1": -0.0812,
+  "n_nights": 2,
+  "n_stars": 25,
+  "median_px": 1.34,
+  "median_px_centred": 0.92,
+  "nights": [
+   "hpwren_20260912_Q1_mpo-n-mobo-c",
+   "hpwren_20260913_Q1_mpo-n-mobo-c"
+  ],
+  "own": [
+   [
+    -1.9,
+    15.7
+   ],
+   [
+    -2.0,
+    16.0
+   ]
+  ]
+ },
+ {
+  "camera": "mpo-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789803951,
+  "to": 1789890352,
+  "cx": -12.8,
+  "cy": 17.1,
+  "k_ratio": 0.8905,
+  "k1": -0.081,
+  "n_nights": 2,
+  "n_stars": 32,
+  "median_px": 1.72,
+  "median_px_centred": 1.18,
+  "nights": [
+   "hpwren_20260919_Q1_mpo-s-mobo-c",
+   "hpwren_20260920_Q1_mpo-s-mobo-c"
+  ],
+  "own": [
+   [
+    -11.2,
+    17.1
+   ],
+   [
+    -15.9,
+    17.3
+   ]
+  ]
+ },
+ {
+  "camera": "om-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112753,
+  "to": 1789112753,
+  "cx": -13.3,
+  "cy": 22.3,
+  "k_ratio": 0.8867,
+  "k1": -0.0779,
+  "n_nights": 1,
+  "n_stars": 37,
+  "median_px": 1.23,
+  "median_px_centred": 0.61,
+  "nights": [
+   "hpwren_20260911_Q1_om-e-mobo-c"
+  ],
+  "own": [
+   [
+    -13.3,
+    22.3
+   ]
+  ]
+ },
+ {
+  "camera": "om-e-mobo-m",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112753,
+  "to": 1789112753,
+  "cx": -4.3,
+  "cy": -14.7,
+  "k_ratio": 0.888,
+  "k1": -0.0812,
+  "n_nights": 1,
+  "n_stars": 25,
+  "median_px": 1.3,
+  "median_px_centred": 0.87,
+  "nights": [
+   "hpwren_20260911_Q1_om-e-mobo-m"
+  ],
+  "own": [
+   [
+    -4.3,
+    -14.7
+   ]
+  ]
+ },
+ {
+  "camera": "om-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112753,
+  "to": 1789112753,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8877,
+  "k1": -0.0804,
+  "n_nights": 1,
+  "n_stars": 16,
+  "median_px": 1.63,
+  "median_px_centred": 0.78,
+  "nights": [
+   "hpwren_20260911_Q1_om-n-mobo-c"
+  ],
+  "own": [
+   [
+    -18.6,
+    10.5
+   ]
+  ]
+ },
+ {
+  "camera": "om-n-mobo-m",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112754,
+  "to": 1789112754,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8895,
+  "k1": -0.0837,
+  "n_nights": 1,
+  "n_stars": 14,
+  "median_px": 1.07,
+  "median_px_centred": 0.94,
+  "nights": [
+   "hpwren_20260911_Q1_om-n-mobo-m"
+  ],
+  "own": [
+   [
+    -7.9,
+    -7.2
+   ]
+  ]
+ },
+ {
+  "camera": "om-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112754,
+  "to": 1789112754,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8881,
+  "k1": -0.0818,
+  "n_nights": 1,
+  "n_stars": 11,
+  "median_px": 1.53,
+  "median_px_centred": 1.01,
+  "nights": [
+   "hpwren_20260911_Q1_om-s-mobo-c"
+  ],
+  "own": [
+   [
+    19.8,
+    5.5
+   ]
+  ]
+ },
+ {
+  "camera": "pi-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112755,
+  "to": 1789112755,
+  "cx": 31.7,
+  "cy": 43.5,
+  "k_ratio": 0.8869,
+  "k1": -0.0768,
+  "n_nights": 1,
+  "n_stars": 32,
+  "median_px": 1.55,
+  "median_px_centred": 0.53,
+  "nights": [
+   "hpwren_20260911_Q1_pi-e-mobo-c"
+  ],
+  "own": [
+   [
+    31.7,
+    43.5
+   ]
+  ]
+ },
+ {
+  "camera": "pi-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199158,
+  "to": 1789285556,
+  "cx": 34.4,
+  "cy": 17.9,
+  "k_ratio": 0.8863,
+  "k1": -0.0783,
+  "n_nights": 2,
+  "n_stars": 22,
+  "median_px": 0.66,
+  "median_px_centred": 0.76,
+  "nights": [
+   "hpwren_20260912_Q1_pi-n-mobo-c",
+   "hpwren_20260913_Q1_pi-n-mobo-c"
+  ],
+  "own": [
+   [
+    39.6,
+    18.5
+   ],
+   [
+    28.2,
+    16.8
+   ]
+  ]
+ },
+ {
+  "camera": "pi-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112758,
+  "to": 1789112758,
+  "cx": -11.5,
+  "cy": 9.4,
+  "k_ratio": 0.886,
+  "k1": -0.0812,
+  "n_nights": 1,
+  "n_stars": 33,
+  "median_px": 1.04,
+  "median_px_centred": 0.89,
+  "nights": [
+   "hpwren_20260911_Q1_pi-w-mobo-c"
+  ],
+  "own": [
+   [
+    -11.5,
+    9.4
+   ]
+  ]
+ },
+ {
+  "camera": "rdd-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789890359,
+  "to": 1789890359,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8854,
+  "k1": -0.0736,
+  "n_nights": 1,
+  "n_stars": 13,
+  "median_px": 0.76,
+  "median_px_centred": 0.58,
+  "nights": [
+   "hpwren_20260920_Q1_rdd-e-mobo-c"
+  ],
+  "own": [
+   [
+    15.0,
+    -6.6
+   ]
+  ]
+ },
+ {
+  "camera": "rdmrc-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199103,
+  "to": 1789285503,
+  "cx": 16.5,
+  "cy": 11.3,
+  "k_ratio": 0.8896,
+  "k1": -0.0832,
+  "n_nights": 2,
+  "n_stars": 27,
+  "median_px": 1.41,
+  "median_px_centred": 1.01,
+  "nights": [
+   "hpwren_20260912_Q1_rdmrc-s-mobo-c",
+   "hpwren_20260913_Q1_rdmrc-s-mobo-c"
+  ],
+  "own": [
+   [
+    14.1,
+    10.5
+   ],
+   [
+    18.7,
+    11.9
+   ]
+  ]
+ },
+ {
+  "camera": "rdmrc-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199103,
+  "to": 1789285504,
+  "cx": -1.0,
+  "cy": 17.7,
+  "k_ratio": 0.8869,
+  "k1": -0.0763,
+  "n_nights": 2,
+  "n_stars": 66,
+  "median_px": 0.95,
+  "median_px_centred": 0.57,
+  "nights": [
+   "hpwren_20260912_Q1_rdmrc-w-mobo-c",
+   "hpwren_20260913_Q1_rdmrc-w-mobo-c"
+  ],
+  "own": [
+   [
+    0.5,
+    17.2
+   ],
+   [
+    -2.9,
+    18.3
+   ]
+  ]
+ },
+ {
+  "camera": "rm-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112704,
+  "to": 1789112704,
+  "cx": 33.2,
+  "cy": -35.7,
+  "k_ratio": 0.8883,
+  "k1": -0.0779,
+  "n_nights": 1,
+  "n_stars": 32,
+  "median_px": 2.0,
+  "median_px_centred": 0.65,
+  "nights": [
+   "hpwren_20260911_Q1_rm-e-mobo-c"
+  ],
+  "own": [
+   [
+    33.2,
+    -35.7
+   ]
+  ]
+ },
+ {
+  "camera": "rm-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112704,
+  "to": 1789112704,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8894,
+  "k1": -0.0807,
+  "n_nights": 1,
+  "n_stars": 14,
+  "median_px": 2.08,
+  "median_px_centred": 0.96,
+  "nights": [
+   "hpwren_20260911_Q1_rm-n-mobo-c"
+  ],
+  "own": [
+   [
+    14.9,
+    -18.3
+   ]
+  ]
+ },
+ {
+  "camera": "rm-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199105,
+  "to": 1789199105,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8866,
+  "k1": -0.0788,
+  "n_nights": 1,
+  "n_stars": 11,
+  "median_px": 1.17,
+  "median_px_centred": 0.86,
+  "nights": [
+   "hpwren_20260912_Q1_rm-s-mobo-c"
+  ],
+  "own": [
+   [
+    15.2,
+    -3.9
+   ]
+  ]
+ },
+ {
+  "camera": "rndmsa-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199107,
+  "to": 1789285507,
+  "cx": 2.8,
+  "cy": -6.4,
+  "k_ratio": 0.8867,
+  "k1": -0.0786,
+  "n_nights": 2,
+  "n_stars": 70,
+  "median_px": 0.8,
+  "median_px_centred": 0.71,
+  "nights": [
+   "hpwren_20260912_Q1_rndmsa-e-mobo-c",
+   "hpwren_20260913_Q1_rndmsa-e-mobo-c"
+  ],
+  "own": [
+   [
+    2.1,
+    -6.2
+   ],
+   [
+    3.3,
+    -6.4
+   ]
+  ]
+ },
+ {
+  "camera": "rndmsa-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199108,
+  "to": 1789285508,
+  "cx": -24.8,
+  "cy": 2.4,
+  "k_ratio": 0.8871,
+  "k1": -0.081,
+  "n_nights": 2,
+  "n_stars": 25,
+  "median_px": 1.48,
+  "median_px_centred": 1.05,
+  "nights": [
+   "hpwren_20260912_Q1_rndmsa-s-mobo-c",
+   "hpwren_20260913_Q1_rndmsa-s-mobo-c"
+  ],
+  "own": [
+   [
+    -24.1,
+    -1.2
+   ],
+   [
+    -25.5,
+    5.9
+   ]
+  ]
+ },
+ {
+  "camera": "sdsc-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112711,
+  "to": 1789112711,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8891,
+  "k1": -0.0766,
+  "n_nights": 1,
+  "n_stars": 11,
+  "median_px": 1.44,
+  "median_px_centred": 0.49,
+  "nights": [
+   "hpwren_20260911_Q1_sdsc-e-mobo-c"
+  ],
+  "own": [
+   [
+    32.7,
+    -19.1
+   ]
+  ]
+ },
+ {
+  "camera": "sm-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112720,
+  "to": 1789112720,
+  "cx": -20.7,
+  "cy": -25.4,
+  "k_ratio": 0.8845,
+  "k1": -0.074,
+  "n_nights": 1,
+  "n_stars": 27,
+  "median_px": 0.88,
+  "median_px_centred": 0.49,
+  "nights": [
+   "hpwren_20260911_Q1_sm-e-mobo-c"
+  ],
+  "own": [
+   [
+    -20.7,
+    -25.4
+   ]
+  ]
+ },
+ {
+  "camera": "sm-e-mobo-m",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112720,
+  "to": 1789112720,
+  "cx": 18.2,
+  "cy": -19.0,
+  "k_ratio": 0.8879,
+  "k1": -0.0806,
+  "n_nights": 1,
+  "n_stars": 29,
+  "median_px": 1.31,
+  "median_px_centred": 0.73,
+  "nights": [
+   "hpwren_20260911_Q1_sm-e-mobo-m"
+  ],
+  "own": [
+   [
+    18.2,
+    -19.0
+   ]
+  ]
+ },
+ {
+  "camera": "sm-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112721,
+  "to": 1789112721,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8868,
+  "k1": -0.0789,
+  "n_nights": 1,
+  "n_stars": 11,
+  "median_px": 1.16,
+  "median_px_centred": 0.76,
+  "nights": [
+   "hpwren_20260911_Q1_sm-n-mobo-c"
+  ],
+  "own": [
+   [
+    -16.2,
+    -12.8
+   ]
+  ]
+ },
+ {
+  "camera": "sm-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199122,
+  "to": 1789285523,
+  "cx": 14.4,
+  "cy": 3.5,
+  "k_ratio": 0.8851,
+  "k1": -0.0794,
+  "n_nights": 2,
+  "n_stars": 73,
+  "median_px": 1.0,
+  "median_px_centred": 0.84,
+  "nights": [
+   "hpwren_20260912_Q1_sm-w-mobo-c",
+   "hpwren_20260913_Q1_sm-w-mobo-c"
+  ],
+  "own": [
+   [
+    15.2,
+    3.3
+   ],
+   [
+    13.5,
+    3.7
+   ]
+  ]
+ },
+ {
+  "camera": "smarpk-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199123,
+  "to": 1789199123,
+  "cx": 24.2,
+  "cy": 36.3,
+  "k_ratio": 0.8834,
+  "k1": -0.0745,
+  "n_nights": 1,
+  "n_stars": 32,
+  "median_px": 1.25,
+  "median_px_centred": 0.51,
+  "nights": [
+   "hpwren_20260912_Q1_smarpk-e-mobo-c"
+  ],
+  "own": [
+   [
+    24.2,
+    36.3
+   ]
+  ]
+ },
+ {
+  "camera": "smarpk-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199124,
+  "to": 1789199124,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8851,
+  "k1": -0.0777,
+  "n_nights": 1,
+  "n_stars": 10,
+  "median_px": 1.19,
+  "median_px_centred": 0.5,
+  "nights": [
+   "hpwren_20260912_Q1_smarpk-n-mobo-c"
+  ],
+  "own": [
+   [
+    -4.5,
+    40.6
+   ]
+  ]
+ },
+ {
+  "camera": "smarpk-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199124,
+  "to": 1789199124,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8866,
+  "k1": -0.0825,
+  "n_nights": 1,
+  "n_stars": 9,
+  "median_px": 1.12,
+  "median_px_centred": 1.01,
+  "nights": [
+   "hpwren_20260912_Q1_smarpk-s-mobo-c"
+  ],
+  "own": [
+   [
+    5.9,
+    14.3
+   ]
+  ]
+ },
+ {
+  "camera": "smarpk-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199125,
+  "to": 1789199125,
+  "cx": 23.0,
+  "cy": 35.1,
+  "k_ratio": 0.8879,
+  "k1": -0.0794,
+  "n_nights": 1,
+  "n_stars": 32,
+  "median_px": 2.16,
+  "median_px_centred": 0.75,
+  "nights": [
+   "hpwren_20260912_Q1_smarpk-w-mobo-c"
+  ],
+  "own": [
+   [
+    23.0,
+    35.1
+   ]
+  ]
+ },
+ {
+  "camera": "smer-tcs10-1-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199126,
+  "to": 1789285527,
+  "cx": 41.2,
+  "cy": 8.0,
+  "k_ratio": 0.8877,
+  "k1": -0.0814,
+  "n_nights": 2,
+  "n_stars": 64,
+  "median_px": 1.94,
+  "median_px_centred": 0.87,
+  "nights": [
+   "hpwren_20260912_Q1_smer-tcs10-1-mobo-c",
+   "hpwren_20260913_Q1_smer-tcs10-1-mobo-c"
+  ],
+  "own": [
+   [
+    39.7,
+    7.0
+   ],
+   [
+    42.6,
+    9.2
+   ]
+  ]
+ },
+ {
+  "camera": "smer-tcs8-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112727,
+  "to": 1790495128,
+  "cx": -4.9,
+  "cy": -40.4,
+  "k_ratio": 0.885,
+  "k1": -0.0784,
+  "n_nights": 3,
+  "n_stars": 56,
+  "median_px": 1.6,
+  "median_px_centred": 0.66,
+  "nights": [
+   "hpwren_20260911_Q1_smer-tcs8-mobo-c",
+   "hpwren_20260920_Q1_smer-tcs8-mobo-c",
+   "hpwren_20260927_Q1_smer-tcs8-mobo-c"
+  ],
+  "own": [
+   [
+    -7.6,
+    -41.0
+   ],
+   [
+    -5.7,
+    -41.0
+   ],
+   [
+    2.0,
+    -38.9
+   ]
+  ]
+ },
+ {
+  "camera": "smer-tcs9-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1786854808,
+  "to": 1786854808,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8838,
+  "k1": -0.0759,
+  "n_nights": 1,
+  "n_stars": 17,
+  "median_px": 0.83,
+  "median_px_centred": 0.55,
+  "nights": [
+   "hpwren_20260815_Q8_smer-tcs9-e-mobo-c"
+  ],
+  "own": [
+   [
+    15.1,
+    12.2
+   ]
+  ]
+ },
+ {
+  "camera": "tdlln-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199141,
+  "to": 1789199141,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8867,
+  "k1": -0.0758,
+  "n_nights": 1,
+  "n_stars": 11,
+  "median_px": 1.26,
+  "median_px_centred": 0.64,
+  "nights": [
+   "hpwren_20260912_Q1_tdlln-e-mobo-c"
+  ],
+  "own": [
+   [
+    22.7,
+    41.9
+   ]
+  ]
+ },
+ {
+  "camera": "tp-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199146,
+  "to": 1789371946,
+  "cx": -31.4,
+  "cy": -27.4,
+  "k_ratio": 0.8836,
+  "k1": -0.0775,
+  "n_nights": 3,
+  "n_stars": 117,
+  "median_px": 1.74,
+  "median_px_centred": 0.72,
+  "nights": [
+   "hpwren_20260912_Q1_tp-w-mobo-c",
+   "hpwren_20260913_Q1_tp-w-mobo-c",
+   "hpwren_20260914_Q1_tp-w-mobo-c"
+  ],
+  "own": [
+   [
+    -31.8,
+    -27.7
+   ],
+   [
+    -31.5,
+    -27.0
+   ],
+   [
+    -31.0,
+    -27.5
+   ]
+  ]
+ },
+ {
+  "camera": "vo-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1787989550,
+  "to": 1789112749,
+  "cx": -2.7,
+  "cy": 10.7,
+  "k_ratio": 0.885,
+  "k1": -0.0793,
+  "n_nights": 8,
+  "n_stars": 305,
+  "median_px": 0.91,
+  "median_px_centred": 0.72,
+  "nights": [
+   "hpwren_20260829_Q1_vo-e-mobo-c",
+   "hpwren_20260831_Q1_vo-e-mobo-c",
+   "hpwren_20260901_Q1_vo-e-mobo-c",
+   "hpwren_20260902_Q1_vo-e-mobo-c",
+   "hpwren_20260903_Q1_vo-e-mobo-c",
+   "hpwren_20260904_Q1_vo-e-mobo-c",
+   "hpwren_20260905_Q1_vo-e-mobo-c",
+   "hpwren_20260911_Q1_vo-e-mobo-c"
+  ],
+  "own": [
+   [
+    -6.4,
+    10.2
+   ],
+   [
+    -0.2,
+    10.3
+   ],
+   [
+    -3.3,
+    11.7
+   ],
+   [
+    -1.9,
+    11.1
+   ],
+   [
+    -2.6,
+    9.7
+   ],
+   [
+    -3.1,
+    10.9
+   ],
+   [
+    -2.2,
+    11.1
+   ],
+   [
+    -3.2,
+    9.3
+   ]
+  ]
+ },
+ {
+  "camera": "vo-e-mobo-m",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112750,
+  "to": 1789112750,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.8908,
+  "k1": -0.0834,
+  "n_nights": 1,
+  "n_stars": 13,
+  "median_px": 1.0,
+  "median_px_centred": 0.89,
+  "nights": [
+   "hpwren_20260911_Q1_vo-e-mobo-m"
+  ],
+  "own": [
+   [
+    2.2,
+    12.4
+   ]
+  ]
+ },
+ {
+  "camera": "vo-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1784015150,
+  "to": 1789112750,
+  "cx": 20.7,
+  "cy": 25.1,
+  "k_ratio": 0.8907,
+  "k1": -0.0831,
+  "n_nights": 2,
+  "n_stars": 33,
+  "median_px": 1.74,
+  "median_px_centred": 0.93,
+  "nights": [
+   "hpwren_20260714_Q1_vo-n-mobo-c",
+   "hpwren_20260911_Q1_vo-n-mobo-c"
+  ],
+  "own": [
+   [
+    30.5,
+    24.4
+   ],
+   [
+    14.0,
+    25.4
+   ]
+  ]
+ },
+ {
+  "camera": "vo-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1784015151,
+  "to": 1789112751,
+  "cx": -13.9,
+  "cy": 9.0,
+  "k_ratio": 0.8874,
+  "k1": -0.0808,
+  "n_nights": 2,
+  "n_stars": 60,
+  "median_px": 1.1,
+  "median_px_centred": 1.0,
+  "nights": [
+   "hpwren_20260714_Q1_vo-w-mobo-c",
+   "hpwren_20260911_Q1_vo-w-mobo-c"
+  ],
+  "own": [
+   [
+    -18.2,
+    9.9
+   ],
+   [
+    -10.6,
+    8.2
+   ]
+  ]
+ },
+ {
+  "camera": "wc-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112752,
+  "to": 1789112752,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.887,
+  "k1": -0.0833,
+  "n_nights": 1,
+  "n_stars": 18,
+  "median_px": 1.1,
+  "median_px_centred": 1.07,
+  "nights": [
+   "hpwren_20260911_Q1_wc-n-mobo-c"
+  ],
+  "own": [
+   [
+    2.1,
+    3.3
+   ]
+  ]
+ },
+ {
+  "camera": "wilson-e-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112754,
+  "to": 1789112754,
+  "cx": 1.0,
+  "cy": 3.0,
+  "k_ratio": 0.8863,
+  "k1": -0.0782,
+  "n_nights": 1,
+  "n_stars": 31,
+  "median_px": 0.6,
+  "median_px_centred": 0.6,
+  "nights": [
+   "hpwren_20260911_Q1_wilson-e-mobo-c"
+  ],
+  "own": [
+   [
+    1.0,
+    3.0
+   ]
+  ]
+ },
+ {
+  "camera": "wlfd-s-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789199158,
+  "to": 1789890358,
+  "cx": 29.6,
+  "cy": 23.1,
+  "k_ratio": 0.8865,
+  "k1": -0.0808,
+  "n_nights": 2,
+  "n_stars": 18,
+  "median_px": 2.24,
+  "median_px_centred": 1.27,
+  "nights": [
+   "hpwren_20260912_Q1_wlfd-s-mobo-c",
+   "hpwren_20260920_Q1_wlfd-s-mobo-c"
+  ],
+  "own": [
+   [
+    32.5,
+    19.5
+   ],
+   [
+    37.7,
+    19.9
+   ]
+  ]
+ },
+ {
+  "camera": "ws-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112700,
+  "to": 1789112700,
+  "cx": 0.0,
+  "cy": 0.0,
+  "k_ratio": 0.888,
+  "k1": -0.0819,
+  "n_nights": 1,
+  "n_stars": 12,
+  "median_px": 2.0,
+  "median_px_centred": 0.69,
+  "nights": [
+   "hpwren_20260911_Q1_ws-n-mobo-c"
+  ],
+  "own": [
+   [
+    -32.3,
+    22.8
+   ]
+  ]
+ },
+ {
+  "camera": "ws-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1789112702,
+  "to": 1789112702,
+  "cx": -24.1,
+  "cy": 31.8,
+  "k_ratio": 0.8867,
+  "k1": -0.0786,
+  "n_nights": 1,
+  "n_stars": 31,
+  "median_px": 1.35,
+  "median_px_centred": 0.76,
+  "nights": [
+   "hpwren_20260911_Q1_ws-w-mobo-c"
+  ],
+  "own": [
+   [
+    -24.1,
+    31.8
+   ]
+  ]
+ }
+]

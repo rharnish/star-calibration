@@ -35,6 +35,8 @@ def reference_offset(result: dict, night: Night) -> int:
 
 def draw(result: dict, night: Night, frame: np.ndarray, full: bool = False) -> np.ndarray:
     r, tracks, c = result, night.tracks, night.cam
+    if "cx" in r:   # drawn through the centre it was solved with, whatever the camera has now
+        c = {**c, "cx": r["cx"], "cy": r["cy"]}
     offs = sorted({o for t in tracks for o in t}) or [0]
     ref = reference_offset(r, night)
     H, W = frame.shape[:2]
@@ -94,6 +96,8 @@ def draw(result: dict, night: Night, frame: np.ndarray, full: bool = False) -> n
             if ins.sum() >= 2:
                 cv2.polylines(canvas, [pts[ins].astype(np.int32)], False, (0, 140, 255), 2,
                               cv2.LINE_AA)
+            if not np.isfinite([xp[j_ref], yp[j_ref], xf[j_ref], yf[j_ref]]).all():
+                continue
             a = (int(xp[j_ref] * W), int(yp[j_ref] * H))
             b = (int(xf[j_ref] * W), int(yf[j_ref] * H))
             if 0 <= a[0] < W and 0 <= a[1] < H:

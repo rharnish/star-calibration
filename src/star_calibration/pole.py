@@ -41,15 +41,17 @@ OMEGA = 7.2921159e-5      # sidereal rotation, rad/s
 _THETA_TAB = np.linspace(0.0, math.pi, 4096)
 
 
-def pixel_to_cam(x: np.ndarray, y: np.ndarray, W: int, H: int, k: float, k1: float) -> np.ndarray:
+def pixel_to_cam(x: np.ndarray, y: np.ndarray, W: int, H: int, k: float, k1: float,
+                 cx: float = 0.0, cy: float = 0.0) -> np.ndarray:
     """Pixels -> unit vectors in the camera's own (right, up, boresight) frame.
 
     The inverse of `fisheye.project_fisheye`'s lens stage, and pose-free by construction:
     r = k*theta*(1 + k1*theta^2) is inverted against a dense monotone table, and the bearing
-    within the image plane comes straight from the pixel offset.
+    within the image plane comes straight from the pixel offset from the optical centre,
+    (W/2 + cx, H/2 + cy).
     """
-    dx = np.asarray(x, float) - 0.5 * W
-    dy = np.asarray(y, float) - 0.5 * H
+    dx = np.asarray(x, float) - 0.5 * W - cx
+    dy = np.asarray(y, float) - 0.5 * H - cy
     r = np.hypot(dx, dy)
     r_tab = k * _THETA_TAB * (1.0 + k1 * _THETA_TAB ** 2)
     if np.any(np.diff(r_tab) <= 0):           # k1 strong enough to fold the table over
@@ -63,7 +65,8 @@ def pixel_to_cam(x: np.ndarray, y: np.ndarray, W: int, H: int, k: float, k1: flo
     return np.stack([s * ux, s * uy, np.cos(theta)], axis=-1)
 
 
-def samples(tracks: list[dict], W: int, H: int, k: float, k1: float, t0_step: float = 1.0):
+def samples(tracks: list[dict], W: int, H: int, k: float, k1: float, t0_step: float = 1.0,
+            cx: float = 0.0, cy: float = 0.0):
     """(d, d_dot) pairs from consecutive points of every track, in camera coordinates.
 
     Consecutive *observed* offsets are differenced, so a track with a gap contributes a
@@ -75,7 +78,7 @@ def samples(tracks: list[dict], W: int, H: int, k: float, k1: float, t0_step: fl
         if len(offs) < 2:
             continue
         xy = np.array([t[o][:2] for o in offs], float)
-        d = pixel_to_cam(xy[:, 0], xy[:, 1], W, H, k, k1)
+        d = pixel_to_cam(xy[:, 0], xy[:, 1], W, H, k, k1, cx, cy)
         dt = np.diff(np.asarray(offs, float)) * t0_step
         ok = dt > 0
         D.append(0.5 * (d[:-1] + d[1:])[ok])
@@ -135,9 +138,11 @@ def fit_pole(D: np.ndarray, V: np.ndarray, sign: int = HANDEDNESS, iters: int = 
             "inliers": inl}
 
 
-def estimate(tracks: list[dict], W: int, H: int, k: float, k1: float):
-    """The pole in camera coordinates from a sequence's tracks, sign resolved."""
-    D, V = samples(tracks, W, H, k, k1)
+def estimate(tracks: list[dict], W: int, H: int, k: float, k1: float,
+             cx: float = 0.0, cy: float = 0.0):
+    """The pole in camera coordinates from a sequence's tracks, sign resolved. (cx, cy) is
+    the optical centre's offset from the frame's middle, as in `pixel_to_cam`."""
+    D, V = samples(tracks, W, H, k, k1, cx=cx, cy=cy)
     f = fit_pole(D, V)
     if f is None:
         return None
@@ -230,7 +235,8 @@ def pole_in_cam(cam: dict, d_az: float, d_pitch: float, d_roll: float) -> np.nda
 
 
 def lens_scale(tracks: list[dict], W: int, H: int, k0: float, k1: float,
-               lo: float = 0.55, hi: float = 1.45, tol: float = 1e-3):
+               lo: float = 0.55, hi: float = 1.45, tol: float = 1e-3,
+               cx: float = 0.0, cy: float = 0.0):
     """The lens scale this night's trails imply, from |p| alone -- no star identified.
 
     `fit_pole` is told the sidereal rate, so |p| is not free: it comes out at 1 only when the
@@ -250,7 +256,7 @@ def lens_scale(tracks: list[dict], W: int, H: int, k0: float, k1: float,
     grid = np.arange(lo, hi + 1e-9, 0.02)
     norms = []
     for kr in grid:
-        f = estimate(tracks, W, H, kr * k0, k1)
+        f = estimate(tracks, W, H, kr * k0, k1, cx, cy)
         norms.append(f["norm"] if f else np.nan)
     norms = np.array(norms)
     if not np.any(np.isfinite(norms)):
@@ -261,7 +267,7 @@ def lens_scale(tracks: list[dict], W: int, H: int, k0: float, k1: float,
         if b - a < tol:
             break
         m = 0.5 * (a + b)
-        f = estimate(tracks, W, H, m * k0, k1)
+        f = estimate(tracks, W, H, m * k0, k1, cx, cy)
         if f is None:
             break
         if f["norm"] > 1.0:
@@ -269,5 +275,5 @@ def lens_scale(tracks: list[dict], W: int, H: int, k0: float, k1: float,
         else:
             b = m
     kr = 0.5 * (a + b)
-    f = estimate(tracks, W, H, kr * k0, k1)
+    f = estimate(tracks, W, H, kr * k0, k1, cx, cy)
     return {"k_ratio": float(kr), "norm": f["norm"], "fit": f} if f else None

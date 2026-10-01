@@ -120,3 +120,9 @@ def test_scan_context_matches_the_solve_it_describes():
     peak = ctx["poses"][int(np.argmax(ctx["scores"]))]
     got = np.array([res["pose"][k] for k in ("d_az", "d_pitch", "d_roll")])
     assert np.abs(peak - got).max() < 1.0
+
+
+def test_pixel_to_cam_measures_from_the_optical_centre():
+    d = P.pixel_to_cam(np.array([1536.0 + 20]), np.array([1024.0 - 30]), 3072, 2048, 1500.0, -0.078,
+                       cx=20.0, cy=-30.0)
+    assert np.allclose(d[0], [0.0, 0.0, 1.0])

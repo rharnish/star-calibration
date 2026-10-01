@@ -20,6 +20,10 @@ also a unit vector; theta is the angle between it and the boresight (via the dot
 valid at any angle, unlike a tangent-plane difference), and phi is its bearing within the
 local basis. Pixel offset is (k*theta) in the direction of phi -- polar coordinates in the
 image plane, not a small-angle tangent-plane approximation.
+
+The optical centre is where the boresight lands. It defaults to the frame's middle; a camera
+record with `cx`, `cy` (pixels right and down from the middle) moves it there. HPWREN's
+units sit a median 32 px off (hpwren/intrinsics.json).
 """
 from __future__ import annotations
 
@@ -31,6 +35,19 @@ import numpy as np
 # nine of the first lens-free solves agreed on it (k 0.882-0.890, k1 -0.074 to -0.084;
 # plume-triangulation's NOTES.md, 2026-09-13), and 79 cameras since sit at 0.877-0.894.
 K_RATIO, K1 = 0.886, -0.078
+
+# No direction further than this from the boresight is in the picture: even the 180 deg units
+# see only 90 deg off-axis. Past it `project_fisheye` returns NaN, and sooner if the lens
+# polynomial folds first (below).
+MAX_THETA_DEG = 100.0
+
+
+def theta_limit_deg(k1: float) -> float:
+    """How far off the boresight `project_fisheye` projects. With k1 < 0 the radius
+    k*theta*(1 + k1*theta^2) peaks at theta = sqrt(-1/(3 k1)) (~118 deg at K1) and then
+    shrinks, so a star behind the camera would land back in the frame: up to 4-5 phantom
+    bright stars per pose in the wide search's coarse scan."""
+    return min(MAX_THETA_DEG, math.degrees(math.sqrt(-1 / (3 * k1)))) if k1 < 0 else MAX_THETA_DEG
 
 
 def _unit(az_deg, el_deg):
@@ -67,7 +84,9 @@ def project_fisheye(cam: dict, az_deg: np.ndarray, elev_deg: np.ndarray, width: 
                      k_scale: float | None = None, k1: float = 0.0):
     """Equidistant-fisheye (az, el) -> fractional image coords. Mirrors terrain.project()'s
     signature (minus cam-table pitch/roll, folded into d_pitch/d_roll by the caller) so the
-    two models are interchangeable in fit/plot code."""
+    two models are interchangeable in fit/plot code. NaN for a direction further off the
+    boresight than `theta_limit_deg(k1)`: it isn't in the picture, and the fold would put it
+    there."""
     if k_scale is None:
         k_scale = initial_k(cam, width)
     boresight, right, up = _basis(cam, d_az, d_pitch, d_roll)
@@ -83,10 +102,12 @@ def project_fisheye(cam: dict, az_deg: np.ndarray, elev_deg: np.ndarray, width: 
     ux, uy = t_perp_x / safe, t_perp_y / safe  # unit bearing direction, well-defined at theta=0
 
     r = k_scale * theta * (1.0 + k1 * theta ** 2)
-    dx_px = r * ux
-    dy_px = -r * uy  # image y grows downward; "up" should decrease y
+    dx_px = r * ux + cam.get("cx", 0.0)
+    dy_px = -r * uy + cam.get("cy", 0.0)  # image y grows downward; "up" should decrease y
 
-    return 0.5 + dx_px / width, 0.5 + dy_px / height
+    out = theta > math.radians(theta_limit_deg(k1))
+    return (np.where(out, np.nan, 0.5 + dx_px / width),
+            np.where(out, np.nan, 0.5 + dy_px / height))
 
 
 def unproject_fisheye(cam: dict, x_frac, y_frac, width: int, height: int,
@@ -103,8 +124,8 @@ def unproject_fisheye(cam: dict, x_frac, y_frac, width: int, height: int,
     if k_scale is None:
         k_scale = initial_k(cam, width)
     boresight, right, up = _basis(cam, d_az, d_pitch, d_roll)
-    dx = (np.asarray(x_frac, float) - 0.5) * width
-    dy = (np.asarray(y_frac, float) - 0.5) * height
+    dx = (np.asarray(x_frac, float) - 0.5) * width - cam.get("cx", 0.0)
+    dy = (np.asarray(y_frac, float) - 0.5) * height - cam.get("cy", 0.0)
     r = np.hypot(dx, dy)
     theta = r / k_scale
     for _ in range(30):

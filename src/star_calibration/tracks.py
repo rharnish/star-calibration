@@ -170,6 +170,185 @@ def moving_tracks(tracks: list[dict], min_frames: int = 8, min_span_px: float = 
     return out
 
 
+def shape(track: dict, min_step_px: float = 10.0) -> dict:
+    """How a track moves: `n` points, `rate_px_h` (end-to-end distance over its duration),
+    `turn_deg` (median angle between consecutive steps of at least min_step_px),
+    `reversals` (share of those steps that turn more than 90 degrees) and `cubic_px` (rms about a cubic in time, per coordinate).
+
+    A star drifts smoothly: its steps turn by a few degrees and a cubic leaves well under a
+    pixel. Cloud texture, haze and noise linked by nearest neighbour wander: over the solved
+    CDN blocks, a median turn above 40 degrees or more than 30% reversals marks 1.3% of the
+    tracks matched to a star and 29% of the rest (docs/records.md, "Track cleaning")."""
+    o = np.array(sorted(track), float)
+    xy = np.array([track[k][:2] for k in sorted(track)], float)
+    span = float(np.hypot(*(xy[-1] - xy[0])))
+    dur = o[-1] - o[0]
+    out = {"n": len(o), "rate_px_h": span / dur * 3600 if dur > 0 else 0.0,
+           "turn_deg": 0.0, "reversals": 0.0, "cubic_px": 0.0}
+    # turning between points at least min_step_px apart: a slow star (near the pole, or
+    # faint, with a centroid that jitters by a pixel) moves 1-5 px a frame, and rounding
+    # alone would swing its direction by tens of degrees
+    anchors = [0]
+    for i in range(1, len(xy)):
+        if np.hypot(*(xy[i] - xy[anchors[-1]])) >= min_step_px:
+            anchors.append(i)
+    steps = np.diff(xy[anchors], axis=0)
+    if len(steps) >= 2:
+        a = np.arctan2(steps[:, 1], steps[:, 0])
+        turn = np.degrees(np.abs((np.diff(a) + np.pi) % (2 * np.pi) - np.pi))
+        out["turn_deg"] = float(np.median(turn))
+        out["reversals"] = float(np.mean(turn > 90))
+    if len(o) >= 5:
+        t = (o - o[0]) / max(dur, 1.0)
+        V = np.vander(t, 4)
+        r = xy - V @ np.linalg.lstsq(V, xy, rcond=None)[0]
+        out["cubic_px"] = float(np.sqrt(np.mean(r ** 2)))
+    return out
+
+
+def squiggly(track: dict, max_turn_deg: float = 40.0, max_reversals: float = 0.3) -> bool:
+    """A track that wanders rather than drifts; see `shape`."""
+    s = shape(track)
+    return s["turn_deg"] > max_turn_deg or s["reversals"] > max_reversals
+
+
+def _cubic_parts(t: np.ndarray, xy: np.ndarray, tol_px: float, min_frames: int,
+                 min_span_px: float, max_parts: int, rng) -> list[np.ndarray]:
+    """Masks of the points in one gap-free piece that follow one cubic path each: RANSAC the
+    largest set within tol_px of a cubic in time, keep it if it passes `moving_tracks`' test,
+    then do the same with what's left."""
+    parts = []
+    left = np.ones(len(t), bool)
+    while left.sum() >= min_frames and len(parts) < max_parts:
+        idx = np.where(left)[0]
+        tt, pp = t[idx], xy[idx]
+        V = np.vander(tt, 4)
+        # 4-point samples bunched in time extrapolate wildly across the rest; skip them
+        S = np.sort(rng.integers(0, len(idx), (400, 4)), axis=1)
+        S = S[(np.diff(S, axis=1) > 0).all(1) & (tt[S[:, 3]] - tt[S[:, 0]] >= 0.1 * np.ptp(tt))]
+        if not len(S):
+            break
+        coef = np.linalg.solve(V[S], pp[S])                       # (samples, 4, 2)
+        err = np.hypot(*(np.einsum("nk,skd->snd", V, coef) - pp).transpose(2, 0, 1))
+        inl = err[np.argmax((err < tol_px).sum(1))] < tol_px
+        for _ in range(3):                                         # polish on the inliers
+            if inl.sum() < 4:
+                break
+            c = np.linalg.lstsq(V[inl], pp[inl], rcond=None)[0]
+            new = np.hypot(*(V @ c - pp).T) < tol_px
+            if new.sum() <= inl.sum():
+                break
+            inl = new
+        keep = idx[inl]
+        if len(keep) < min_frames or np.hypot(*(xy[keep[-1]] - xy[keep[0]])) < min_span_px:
+            break
+        m = np.zeros(len(t), bool)
+        m[keep] = True
+        parts.append(m)
+        left &= ~m
+    return parts
+
+
+def split(track: dict, tol_px: float = 3.0, gap_s: float = 600.0, min_frames: int = 8,
+          min_span_px: float = 50.0, max_parts: int = 3) -> list[dict]:
+    """A linked track as the star tracks it contains, largest first.
+
+    Nearest-neighbour linking sometimes hands a track from one star to another: a track left
+    open picks up a later star that passes its last position (Markab then Algenib, 70 min
+    apart on the same pixels), or it hops between close stars (the Pleiades). What isn't a
+    star gets attached too, such as a clock digit in HPWREN's banner. Each star's points
+    follow one smooth path, so: cut at gaps longer than gap_s (a cubic across a long gap is
+    unconstrained), and in each piece take the largest set of points within tol_px of one
+    cubic in time, then the next largest from what's left. Every part passes
+    `moving_tracks`' test; points in no part are dropped. A track one cubic already explains
+    comes back unchanged, and so does one with no part of min_frames points.
+
+    On the solved CDN blocks this left the tracks that stay on their star untouched, took 91%
+    of the off-star points out of the rest, and found a second star in 1 of 8 of them."""
+    o = sorted(track)
+    xy = np.array([track[k][:2] for k in o], float)
+    t = np.array(o, float)
+    dur = max(t[-1] - t[0], 1.0)
+    if len(o) >= 5:
+        V = np.vander((t - t[0]) / dur, 4)
+        if np.hypot(*(V @ np.linalg.lstsq(V, xy, rcond=None)[0] - xy).T).max() < tol_px:
+            return [track]
+    rng = np.random.default_rng(0)                               # the same parts every run
+    cuts = [0, *(np.where(np.diff(t) > gap_s)[0] + 1), len(o)]
+    out = []
+    for a, b in zip(cuts[:-1], cuts[1:]):
+        if b - a < min_frames:
+            continue
+        tp = t[a:b]
+        for m in _cubic_parts((tp - tp[0]) / max(tp[-1] - tp[0], 1.0), xy[a:b], tol_px,
+                              min_frames, min_span_px, max_parts, rng):
+            out.append({o[a + i]: track[o[a + i]] for i in np.where(m)[0]})
+    # nothing better found: a short track with a few stray points is still its star's track
+    return sorted(out, key=len, reverse=True) or [track]
+
+
+def duplicates(tracks: list[dict], tol_px: float = 3.0, min_share: float = 0.5) -> set[int]:
+    """Indices of tracks that repeat a longer track: within tol_px of it in at least
+    min_share of their own frames. Splitting finds some stars a second time, since a star a
+    track hopped to often has its own track as well."""
+    from scipy.spatial import cKDTree
+    frames: dict[int, list[tuple[int, float, float]]] = {}
+    for i, t in enumerate(tracks):
+        for o, v in t.items():
+            frames.setdefault(o, []).append((i, v[0], v[1]))
+    shared: dict[tuple[int, int], int] = {}
+    for pts in frames.values():
+        if len(pts) < 2:
+            continue
+        P = np.array([p[1:] for p in pts])
+        for a, b in cKDTree(P).query_pairs(tol_px):
+            i, j = sorted((pts[a][0], pts[b][0]), key=lambda k: (-len(tracks[k]), k))
+            shared[i, j] = shared.get((i, j), 0) + 1               # j is the shorter
+    return {j for (i, j), n in shared.items() if n >= min_share * len(tracks[j])}
+
+
+def clean(tracks: list[dict], banner_px: int = 0, max_banner_rate_px_h: float = 60.0,
+          min_frames: int = 8, min_span_px: float = 50.0,
+          min_squiggly_share: float = 0.5) -> tuple[list[dict], dict]:
+    """Linked tracks with what isn't a star taken out, and counts of what went.
+
+    Each track is split into the stars it contains (`split`). A squiggly track (`squiggly`)
+    keeps only its largest smooth part, and only if that part holds min_squiggly_share of
+    its points: a star with junk attached (banner digits, a noisy tail) qualifies, cloud
+    texture rarely does. Over the solved CDN blocks the share reached 0.5 for 57% of the
+    squiggly tracks matched to a star and 15% of the rest. Testing the whole track instead
+    would drop the star with the junk; testing only the parts would let a cubic threaded
+    through a few points of noise pass.
+
+    Then near-stationary tracks in the top banner_px rows go (a camera's burned-in text:
+    HPWREN's clock digits change every frame and link into slow "tracks" that drag the pole
+    fit toward zero; real stars cross the banner too, hence the rate test), and so do parts
+    that repeat a longer track (`duplicates`)."""
+    counts = {"linked": len(tracks), "squiggly": 0, "split": 0, "banner": 0}
+    parts = []
+    for t in tracks:
+        p = split(t, min_frames=min_frames, min_span_px=min_span_px)
+        if squiggly(t):
+            if p == [t] or len(p[0]) < min_squiggly_share * len(t):
+                counts["squiggly"] += 1
+                continue
+            p = p[:1]
+        counts["split"] += p != [t]
+        parts += p
+    out = []
+    for t in parts:
+        y = np.median([v[1] for v in t.values()])
+        if y < banner_px and shape(t)["rate_px_h"] < max_banner_rate_px_h:
+            counts["banner"] += 1
+        else:
+            out.append(t)
+    dup = duplicates(out)
+    counts["duplicate"] = len(dup)
+    out = [t for i, t in enumerate(out) if i not in dup]
+    counts["kept"] = len(out)
+    return out, counts
+
+
 def collect(frames: Iterable[tuple[int, int, bytes]], lat: float, lon: float,
             mono: bool = False, el_max: float = -8.0, max_step_px: float = 20.0,
             min_frames: int = 8, min_span_px: float = 50.0, keep_frames: bool = True,
@@ -204,7 +383,8 @@ def collect(frames: Iterable[tuple[int, int, bytes]], lat: float, lon: float,
         print(f"  median {counts[len(counts) // 2]} point sources per frame > {MAX_POINTS_PER_FRAME}: "
               f"not a star field, skipping")
         return [], decoded
-    tracks = (link_tracks_predictive(frames_points) if mono
+    tracks = (link_tracks_predictive(frames_points, **({} if max_gap_s is None else
+                                                       {"max_gap_s": max_gap_s})) if mono
               else link_tracks(frames_points, max_step_px=max_step_px, max_gap_s=max_gap_s))
     good = moving_tracks(tracks, min_frames=min_frames, min_span_px=min_span_px)
     print(f"  {len(tracks)} raw tracks -> {len(good)} moving, persistent tracks")

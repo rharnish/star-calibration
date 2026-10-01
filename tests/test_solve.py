@@ -7,6 +7,8 @@ the catalog, so it runs anywhere.
 """
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pytest
 
@@ -22,8 +24,11 @@ T0 = 1789112704          # 2026-09-11 07:45 UTC, a Q1 block on a moonless night
 
 
 def synthetic_night(camera: str, pose: tuple[float, float, float], k_ratio: float = K_RATIO,
-                    k1: float = K1, jitter_px: float = 0.3, seed: int = 0) -> Night:
-    cam = cameras()[camera]
+                    k1: float = K1, jitter_px: float = 0.3, seed: int = 0,
+                    centre: tuple[float, float] = (0.0, 0.0)) -> Night:
+    """Tracks as a camera at `pose` would see them, its optical centre `centre` px from the
+    frame's middle; the Night's camera record carries that centre."""
+    cam = {**cameras()[camera], "cx": centre[0], "cy": centre[1]}
     rng = np.random.default_rng(seed)
     k = k_ratio * initial_k(cam, W)
     vis = SG.visible_stars(cam, T0, mag_limit=4.0, fov_margin_deg=180, min_alt_deg=5)
@@ -84,3 +89,31 @@ def test_a_result_names_the_solver_that_made_it():
     r = solve(synthetic_night("hp-s-mobo-c", (0.0, 0.0, 0.0)))
     assert r["solver"] == star_calibration.solver_id()
     assert r["solver"].split("+")[0] == star_calibration.__version__
+
+
+def test_coincidence_counts_no_star_behind_the_camera():
+    # the wide scan's pool is every star above the horizon; those behind the camera are NaN
+    # in projection and must count as out of frame, not crash or land in it
+    from scipy.spatial import cKDTree
+    from star_calibration.fisheye import K1, K_RATIO, initial_k
+    from star_calibration.solve import make_coincidence
+
+    cam = {"lat": 33.0, "lon": -116.8, "az": 180.0, "fov": 90.0}
+    W, H = 3072, 2048
+    az = np.array([180.0, 0.0, 10.0, 350.0])                 # one ahead, three behind
+    alt = np.array([10.0, 10.0, 20.0, 5.0])
+    tree = cKDTree(np.array([[W / 2, H / 2 - 400]]))
+    lens = (K_RATIO * initial_k(cam, W), K1)
+    score, n_in, n_pred = make_coincidence(cam, W, H, lens, tree, H, az, alt, 20.0)((0, 0, 0))
+    assert n_pred == 1
+
+
+def test_a_known_optical_centre_is_solved_through():
+    # 35 px off the middle: told the centre, the solve fits to the noise; not told, it can't
+    night = synthetic_night("hp-s-mobo-c", (2.4, -0.7, 0.9), centre=(35.0, -25.0))
+    r = solve(night)
+    assert r["status"] == "solved" and r["median_px"] < 1.0
+    assert (r["cx"], r["cy"]) == (35.0, -25.0)
+    assert abs(r["pose"]["d_az"] - 2.4) < 0.05 and abs(r["pose"]["d_pitch"] + 0.7) < 0.05
+    blind = solve(dataclasses.replace(night, cam={**night.cam, "cx": 0.0, "cy": 0.0}))
+    assert blind.get("median_px") is None or blind["median_px"] > 2 * r["median_px"]

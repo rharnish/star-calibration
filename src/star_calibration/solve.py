@@ -136,7 +136,7 @@ def scan_context(night: Night, k_ratio: float | None = None, wide: bool = True,
     az_b = np.array([v["az"] for v in vis])[b]
     coarse_px = 60.0 if (wide and k_ratio is not None) else 20.0
     coin = make_coincidence(c, W, H, lens, tree, y_band, az_b, alt_b, coarse_px)
-    fit = POLE.estimate(tracks, W, H, *lens)
+    fit = POLE.estimate(tracks, W, H, *lens, c.get("cx", 0.0), c.get("cy", 0.0))
     psi = np.arange(0.0, 360.0, 0.1)
     poses = POLE.pose_from_axes(POLE.cam_from_pole(fit["p_hat"], c["lat"], psi), c) if fit else None
     scores = np.array([coin(tuple(q))[0] for q in poses]) if fit else None
@@ -162,9 +162,35 @@ def _spread(grid, min_sep_deg: float = 2.0, n: int = 5):
     return out
 
 
+def _level_starts(psi, poses, scores, starts, coincidence, window_deg: float = 8.0):
+    """Extra starts from the level prior: cameras are mounted close to level, so of the pole's
+    one-angle family of poses the right one is almost always near where d_pitch and d_roll
+    are both small. The family has two such places (the other is always >= 24 deg away);
+    near each, the best-scoring angle within +-window_deg becomes a start, unless the
+    coincidence scan already has one within 2 deg.
+
+    Over the 129 CDN blocks solved on 2026-09-29 the level minimum sat 1.4 deg (median) and
+    6.7 deg (worst) from the solved pose. It is a start, not a constraint: solved pitch
+    offsets reach 16.8 deg (mpo-n) and roll offsets several degrees."""
+    lvl = np.hypot(poses[:, 1], poses[:, 2])
+    n, step = len(psi), psi[1] - psi[0]
+    w = int(round(window_deg / step))
+    idx = np.arange(n)
+    minima = [i for i in idx if lvl[i] == lvl[(i + idx[:2 * w + 1] - w) % n].min()]
+    out = []
+    for m in sorted(minima, key=lambda i: lvl[i])[:2]:
+        win = (m + np.arange(-w, w + 1)) % n
+        i = int(win[np.argmax(scores[win])]) if scores[win].max() > 0 else m
+        pose = tuple(float(v) for v in poses[i])
+        if all(np.max(np.abs(np.array(pose) - np.array(g[3], float))) >= 2.0 for g in starts + out):
+            sc, n_in, n_pred = coincidence(pose)
+            out.append((sc, n_in, n_pred, pose))
+    return out
+
+
 def solve(night: Night, wide: bool = False, min_stars: int = 8,
           k_ratio: float | None = None, window: tuple[float, float] | None = None,
-          trace: list | None = None) -> dict:
+          trace: list | None = None, level_starts: bool = True) -> dict:
     """One night's pose.
 
     `wide` replaces the +-30/15/10 deg grid around the published pose with `pole.py`'s
@@ -184,7 +210,8 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
     c, W, H = night.cam, night.W, night.H
     # every solve says which catalog and corrections it was made under; the ledger checks it
     out = {"seq": night.label, "camera": night.camera, "imager": c.get("imager"),
-           "sky_model": SG.model_id(), "solver": solver_id()}
+           "sky_model": SG.model_id(), "solver": solver_id(),
+           "cx": float(c.get("cx", 0.0)), "cy": float(c.get("cy", 0.0))}   # the centre assumed
     if window is not None:
         out["window"] = window
     raw, keep = windowed(night.tracks, window)
@@ -240,7 +267,7 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
 
     grid = []
     if wide:
-        fit = POLE.estimate(tracks, W, H, *lens)
+        fit = POLE.estimate(tracks, W, H, *lens, c.get("cx", 0.0), c.get("cy", 0.0))
         out["pole"] = None if fit is None else {
             "norm": fit["norm"], "inlier_frac": fit["inlier_frac"],
             "median_res_rel": fit["median_res_rel"], "p_cam": list(fit["p_hat"])}
@@ -265,6 +292,8 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
         note(stage="scan", psi=psi, poses=poses, scores=scores)
         grid.sort(key=lambda g: -g[0])
         grid = _spread(grid, min_sep_deg=2.0, n=5)
+        if level_starts:
+            grid += _level_starts(psi, poses, scores, grid, coincidence)
     else:
         for p in itertools.product(range(-30, 31), range(-15, 16), range(-10, 11, 2)):
             sc, n_in, n_pred = coincidence(p)
@@ -275,9 +304,10 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
              scores=np.array([g[0] for g in grid[:200]], float))
     pub = coincidence((0, 0, 0))
     out["published_coincidence"] = {"inliers": pub[1], "predicted": pub[2]}
+    starts = grid[:5] + [g for g in grid[5:] if wide][:2]   # the level starts come after
     out["coarse_top"] = [{"score": round(g[0], 2), "inliers": g[1], "predicted": g[2],
-                          "pose": list(g[3])} for g in grid[:5]]
-    note(stage="starts", poses=[list(g[3]) for g in grid[:5]], scores=[g[0] for g in grid[:5]])
+                          "pose": list(g[3])} for g in starts]
+    note(stage="starts", poses=[list(g[3]) for g in starts], scores=[g[0] for g in starts])
 
     # every catalog star's (alt, az) at every observed offset
     ep = night.t0 + np.array(offs, float)
@@ -316,12 +346,12 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
         return np.asarray(full(sol.x), float), np.hypot(*sol.fun.reshape(2, -1)), ia
 
     runs = []
-    for s, g in enumerate(grid[:5]):
+    for s, g in enumerate(starts):
         p5 = np.array([*g[3], *lens], float)
         pairs = []
         for thr, free in ladder:
             C = costs(p5)
-            ri, ci = linear_sum_assignment(np.minimum(C, 1e3))
+            ri, ci = linear_sum_assignment(np.minimum(np.nan_to_num(C, nan=1e3), 1e3))
             pairs = [(i, j) for i, j in zip(ri, ci) if C[i, j] < thr]
             named = [(names[i], keep[j]) for i, j in pairs]   # raw track indices, as `matches`
             if len(pairs) < 4:
@@ -366,7 +396,8 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
 
 
 def solve_wide(night: Night, min_stars: int = 8, window: tuple[float, float] | None = None,
-               trace: list | None = None) -> dict:
+               trace: list | None = None, level_starts: bool = True,
+               grid: str = "fallback", sure_stars: int = 12) -> dict:
     """A global solve, tried under each lens the trails allow, best result kept.
 
     Two lens hypotheses go in: the shared 0.886x nameplate that `solve` assumes for every
@@ -388,20 +419,28 @@ def solve_wide(night: Night, min_stars: int = 8, window: tuple[float, float] | N
     tracks = [raw[i] for i in keep]
     cands = []
     if len(tracks) >= 8:
-        ls = POLE.lens_scale(tracks, night.W, night.H, initial_k(night.cam, night.W), K1)
+        ls = POLE.lens_scale(tracks, night.W, night.H, initial_k(night.cam, night.W), K1,
+                             cx=night.cam.get("cx", 0.0), cy=night.cam.get("cy", 0.0))
         if ls is not None and 0.6 <= ls["k_ratio"] <= 1.2 and abs(ls["k_ratio"] - K_RATIO) > 0.005:
             cands.append(ls["k_ratio"])
     cands = [None] + cands
-    # The published-pose grid runs too, as a third attempt. The pole is an *extra* way in,
-    # not a replacement, and it has one failure mode the grid does not: a night whose trails
-    # carry no coherent rotation gets rejected outright. On five sequences that the grid
-    # solves with 8+ stars the flow fit returns |p| of 0.47-0.69, and dropping them to gain
-    # the Big Black Mountain cameras would be a bad trade. Running all three and keeping the
-    # best makes this a strict superset of the old solver.
-    attempts = [(False, None)] + [(True, kr) for kr in cands]
+    # The published-pose grid is the third attempt, and with grid="fallback" it runs only
+    # when the pole attempts haven't already solved with sure_stars stars. It once rescued
+    # five blocks whose pole fits came out at |p| 0.47-0.69; those were banner tracks, which
+    # tracks.clean now drops, and every solved block's pole fit is within 1% of |p| 1. It is
+    # also ~3/4 of the time: over 180 CDN blocks (2026-09-29) skipping it on sure solves cut
+    # the solve time five-fold and moved no pose. On a thin solve it still runs, because it
+    # can end in a tighter fit of the same stars (mp-n 09-11: 0.90 px against the pole's
+    # 1.32). grid="always" runs it every time, as before.
+    attempts = [(True, kr) for kr in cands]
+    attempts = attempts + [(False, None)] if grid == "fallback" else [(False, None)] + attempts
     best = None
     for a, (wide, kr) in enumerate(attempts):
-        r = solve(night, wide=wide, min_stars=min_stars, k_ratio=kr, window=window, trace=trace)
+        if (not wide and grid == "fallback" and best is not None
+                and best[1]["status"] == "solved" and best[1]["n_stars"] >= sure_stars):
+            continue
+        r = solve(night, wide=wide, min_stars=min_stars, k_ratio=kr, window=window, trace=trace,
+                  level_starts=level_starts)
         r["lens_from_pole"] = cands[1] if len(cands) > 1 else None
         r["found_by"] = "pole" if wide else "grid"
         key = (r["status"] == "solved", r.get("n_stars") or 0, -(r.get("median_px") or 1e9))

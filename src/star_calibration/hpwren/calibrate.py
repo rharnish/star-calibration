@@ -17,10 +17,13 @@ re-run only does what it hasn't done:
     python -m star_calibration.hpwren.calibrate animate [--kept] [--full] [--mark A-B,C] block ...
     python -m star_calibration.hpwren.calibrate explore block ...       # replay in the browser
     python -m star_calibration.hpwren.calibrate agree                  # night-to-night check
+    python -m star_calibration.hpwren.calibrate intrinsics [dest.json] # solved -> optical centres
     python -m star_calibration.hpwren.calibrate ledger [dest.json]     # solved -> pose ledger
 
-`solve` runs `solve.solve_wide`: the published-pose grid, then the pole-based global search
-under the shared lens and under the lens the trails measure, best result kept. Whole-night
+`solve` runs `solve.solve_wide`: the pole-based global search under the shared lens and under
+the lens the trails measure, then the published-pose grid unless a pole attempt already
+solved with 12 or more stars, best result kept. Each camera's optical centre comes from
+hpwren/intrinsics.json (`calibrate intrinsics` fits it from the solves). Whole-night
 blocks (<day>_N) are for window studies, not the ledger, and are left out of `solve` unless
 named. Each solved (or failed) block's overlay is drawn as it finishes, so the gallery
 (gallery.py) has a picture for every card. A block the camera sent nothing for -- the CDN's
@@ -44,11 +47,11 @@ import cv2
 import numpy as np
 
 from .. import animate as anim
-from .. import cross_night, ledger, overlay
+from .. import cross_night, intrinsics, ledger, overlay
 from .. import explore as ex
 from ..solve import Night, solve_wide
-from ..tracks import collect
-from . import cache_dir, cameras, nights
+from ..tracks import clean, collect
+from . import cache_dir, camera, cameras, intrinsics_path, nights
 
 
 def tracks_dir() -> Path:
@@ -79,34 +82,63 @@ def explorer_page() -> Path:
     return dest
 
 
+# HPWREN burns a line of text, with a clock, into the top ~35 rows of every frame; 60 leaves
+# margin for the few pixels a detection's centroid can sit below the glyphs.
+BANNER_PX = 60
+
+
+def link_recipe(seq: str) -> dict:
+    """What `collect` is called with for a block. A cached pickle made another way is stale."""
+    mono = cameras()[nights.sequences()[seq]["camera"]].get("imager") == "monochrome"
+    # A track unseen for 5 min closes, so a later star passing the spot can't inherit it
+    # (`tracks.split` cuts what's left). 3 min lost bm-n 09-11 and smarpk-s 09-12: a slow,
+    # faint star blinks out for longer than that and its pieces are too short to keep. The
+    # predictive linker keeps its own 4 min: its 3 px gate already stops such hand-overs.
+    if mono:
+        return {"linker": "predictive", "max_gap_s": 240.0}
+    return {"linker": "nearest", "max_gap_s": 300.0}
+
+
+def clean_recipe() -> dict:
+    return {"banner_px": BANNER_PX}
+
+
 def load_tracks(seq: str) -> tuple[list[dict], tuple[int, int]]:
-    """One block's moving tracks and frame size, extracted once and cached."""
+    """One block's tracks and frame size, extracted once and cached.
+
+    The pickle keeps the linker's output (`linked`) and the cleaned tracks the solver uses
+    (`tracks.clean`), each with the recipe that made it. A pickle whose linking recipe differs
+    from `link_recipe` is rebuilt from the frames; one whose cleaning differs is re-cleaned
+    from `linked`. A change to the code that doesn't change a recipe goes unnoticed: delete
+    `tracks/` then."""
     cache = tracks_dir() / f"tracks_{seq}.pkl"
-    if cache.exists():
-        d = pickle.load(open(cache, "rb"))
-        return d["tracks"], tuple(d.get("WH", (3072, 2048)))
-    s = nights.sequences()[seq]
-    mono = cameras()[s["camera"]].get("imager") == "monochrome"
-    # A whole night is ~470 frames: keep only one decoded, and close tracks lost for 5 min so
-    # a star behind cloud can't be relinked hours later.
-    whole = "_N_" in seq
-    tracks, decoded = collect(nights.read_frames(seq), s["lat"], s["lon"], mono=mono,
-                              keep_frames=not whole, max_gap_s=300.0 if whole else None,
-                              label=seq)
-    W, H = 3072, 2048
-    if decoded:
-        H, W = next(iter(decoded.values()))[1].shape[:2]
-    cache.parent.mkdir(parents=True, exist_ok=True)
-    pickle.dump({"tracks": tracks, "WH": (W, H)}, open(cache, "wb"))
-    return tracks, (W, H)
+    link, cl = link_recipe(seq), clean_recipe()
+    d = pickle.load(open(cache, "rb")) if cache.exists() else {}
+    if d.get("link") != link:
+        s = nights.sequences()[seq]
+        whole = "_N_" in seq   # ~470 frames: keep only one decoded
+        linked, decoded = collect(nights.read_frames(seq), s["lat"], s["lon"],
+                                  mono=link["linker"] == "predictive", keep_frames=not whole,
+                                  max_gap_s=link["max_gap_s"], label=seq)
+        W, H = 3072, 2048
+        if decoded:
+            H, W = next(iter(decoded.values()))[1].shape[:2]
+        d = {"linked": linked, "link": link, "WH": (W, H)}
+    if d.get("clean") != cl:
+        d["tracks"], d["cleaning"] = clean(d["linked"], **cl)
+        d["clean"] = cl
+        print(f"  {seq}: cleaned {d['cleaning']}")
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        pickle.dump(d, open(cache, "wb"))
+    return d["tracks"], tuple(d["WH"])
 
 
 def night(seq: str) -> Night:
     """An indexed block as the solver's input."""
     s = nights.sequences()[seq]
     tracks, (W, H) = load_tracks(seq)
-    return Night(camera=s["camera"], cam=cameras()[s["camera"]], t0=s["t0"], tracks=tracks,
-                 W=W, H=H, label=seq)
+    return Night(camera=s["camera"], cam=camera(s["camera"], W, H, s["t0"]), t0=s["t0"],
+                 tracks=tracks, W=W, H=H, label=seq)
 
 
 def block(r: dict, indexed: dict | None = None) -> dict:
@@ -282,6 +314,15 @@ def main(argv: list[str]) -> None:
         indexed = nights.sequences()
         rows = summary()
         cross_night.report(rows, {r["seq"]: block(r, indexed)["t0"] for r in rows}, cameras())
+    elif cmd == "intrinsics":
+        dest = Path(args[0]) if args else intrinsics_path()
+        indexed = nights.sequences()
+        rows = intrinsics.build([r for r in summary() if "source" not in r and r["seq"] in indexed
+                                 and "_N_" not in r["seq"]], night, cameras(), dest)
+        moved = [r for r in rows if r["cx"] or r["cy"]]
+        print(f"wrote {dest}: {len(rows)} segments on {len({r['camera'] for r in rows})} "
+              f"cameras, {len(moved)} with a centre")
+        print("re-solve (`calibrate solve`) for the solves to use it")
     elif cmd == "ledger":
         t0 = {k: v["t0"] for k, v in nights.sequences().items()}
         dest = Path(args[0]) if args else cache_dir() / "pose_ledger.json"
