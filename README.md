@@ -89,6 +89,13 @@ r = solve_wide(Night(camera="my-cam", cam=cam, t0=t0, tracks=tracks))
 r["status"], r["pose"]   # 'solved', {'d_az', 'd_pitch', 'd_roll', 'k_ratio', 'k1'}
 ```
 
+[`examples/hpwren_worked_example.ipynb`](examples/hpwren_worked_example.ipynb) does this on a
+real camera and night, start to finish, and then checks the pose against a second night and
+against landmarks in a daytime frame.
+[`examples/hpwren_track_cleaning.ipynb`](examples/hpwren_track_cleaning.ipynb) is a hard night:
+most of the linked tracks are lit cloud, and the solve only succeeds once `tracks.clean` takes
+them out.
+
 **On HPWREN,** see [`src/star_calibration/hpwren/`](src/star_calibration/hpwren/README.md):
 
 ```sh

@@ -206,7 +206,7 @@ def shape(track: dict, min_step_px: float = 10.0) -> dict:
     return out
 
 
-def squiggly(track: dict, max_turn_deg: float = 40.0, max_reversals: float = 0.3) -> bool:
+def wandering(track: dict, max_turn_deg: float = 40.0, max_reversals: float = 0.3) -> bool:
     """A track that wanders rather than drifts; see `shape`."""
     s = shape(track)
     return s["turn_deg"] > max_turn_deg or s["reversals"] > max_reversals
@@ -309,14 +309,14 @@ def duplicates(tracks: list[dict], tol_px: float = 3.0, min_share: float = 0.5) 
 
 def clean(tracks: list[dict], banner_px: int = 0, max_banner_rate_px_h: float = 60.0,
           min_frames: int = 8, min_span_px: float = 50.0,
-          min_squiggly_share: float = 0.5) -> tuple[list[dict], dict]:
+          min_wandering_share: float = 0.5) -> tuple[list[dict], dict]:
     """Linked tracks with what isn't a star taken out, and counts of what went.
 
-    Each track is split into the stars it contains (`split`). A squiggly track (`squiggly`)
-    keeps only its largest smooth part, and only if that part holds min_squiggly_share of
+    Each track is split into the stars it contains (`split`). A wandering track (`wandering`)
+    keeps only its largest smooth part, and only if that part holds min_wandering_share of
     its points: a star with junk attached (banner digits, a noisy tail) qualifies, cloud
     texture rarely does. Over the solved CDN blocks the share reached 0.5 for 57% of the
-    squiggly tracks matched to a star and 15% of the rest. Testing the whole track instead
+    wandering tracks matched to a star and 15% of the rest. Testing the whole track instead
     would drop the star with the junk; testing only the parts would let a cubic threaded
     through a few points of noise pass.
 
@@ -324,13 +324,13 @@ def clean(tracks: list[dict], banner_px: int = 0, max_banner_rate_px_h: float = 
     HPWREN's clock digits change every frame and link into slow "tracks" that drag the pole
     fit toward zero; real stars cross the banner too, hence the rate test), and so do parts
     that repeat a longer track (`duplicates`)."""
-    counts = {"linked": len(tracks), "squiggly": 0, "split": 0, "banner": 0}
+    counts = {"linked": len(tracks), "wandering": 0, "split": 0, "banner": 0}
     parts = []
     for t in tracks:
         p = split(t, min_frames=min_frames, min_span_px=min_span_px)
-        if squiggly(t):
-            if p == [t] or len(p[0]) < min_squiggly_share * len(t):
-                counts["squiggly"] += 1
+        if wandering(t):
+            if p == [t] or len(p[0]) < min_wandering_share * len(t):
+                counts["wandering"] += 1
                 continue
             p = p[:1]
         counts["split"] += p != [t]
