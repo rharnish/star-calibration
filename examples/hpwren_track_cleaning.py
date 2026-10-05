@@ -277,10 +277,9 @@ ax.legend()
 plt.show()
 
 # %% [markdown]
-# The solved crests trace the mountains across the frame, and the score peaks at zero shift. The
-# published pose has no such peak, because no vertical shift fixes it: its crests are tilted
-# against the real skyline by the 1.2° of roll the stars measured. A pose fitted from 13 stars
-# on one cloudy night predicts the terrain on a clear morning six days later.
+# The solved crests trace the mountains across the frame, and the score peaks at zero shift. A
+# pose fitted from 13 stars on one cloudy night predicts the terrain on a clear morning six days
+# later.
 #
 # ## What to take from this
 #
