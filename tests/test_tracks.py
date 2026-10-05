@@ -26,25 +26,25 @@ def test_a_star_is_smooth_and_left_alone():
     t = star(1000, 300)
     s = T.shape(t)
     assert s["turn_deg"] < 10 and s["reversals"] == 0 and s["cubic_px"] < 1
-    assert not T.squiggly(t)
+    assert not T.wandering(t)
     assert T.split(t) == [t]
 
 
-def test_a_slow_star_with_rounded_centroids_is_not_squiggly():
+def test_a_slow_star_with_rounded_centroids_is_not_wandering():
     # Kochab near the pole: ~2 px a frame, rounded to whole pixels, amplitude near threshold
     rng = np.random.default_rng(1)
     t = {o: (round(1080 + 0.035 * o + rng.normal(0, 1)), round(270 + 0.02 * o + rng.normal(0, 1)), 27.0)
          for o in range(0, 5400, 60)}
-    assert not T.squiggly(t)
+    assert not T.wandering(t)
 
 
-def test_cloud_texture_is_squiggly_and_dropped():
+def test_cloud_texture_is_wandering_and_dropped():
     rng = np.random.default_rng(2)
     xy = np.cumsum(rng.normal(0, 8, (60, 2)), axis=0) + [1500, 400]
     t = {60 * i: (float(x), float(y), 30.0) for i, (x, y) in enumerate(xy)}
-    assert T.squiggly(t)
+    assert T.wandering(t)
     out, counts = T.clean([t, star(500, 300)])
-    assert counts["squiggly"] == 1 and len(out) == 1
+    assert counts["wandering"] == 1 and len(out) == 1
 
 
 def test_a_track_handed_on_after_a_gap_splits_into_both_stars():

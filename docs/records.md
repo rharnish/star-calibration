@@ -223,7 +223,7 @@ frame. The pickle is a cache, not an interface: it can change with `tracks.py`.
 | `link` | the linking recipe: `linker` (`nearest` for colour cameras, `predictive` for monochrome) and `max_gap_s` (a track unseen that long closes) |
 | `tracks` | the tracks the solver uses: `linked` after `tracks.clean`. A solve's `matches` index this list |
 | `clean` | the cleaning recipe: `banner_px`, the rows of burned-in text at the top of the frame |
-| `cleaning` | counts from `tracks.clean`: `linked`, `squiggly` (dropped), `split` (tracks split or trimmed), `banner` (dropped), `duplicate` (dropped), `kept` |
+| `cleaning` | counts from `tracks.clean`: `linked`, `wandering` (dropped), `split` (tracks split or trimmed), `banner` (dropped), `duplicate` (dropped), `kept` |
 | `WH` | frame width and height |
 
 Pickles written before 2026-09-28 hold only `tracks` (uncleaned, linked with no gap limit
@@ -245,10 +245,11 @@ of 2026-09-28, against each star's path under its solved pose:
   fitting a cubic path in time (RANSAC, 3 px). On those tracks it kept 98% of each star's
   points and dropped 91% of the off-path points. It left the tracks that stay on their star
   unchanged.
-- **Squiggles.** Cloud texture, haze and noise wander: `tracks.squiggly` flags a median turn
-  over 40 degrees between steps of at least 10 px, or more than 30% of steps reversing. A
-  squiggly track keeps only its largest smooth part, and only if that part holds half its
-  points (57% of flagged star tracks qualify, 15% of the others).
+- **Wandering tracks.** Cloud texture, haze and noise wander instead of drifting:
+  `tracks.wandering` flags a median turn over 40 degrees between steps of at least 10 px, or
+  more than 30% of steps reversing. A wandering track keeps only its largest smooth part, and
+  only if that part holds half its points (57% of flagged star tracks qualify, 15% of the
+  others).
 - **Banner tracks.** HPWREN burns a line of text into the top ~35 rows. Its clock digits
   change every frame and link into slow tracks, which dragged the pole fit toward |p| 0.5
   on five solved blocks. `clean` drops tracks with a median row under `banner_px` (60) that
