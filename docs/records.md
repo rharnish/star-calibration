@@ -15,6 +15,7 @@ it is committed to this repository.
 | Record | Where | Written by | Read by | Can it be rebuilt? |
 |---|---|---|---|---|
 | `cams.json` | package | derived from `sites.js` | everything | yes, from `sites.js` |
+| `dem/*.tif`, `dem/*.sea` | cache | `terrain.dem_tile`, on first use | the sky search (`calibrate solve`), the examples | yes, from the Copernicus bucket |
 | `sites.js` | package | copied verbatim from HPWREN | people deriving `cams.json` | from HPWREN |
 | `pose_ledger.json` | package | `calibrate ledger`, copied in on purpose | `ledger.lookup`, plume-triangulation | yes, from `summary.json` |
 | `intrinsics.json` | package | `calibrate intrinsics` | the solver, through `hpwren.camera` | yes, from solves and tracks |
@@ -58,8 +59,9 @@ HPWREN CDN ──fetch──▶ nights/ ──index──▶ nights.json
 A change upstream makes everything downstream stale, and nothing records that it is:
 
 - **Changing the detector, linker or cleaning (`tracks.py`)** leaves the old `tracks/*.pkl`
-  in place unless it changes a recipe. Each pickle records the recipe `load_tracks` linked
-  and cleaned it with (`link`, `clean`), and a pickle made with another recipe is rebuilt.
+  in place unless it changes a recipe. Each pickle records the recipes `load_tracks` searched,
+  linked and cleaned it with (`search`, `link`, `clean`), and a pickle made with another
+  recipe is rebuilt.
   A code change that keeps the recipe goes unnoticed: delete `tracks/` to rebuild.
 - **Changing the solver** leaves `solves/` as it was until `calibrate solve` runs again.
 - **Changing the catalog or its corrections** changes `sky_model`, and `ledger.load` then
@@ -177,10 +179,13 @@ segments, a new one starting where the centre jumps (two consecutive nights each
 | `median_px`, `median_px_centred` | the joint fit's median residual with the centre held at the middle, and fitted |
 | `nights` | the blocks it was fitted from |
 | `own` | each night's centre fitted alone, `[cx, cy]`: the scatter the segment hides |
+| `dropped` | nights left out because their pose in the joint fit came within 0.1° (`AGREE_DEG`) of no other night's (from v0.4.0) |
 
 `hpwren.camera(name, W, H, epoch)` gives the solver a camera's record with the centre of
 the segment that starts at or before the date (the first segment for earlier dates).
-`calibrate intrinsics` rewrites the file from the current solves. Re-solve afterwards.
+`calibrate intrinsics` rewrites the file from the current solves. Re-solve afterwards, or run
+`calibrate intrinsics --iterate`, which fits, re-solves and refits until no centre moves by more
+than 1 px.
 
 The first fit (2026-09-29, from 137 solved CDN blocks) gave 47 of 76 cameras a centre, a
 median 32 px from the middle (max 75, bm-e-mobo-c). A camera's single-night centres sit a
@@ -218,9 +223,17 @@ A pickle of one block's tracks, written by `calibrate.load_tracks`. Each track i
 offset (seconds) to `(x, y, amp)`: pixel position and peak amplitude of the point in that
 frame. The pickle is a cache, not an interface: it can change with `tracks.py`.
 
+The tracks come from two passes over the frames (from v0.4.0). The first detects big blobs as
+well as small ones in the top 35% of the frame and solves for a seed pose. The second keeps
+the usual blob sizes and searches every pixel more than a margin above the camera's DEM
+skyline (`terrain.skyline`), drawn through the seed pose, or through the published pose with a
+wider margin when the seed failed. Its tracks are the block's.
+
 | Field | Meaning |
 |---|---|
-| `linked` | the moving tracks `tracks.collect` linked across frames, before cleaning |
+| `search` | the search recipe: `seed_detect` (the first pass's detector options, e.g. `area_range` in px) and `margin_deg` (degrees above the skyline: `seed` through a solved seed pose, `published` through the published one) |
+| `sky` | what the first pass found, also copied into the solve result: see below |
+| `linked` | the moving tracks the second pass linked across frames, before cleaning |
 | `link` | the linking recipe: `linker` (`nearest` for colour cameras, `predictive` for monochrome) and `max_gap_s` (a track unseen that long closes) |
 | `tracks` | the tracks the solver uses: `linked` after `tracks.clean`. A solve's `matches` index this list |
 | `clean` | the cleaning recipe: `banner_px`, the rows of burned-in text at the top of the frame |
@@ -228,7 +241,18 @@ frame. The pickle is a cache, not an interface: it can change with `tracks.py`.
 | `WH` | frame width and height |
 
 Pickles written before 2026-09-28 hold only `tracks` (uncleaned, linked with no gap limit
-within a block) and `WH`. `load_tracks` rebuilds them.
+within a block) and `WH`, and those before v0.4.0 searched only the top 35% of the frame.
+`load_tracks` rebuilds both.
+
+The `sky` record:
+
+| Field | Meaning |
+|---|---|
+| `mask_from` | `seed` (the first pass solved) or `published` |
+| `pose` | the pose the mask was drawn through |
+| `cx`, `cy` | the optical centre the mask was drawn through |
+| `frac`, `bottom` | the share of the frame searched, and the lowest searched row as a fraction of `H` |
+| `seed_status`, `seed_stars`, `seed_tracks` | the first pass's verdict, matched stars and cleaned tracks |
 
 #### Track cleaning
 
@@ -315,6 +339,12 @@ solve got.
 |---|---|
 | `found_by` | `grid` (around the published pose) or `pole` (global, from the pole) |
 | `lens_from_pole` | the lens scale the trails measure (`pole.lens_scale`), or `null` |
+
+**Added by `calibrate solve`**
+
+| Field | Meaning |
+|---|---|
+| `sky` | how the block's sky was searched, as in its tracks pickle (above) |
 
 **Added by `calibrate add`**, for results from frames the cache doesn't hold:
 

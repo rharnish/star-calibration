@@ -17,9 +17,15 @@ consecutive nights both sit more than `JUMP_PX` from the segment so far. A segme
 little to go on (fewer than `MIN_NIGHTS` nights and `MIN_STARS` matched stars) keeps the
 frame's middle.
 
+A wrong solve shouldn't drag its camera's centre after it, so a segment's nights are checked
+against each other inside the joint fit: a night whose fitted pose is within `AGREE_DEG` of no
+other night's is dropped, and the rest refitted. The check is made after the
+fit, not on the solves themselves: two right solves through a wrong centre can disagree by
+0.2 deg in roll, and agree once the centre is fitted.
+
 Records: {"camera", "W", "H", "from", "to", "cx", "cy", "k_ratio", "k1", "n_nights",
-"n_stars", "median_px", "median_px_centred", "nights"}, epochs in seconds; `lookup` picks the
-segment for a date. docs/records.md has the field list.
+"n_stars", "median_px", "median_px_centred", "nights", "own", "dropped"}, epochs in seconds;
+`lookup` picks the segment for a date. docs/records.md has the field list.
 """
 from __future__ import annotations
 
@@ -33,6 +39,7 @@ from . import catalog as SG
 from .fisheye import initial_k, project_fisheye
 
 JUMP_PX = 25.0
+AGREE_DEG = 0.1
 MIN_NIGHTS = 2
 MIN_STARS = 20
 
@@ -109,8 +116,17 @@ def series(obs: list[dict], cam: dict) -> list[dict]:
     out = []
     for seg in segs:
         o = [obs[j] for j in seg]
+        free = fit(o, cam)
+        bad = _disagreeing(o, free, cam)
+        dropped = [x["seq"] for x in bad]
+        if bad:
+            seg = [j for j in seg if obs[j]["seq"] not in dropped]
+            o = [obs[j] for j in seg]
+            if not o:
+                continue
+            free = fit(o, cam)
         n_stars = sum(x["n_stars"] for x in o)
-        free, fixed = fit(o, cam), fit(o, cam, centre=False)
+        fixed = fit(o, cam, centre=False)
         enough = len(o) >= MIN_NIGHTS or n_stars >= MIN_STARS
         out.append({"W": o[0]["W"], "H": o[0]["H"], "from": int(o[0]["t0"]), "to": int(o[-1]["t0"]),
                     "cx": round(free["cx"], 1) if enough else 0.0,
@@ -120,8 +136,21 @@ def series(obs: list[dict], cam: dict) -> list[dict]:
                     "median_px": round(fixed["median_px"], 2),
                     "median_px_centred": round(free["median_px"], 2),
                     "nights": [x["seq"] for x in o],
-                    "own": [[round(own[j]["cx"], 1), round(own[j]["cy"], 1)] for j in seg]})
+                    "own": [[round(own[j]["cx"], 1), round(own[j]["cy"], 1)] for j in seg],
+                    "dropped": dropped})
     return out
+
+
+def _disagreeing(obs: list[dict], f: dict, cam: dict) -> list[dict]:
+    """The nights whose pose in the joint fit `f` is within AGREE_DEG of no other night's;
+    see the module. Two nights that disagree are both dropped: neither can vouch for itself."""
+    from .cross_night import disagreement
+    if len(obs) < 2:
+        return []
+    pose = [dict(zip(("d_az", "d_pitch", "d_roll"), p)) for p in f["poses"]]
+    return [o for i, o in enumerate(obs)
+            if not any(disagreement(cam, pose[i], pose[j])[0] <= AGREE_DEG
+                       for j in range(len(obs)) if j != i)]
 
 
 def build(results: list[dict], night_of, cams: dict, dest: Path | str | None = None) -> list[dict]:

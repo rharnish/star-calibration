@@ -92,6 +92,8 @@ def main() -> None:
     out = []
     try:
         for n, r in enumerate(rows):
+            if "t0" not in block(r):   # a block with no frames in the cache: no time to look up
+                continue
             ep = ref_epoch(r)
             lat, lon = site_latlon(r)
             day = datetime.fromtimestamp(ep, timezone.utc).strftime("%Y-%m-%d")

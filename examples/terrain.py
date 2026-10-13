@@ -9,84 +9,31 @@ under $HPWREN_CACHE/dem: (c) DLR e.V. 2010-2014 and (c) Airbus Defence and Space
 """
 from __future__ import annotations
 
-import math
-import urllib.error
-import urllib.request
-
 import cv2
 import numpy as np
 
 from star_calibration import fisheye
+from star_calibration import terrain as T
 from star_calibration.hpwren import cache_dir
-
-cv2.utils.logging.setLogLevel(cv2.utils.logging.LOG_LEVEL_ERROR)   # GeoTIFF tags OpenCV doesn't know
-
-DEM_URL = "https://copernicus-dem-30m.s3.amazonaws.com/{name}/{name}.tif"
-R_EARTH = 6371000.0
-K_REFR = 0.13          # standard refraction coefficient
-_tiles: dict[str, np.ndarray] = {}
+from star_calibration.terrain import (K_REFR, R_EARTH, az_el, destination,  # noqa: F401
+                                      eye_height, sky_mask)
 
 
-def eye_height(cam: dict) -> float:
-    """The lens's height above sea level: site elevation plus mast."""
-    return cam["elev"] + (cam.get("agl") or 0.0)
-
-
-def az_el(lat1, lon1, h1, lat2, lon2, h2, k_refr=K_REFR):
-    """Bearing (deg), apparent elevation (deg) and distance (m) from one point to another,
-    with Earth's curvature and refraction."""
-    p1, p2, dl = math.radians(lat1), math.radians(lat2), math.radians(lon2 - lon1)
-    az = math.degrees(math.atan2(math.sin(dl) * math.cos(p2),
-                                 math.cos(p1) * math.sin(p2) - math.sin(p1) * math.cos(p2) * math.cos(dl))) % 360
-    d = R_EARTH * math.acos(min(1.0, math.sin(p1) * math.sin(p2) + math.cos(p1) * math.cos(p2) * math.cos(dl)))
-    el = math.degrees(math.atan2(h2 - h1 - d * d * (1 - k_refr) / (2 * R_EARTH), d))
-    return az, el, d
+def dem_dir():
+    return cache_dir() / "dem"
 
 
 def dem_tile(lat: int, lon: int) -> np.ndarray:
-    """One 1-degree tile, its north-west corner at (lat + 1, lon), downloaded once."""
-    name = (f"Copernicus_DSM_COG_10_{'N' if lat >= 0 else 'S'}{abs(lat):02d}_00_"
-            f"{'E' if lon >= 0 else 'W'}{abs(lon):03d}_00_DEM")
-    if name not in _tiles:
-        path = cache_dir() / "dem" / f"{name}.tif"
-        if not path.exists():
-            path.parent.mkdir(parents=True, exist_ok=True)
-            print("downloading", name)
-            try:
-                urllib.request.urlretrieve(DEM_URL.format(name=name), path)
-            except urllib.error.HTTPError as e:
-                if e.code != 404:
-                    raise
-                _tiles[name] = np.zeros((2, 2), np.float32)   # open sea: there is no tile
-                return _tiles[name]
-        a = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
-        a[a < -1000] = 0.0                      # sea and no-data
-        _tiles[name] = a
-    return _tiles[name]
+    return T.dem_tile(lat, lon, dem_dir())
 
 
 def terrain_height(lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
-    """Bilinear height (m) at each point; a pixel's value belongs to its centre."""
-    out = np.zeros(lat.shape, np.float32)
-    la0, lo0 = np.floor(lat).astype(int), np.floor(lon).astype(int)
-    for la, lo in set(zip(la0.ravel(), lo0.ravel())):
-        m = (la0 == la) & (lo0 == lo)
-        a = dem_tile(la, lo)
-        r = np.clip((la + 1 - lat[m]) * a.shape[0] - 0.5, 0, a.shape[0] - 1.001)
-        q = np.clip((lon[m] - lo) * a.shape[1] - 0.5, 0, a.shape[1] - 1.001)
-        r0, q0 = r.astype(int), q.astype(int)
-        fr, fq = r - r0, q - q0
-        out[m] = (a[r0, q0] * (1 - fr) * (1 - fq) + a[r0 + 1, q0] * fr * (1 - fq)
-                  + a[r0, q0 + 1] * (1 - fr) * fq + a[r0 + 1, q0 + 1] * fr * fq)
-    return out
+    return T.terrain_height(lat, lon, dem_dir())
 
 
-def destination(lat, lon, az, d):
-    """The point d metres from (lat, lon) along bearing az, on a sphere."""
-    p1, l1, a, dr = math.radians(lat), math.radians(lon), np.radians(az), d / R_EARTH
-    p2 = np.arcsin(np.sin(p1) * np.cos(dr) + np.cos(p1) * np.sin(dr) * np.cos(a))
-    l2 = l1 + np.arctan2(np.sin(a) * np.sin(dr) * np.cos(p1), np.cos(dr) - np.sin(p1) * np.sin(p2))
-    return np.degrees(p2), np.degrees(l2)
+def skyline(cam: dict, **kw):
+    """The skyline all round the camera (star_calibration.terrain.skyline), from the cache's tiles."""
+    return T.skyline(cam, dem_dir(), **kw)
 
 
 def crests(cam: dict, max_km: float = 80.0, step_deg: float = 0.05, step_m: float = 30.0,
@@ -114,32 +61,6 @@ def crests(cam: dict, max_km: float = 80.0, step_deg: float = 0.05, step_m: floa
             out.append((azs[i], angle[i, j], dist[j] / 1000, True))
     az, el, km, sky = (np.array(c) for c in zip(*out))
     return az, el, km, sky.astype(bool)
-
-
-def skyline(cam: dict, max_km: float = 80.0, step_deg: float = 0.1, step_m: float = 60.0):
-    """The skyline all round the camera: (az, el) with el the highest sight angle to terrain
-    along each bearing, whether that is a ridge or the end of the march."""
-    azs = np.arange(0.0, 360.0, step_deg)
-    dist = np.arange(60.0, max_km * 1000, step_m)
-    lat, lon = destination(cam["lat"], cam["lon"], azs[:, None], dist[None, :])
-    h = terrain_height(lat, lon)
-    angle = np.degrees(np.arctan2(h - eye_height(cam) - dist ** 2 * (1 - K_REFR) / (2 * R_EARTH), dist))
-    return azs, angle.max(axis=1)
-
-
-def sky_mask(cam: dict, pose: dict, W: int, H: int, sky, margin_deg: float = 0.5,
-             step: int = 8) -> np.ndarray:
-    """Frame-sized bool mask of the pixels more than `margin_deg` above the skyline, through
-    a solved pose: where to look for stars. `sky` is `skyline(cam)`. The margin clears the
-    trees and masts that stand above the terrain model's ground."""
-    xs = (np.arange(0, W, step) + step / 2) / W
-    ys = (np.arange(0, H, step) + step / 2) / H
-    X, Y = np.meshgrid(xs, ys)
-    az, el = fisheye.unproject_fisheye(cam, X, Y, W, H, pose["d_az"], pose["d_pitch"], pose["d_roll"],
-                                       pose["k_ratio"] * fisheye.initial_k(cam, W), pose["k1"])
-    ridge = np.interp(az, sky[0], sky[1], period=360.0)
-    m = (el > ridge + margin_deg).astype(np.uint8)
-    return cv2.resize(m, (W, H), interpolation=cv2.INTER_NEAREST).astype(bool)
 
 
 def project(cam: dict, az, el, W: int, H: int, pose: dict | None = None):
