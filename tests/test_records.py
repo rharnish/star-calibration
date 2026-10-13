@@ -95,3 +95,19 @@ def test_replay_data_is_documented():
     few.tracks = few.tracks[:5]
     trace = []
     assert not missing(explore.export(trace, solve(few, trace=trace), few, []), by_star)
+
+
+def test_ablation_records_are_documented():
+    from star_calibration import ablation
+
+    night = synthetic_night("hp-s-mobo-c", (2.4, -0.7, 0.9))
+    r = solve(night)
+    assert r["status"] == "solved"
+    assert not missing(ablation.refit_experiments(r, night, centre=True, sizes=(4,), draws=2))
+    v = ablation.variants(night, seeds=1, fractions=(0.5,))
+    few = synthetic_night("hp-s-mobo-c", (2.4, -0.7, 0.9))
+    few.tracks = few.tracks[:3]
+    rows = [ablation.resolve_variants(r, night, which={"keep_50_s0": v["keep_50_s0"]}),
+            ablation.resolve_variants(r, few, which={"all": [0, 1, 2]})]
+    for d in rows:
+        assert not missing(d, ("pose",)) and not missing(d["rows"][0].get("pose", {}))

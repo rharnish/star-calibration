@@ -29,6 +29,7 @@ it is committed to this repository.
 | `animations/star_solve_<block>.mp4`, `…_full.mp4` | cache | `calibrate animate`, on request | gallery | yes, from frames and tracks |
 | `explore/<block>.js` | cache | `calibrate explore`, on request | `gallery/explore.html` | yes, from frames and tracks |
 | `gallery/index.html`, `gallery/thumbs/`, `gallery/explore.html` | cache | `gallery`, `calibrate explore` | people | yes |
+| `ablation/refit_<block>.json`, `resolve_<block>.json`, `summary.json` | cache | `hpwren.ablate`, on request | people | yes, from solves and tracks |
 
 The cache is `$HPWREN_CACHE`, `~/.cache/hpwren` by default. plume-triangulation uses the same
 one, so both projects read one copy of the frames, and there is one gallery.
@@ -422,6 +423,52 @@ from published to fitted at the reference frame) and, for a failure with no fit,
 `bright_arcs` (mag ≤ 3 stars at the published pose and shared lens). `sky` is
 `[name, mag, x, y]` for every catalog star in frame at the reference frame under the fitted
 pose, or the published one, for labels.
+
+### `ablation/`
+
+The ablation study (`ablation.py`, run by `python -m star_calibration.hpwren.ablate`), made
+only on request. It reads solves and tracks and writes nothing outside `ablation/`. Internal:
+its shape can change freely.
+
+**`refit_<block>.json`** holds `held` and `free`, one refit study each: the optical centre held
+at the camera's value, or free. Each has:
+
+| Field | Meaning |
+|---|---|
+| `seq`, `camera`, `W`, `H` | the block and its frame size |
+| `centre_free` | whether `cx`, `cy` were fitted |
+| `solved` | the stored solve's `pose` fields, `cx`, `cy` and `median_px` |
+| `stars` | per matched star: `name`, `mag`, `n_points`, `theta_deg` (median angle from the boresight at the solved pose), `r_px` (median distance of its track from the optical centre) |
+| `rows` | one per refit, below |
+
+Every row has the fitted `d_az`, `d_pitch`, `d_roll` (deg), `k_ratio`, `k1`, `cx`, `cy` (px;
+the camera's when held), `median_px`, and the `n_stars` and `n_points` it saw. It also has a
+`kind`, with what that kind kept:
+
+| `kind` | Extra fields |
+|---|---|
+| `baseline` | none: every matched star, which reproduces the solve |
+| `leave_one_out` | `drop`: the star left out |
+| `inner`, `outer` | `fraction` of the stars, nearest to or furthest from the boresight; `theta_min`, `theta_max` of those kept |
+| `subset` | `size` stars at random, `draw` (0..19), `theta_mean` of those kept |
+| `shorten` | `fraction`: the middle part of every track kept |
+
+**`resolve_<block>.json`**: `seq`, `camera`, `n_tracks`, `n_stars` (the stored solve's), and
+`min_stars`, `min_tracks` (the loosened acceptance the re-solves ran under). `rows` has one
+entry per variant (`ablation.variants`):
+- `variant`: `all`, `drop_inner_third`, `drop_middle_third`, `drop_outer_third` (by track
+  radius), or `keep_<pct>_s<seed>` (a random share of the tracks);
+- `n_tracks`, `status`, `reason`, `found_by`;
+- for a fit, `n_stars`, `median_px`, `pose`, `delta` (the pose minus the stored one),
+  `same_pose` (every angle within 0.2°) and `shared_stars` (matched stars in common with the
+  stored solve).
+
+**`summary.json`**: `ablate report`'s roll-up of the per-block files, as medians with the
+middle half (`[median, q25, q75]`). It has `held` and `free` (each with `n_blocks`,
+`params`, `baseline_vs_solved`, `baseline_median_px`, `loo`, `loo_by_theta`,
+`loo_rank_corr`, `theta_range`, `radial`, `subsets`, `shorten`), `centre` (free against
+held) and `resolve` (`variants`, `wrong`, `by_n_stars`). Leave-one-out entries are jackknife
+influence: (n − 1) times the change in each parameter.
 
 ## In memory only
 
