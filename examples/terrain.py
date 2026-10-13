@@ -10,6 +10,7 @@ under $HPWREN_CACHE/dem: (c) DLR e.V. 2010-2014 and (c) Airbus Defence and Space
 from __future__ import annotations
 
 import math
+import urllib.error
 import urllib.request
 
 import cv2
@@ -51,7 +52,13 @@ def dem_tile(lat: int, lon: int) -> np.ndarray:
         if not path.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
             print("downloading", name)
-            urllib.request.urlretrieve(DEM_URL.format(name=name), path)
+            try:
+                urllib.request.urlretrieve(DEM_URL.format(name=name), path)
+            except urllib.error.HTTPError as e:
+                if e.code != 404:
+                    raise
+                _tiles[name] = np.zeros((2, 2), np.float32)   # open sea: there is no tile
+                return _tiles[name]
         a = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
         a[a < -1000] = 0.0                      # sea and no-data
         _tiles[name] = a
@@ -107,6 +114,32 @@ def crests(cam: dict, max_km: float = 80.0, step_deg: float = 0.05, step_m: floa
             out.append((azs[i], angle[i, j], dist[j] / 1000, True))
     az, el, km, sky = (np.array(c) for c in zip(*out))
     return az, el, km, sky.astype(bool)
+
+
+def skyline(cam: dict, max_km: float = 80.0, step_deg: float = 0.1, step_m: float = 60.0):
+    """The skyline all round the camera: (az, el) with el the highest sight angle to terrain
+    along each bearing, whether that is a ridge or the end of the march."""
+    azs = np.arange(0.0, 360.0, step_deg)
+    dist = np.arange(60.0, max_km * 1000, step_m)
+    lat, lon = destination(cam["lat"], cam["lon"], azs[:, None], dist[None, :])
+    h = terrain_height(lat, lon)
+    angle = np.degrees(np.arctan2(h - eye_height(cam) - dist ** 2 * (1 - K_REFR) / (2 * R_EARTH), dist))
+    return azs, angle.max(axis=1)
+
+
+def sky_mask(cam: dict, pose: dict, W: int, H: int, sky, margin_deg: float = 0.5,
+             step: int = 8) -> np.ndarray:
+    """Frame-sized bool mask of the pixels more than `margin_deg` above the skyline, through
+    a solved pose: where to look for stars. `sky` is `skyline(cam)`. The margin clears the
+    trees and masts that stand above the terrain model's ground."""
+    xs = (np.arange(0, W, step) + step / 2) / W
+    ys = (np.arange(0, H, step) + step / 2) / H
+    X, Y = np.meshgrid(xs, ys)
+    az, el = fisheye.unproject_fisheye(cam, X, Y, W, H, pose["d_az"], pose["d_pitch"], pose["d_roll"],
+                                       pose["k_ratio"] * fisheye.initial_k(cam, W), pose["k1"])
+    ridge = np.interp(az, sky[0], sky[1], period=360.0)
+    m = (el > ridge + margin_deg).astype(np.uint8)
+    return cv2.resize(m, (W, H), interpolation=cv2.INTER_NEAREST).astype(bool)
 
 
 def project(cam: dict, az, el, W: int, H: int, pose: dict | None = None):
