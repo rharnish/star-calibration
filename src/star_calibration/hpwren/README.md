@@ -13,7 +13,10 @@ pip install -e ".[hpwren,opencv]"   # from the repository root; drop opencv if y
 # 1. Frames: the first 90 minutes after local midnight (Q1), about one frame a minute
 python -m star_calibration.hpwren.calibrate fetch 20260911 hp-s-mobo-c vo-n-mobo-c
 
-# 2. Tracks, a pose and an overlay for every fetched block (cached; a re-run skips what's done)
+# 2. Tracks, a pose and an overlay for every fetched block (cached; a re-run skips what's done).
+#    The tracks come from two passes: big blobs for a first pose, then the sky above the
+#    camera's skyline. The skyline needs the Copernicus DEM tiles, downloaded once into the
+#    cache's dem/.
 python -m star_calibration.hpwren.calibrate solve
 
 # 3. Is it right? A second night of the same camera should land on the same pose
@@ -21,9 +24,9 @@ python -m star_calibration.hpwren.calibrate fetch 20260912 hp-s-mobo-c vo-n-mobo
 python -m star_calibration.hpwren.calibrate solve
 python -m star_calibration.hpwren.calibrate agree
 
-# 4. Each camera's optical centre from all its solved nights, then solve again through it
-python -m star_calibration.hpwren.calibrate intrinsics   # rewrites hpwren/intrinsics.json
-python -m star_calibration.hpwren.calibrate solve
+# 4. Each camera's optical centre from all its solved nights, solving again through it,
+#    until no centre moves by more than 1 px (rewrites hpwren/intrinsics.json)
+python -m star_calibration.hpwren.calibrate intrinsics --iterate
 
 # 5. Solved blocks -> a pose ledger (defaults to the cache; name a file to write elsewhere)
 python -m star_calibration.hpwren.calibrate ledger
@@ -34,8 +37,8 @@ A solved block gives its pose relative to the published table. The two cameras a
 
 | block | stars | median | d_az | d_pitch | d_roll | k_ratio |
 |---|---|---|---|---|---|---|
-| hpwren_20260911_Q1_hp-s-mobo-c | 15 | 1.23 px | +1.77° | +0.49° | −0.48° | 0.889 |
-| hpwren_20260911_Q1_vo-n-mobo-c | 16 | 0.90 px | +12.07° | +0.47° | −0.39° | 0.891 |
+| hpwren_20260911_Q1_hp-s-mobo-c | 20 | 0.89 px | +1.75° | +0.43° | −0.47° | 0.888 |
+| hpwren_20260911_Q1_vo-n-mobo-c | 20 | 0.89 px | +12.00° | +0.39° | −0.38° | 0.890 |
 
 `d_az`, `d_pitch` and `d_roll` are the measured pose as corrections to the published one, in
 degrees (`d_az` positive is clockwise). `k_ratio` is the lens scale as a fraction of the
@@ -107,20 +110,22 @@ gallery/explore.html                        the replay page, one block at a time
   - That describes the view each camera gives, which is what the network was built for. It
     is the reference this package measures against, and the solved poses are corrections
     to it.
-- **`pose_ledger.json`** — 137 solves on 76 cameras, from 18 nights between 2026-07-14 and
-  2026-09-27.
+- **`pose_ledger.json`** — 267 solves on 89 cameras, from 43 nights between 2026-07-03 and
+  2026-10-08.
   - Each entry is one camera-night: the pose offsets, lens, optical centre, star count,
     residual, source block, sky model and solver.
-  - It is `calibrate ledger` over this package's own CDN solves, made with v0.3.0. It replaces
-    the 106-solve ledger assembled in plume-triangulation (tag `results-2026-09-26`) before
-    the split; every camera-night of that one is still in it.
+  - It is `calibrate ledger` over this package's own CDN solves, made with v0.4.0. Five of
+    them have 5–7 stars and are vouched for by another night of the same camera (see
+    [docs/records.md](../../../docs/records.md)). v0.3.0 shipped 137 solves on 76 cameras.
   - [`ledger.py`](../ledger.py) has the rules for when a pose applies to another date.
 - **`intrinsics.json`** — each camera's optical centre, fitted from all its solved nights at
-  once ([`intrinsics.py`](../intrinsics.py)). The lens's centre sits a median 32 px from the
-  frame's middle on these units (47 of 76 cameras fitted), stable night to night. The solver reads it, and each solve
+  once ([`intrinsics.py`](../intrinsics.py)). The lens's centre sits a median 28 px from the
+  frame's middle on these units (86 of 89 cameras fitted), stable night to night. The solver reads it, and each solve
   and ledger entry records the centre it used.
 
 ## Data credit
 
 Frames and camera metadata: HPWREN, <https://www.hpwren.ucsd.edu/>. Use of HPWREN data
-requires this credit reference.
+requires this credit reference. Terrain for the skyline: Copernicus DEM GLO-30, © DLR e.V.
+2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the
+European Union and ESA.

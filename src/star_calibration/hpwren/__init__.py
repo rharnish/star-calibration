@@ -7,7 +7,7 @@ them needs and produces:
   cams.json         the published camera table: site, lat, lon, elev, az, fov, imager,
                     pitch/roll/yaw (zero placeholders almost everywhere) and agl, derived from
                     sites.js, HPWREN's own listing, kept verbatim beside it
-  nights            moonless-night frame blocks from HPWREN's public CDN, into a local cache
+  nights            night frame blocks from HPWREN's public CDN, into a local cache
   calibrate         fetch -> tracks -> solve -> ledger, from the command line
   pose_ledger.json  the solved poses, one entry per camera-night (ledger.py has the rules)
   intrinsics.json   each camera's optical centre, from all its solved nights at once

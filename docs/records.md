@@ -126,8 +126,8 @@ corrections relative to this table.
 
 ### `pose_ledger.json`
 
-The solved poses: one entry per solved CDN block, 137 solves of 76 cameras as of
-2026-09-29 (v0.3.0). `calibrate ledger` writes a fresh one to the cache; the package's copy changes
+The solved poses: one entry per solved CDN block, 267 solves of 89 cameras as of
+2026-10-13 (v0.4.0; v0.3.0 shipped 137 of 76). `calibrate ledger` writes a fresh one to the cache; the package's copy changes
 only when someone copies it in on purpose.
 
 | Field | Meaning |
@@ -194,6 +194,14 @@ solves' median residual from 1.23 to 0.78 px, added bm-s 09-11 and (with the lev
 starts) bi-s 09-20, and moved poses a median 0.76° (max 3.1°, bm-e). Two solves of one
 camera within 30 days now agree to 0.015° median and 0.05° worst, against 0.026° and 0.75°
 before.
+
+The v0.4.0 fit (2026-10-13) came from 316 CDN blocks searched above the skyline, with centres
+and solves iterated: five rounds, the centres moving a median 2.7 px (max 73) in the first and
+0.0 px in the last. It gives 86 of 89 cameras a centre, a median 28 px from the middle (max
+73). One night was dropped by the agreement check (sm-e-mobo-c 10-04). Over the 308 blocks
+both releases solved from, v0.4.0 solved 261 against v0.3.0's 242 (one lost, starr-n-mobo-c
+08-21), the median residual went from 0.87 to 0.75 px, and two solves of one camera under 30
+days apart agree to 0.014° median (p90 0.035°), against 0.022° (p90 0.065°).
 
 ## Cache records
 
