@@ -58,6 +58,15 @@ def test_solve_results_are_documented():
     rows.append(solve(few))
     # what calibrate.add and calibrate's no-images path add to a row
     rows.append({"source": "figlib", "t0": 0, "lat": 0.0, "lon": 0.0})
+    # what calibrate solve adds: the sky search, and vouching
+    from star_calibration.hpwren import calibrate
+    from test_vouch import row
+    vouched = [row("a", 0, "solved", 30), row("b", 2, "failed", 6)]
+    calibrate.vouch(vouched)
+    rows.append(vouched[1])
+    rows.append({"sky": {"mask_from": "seed", "pose": {}, "cx": 0.0, "cy": 0.0, "frac": 0.5,
+                         "bottom": 0.5, "seed_status": "solved", "seed_stars": 9,
+                         "seed_tracks": 20}})
     for r in rows:
         assert not missing(r, DATA_KEYED), missing(r, DATA_KEYED)
 

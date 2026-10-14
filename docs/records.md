@@ -345,6 +345,8 @@ solve got.
 | Field | Meaning |
 |---|---|
 | `sky` | how the block's sky was searched, as in its tracks pickle (above) |
+| `vouched_by` | only on a vouched-for row (below): `seq`, the night that vouched for it; `sep_deg` and `roll_deg`, the angle between their boresights and their roll difference; `days_apart` |
+| `reason_alone` | only on a vouched-for row: the `reason` its own solve gave |
 
 **Added by `calibrate add`**, for results from frames the cache doesn't hold:
 
@@ -360,6 +362,11 @@ is an interface: plume-triangulation's `stars.publish` writes to it.
 under 3.0 px, and a lens scale within 0.70–0.95 (pole search, or a given lens) or 0.85–0.92
 (grid). `solve_wide` runs up to three attempts (grid; pole under the shared lens; pole under
 the trails' lens) and keeps the best: solved first, then most stars, then lowest median.
+
+**Vouching** (`calibrate.vouch`, from v0.4.0). A fit turned down for its star count alone,
+with 5 to 7 stars, is `solved` in `summary.json` when its pose is within 0.1° of the nearest
+night of the same camera, at most 30 days away, that solved with 8 or more. It is decided
+again after every `calibrate solve`, from the rows as they stand.
 
 **Reasons and outcomes.** The gallery sorts failures by `gallery.outcome`:
 

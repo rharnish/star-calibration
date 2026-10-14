@@ -325,12 +325,78 @@ def add(result: dict, image: np.ndarray | None, source: str) -> None:
     _merge([r])
 
 
+# A night with too few stars to pass on its own (`solve`'s min_stars, 8) is accepted when
+# another night of the same camera vouches for it: the fit passes every other test, has at
+# least VOUCH_MIN_STARS stars, and its pose is within VOUCH_DEG of the nearest night (in time,
+# within VOUCH_DAYS) that solved with 8 or more. Two nights of one camera agree to 0.014 deg
+# median and 0.033 at the 90th percentile; a wrong fit lands tenths of a degree away or more
+# (the ablation study's loosened re-solves). See docs/records.md for the numbers.
+VOUCH_MIN_STARS = 5
+VOUCH_DEG = 0.1
+VOUCH_DAYS = 30.0
+
+
+def _passes_but_stars(r: dict) -> bool:
+    """A failed fit that `solve`'s acceptance test turned down for its star count alone."""
+    p = r.get("pose")
+    if not p or r.get("median_px") is None or not r.get("n_stars"):
+        return False
+    lo, hi = (0.70, 0.95) if r.get("found_by") == "pole" else (0.85, 0.92)
+    return (VOUCH_MIN_STARS <= r["n_stars"] < 8 and r["median_px"] < 3.0
+            and lo <= p["k_ratio"] <= hi)
+
+
+def vouch(rows: list[dict]) -> list[dict]:
+    """Re-decide every row that could be vouched for (see VOUCH_DEG), in place; returns the
+    rows whose status changed. A vouched row is `solved`, with `vouched_by` naming the night
+    and the angle between them, and `reason_alone` keeping what its own solve said."""
+    indexed = nights.sequences()
+    t0 = {r["seq"]: block(r, indexed).get("t0") for r in rows}
+    for r in rows:
+        if "vouched_by" in r:          # decide again from scratch
+            r.update(status="failed", reason=r.pop("reason_alone"))
+            del r["vouched_by"]
+    solid: dict[str, list[dict]] = {}
+    for r in rows:
+        if r["status"] == "solved" and r.get("pose") and t0.get(r["seq"]):
+            solid.setdefault(r.get("camera"), []).append(r)
+    changed = []
+    for r in rows:
+        if r["status"] == "solved" or not _passes_but_stars(r) or not t0.get(r["seq"]):
+            continue
+        near = [(abs(t0[s["seq"]] - t0[r["seq"]]) / 86400, s) for s in solid.get(r.get("camera"), [])]
+        near = [x for x in near if x[0] <= VOUCH_DAYS]
+        if not near:
+            continue
+        days, s = min(near, key=lambda x: x[0])
+        sep, roll = cross_night.disagreement(cameras()[r["camera"]], r["pose"], s["pose"])
+        if sep <= VOUCH_DEG:
+            r["reason_alone"] = r["reason"]
+            r.update(status="solved", reason=None,
+                     vouched_by={"seq": s["seq"], "sep_deg": round(sep, 4),
+                                 "roll_deg": round(roll, 4), "days_apart": round(days, 2)})
+            changed.append(r)
+    return changed
+
+
 def solve_blocks(seqs: list[str], workers: int = 4) -> list[dict]:
-    """Solve `seqs` and merge them into solves/summary.json."""
+    """Solve `seqs`, merge them into solves/summary.json, and settle which rows are vouched
+    for (`vouch`), redrawing the overlays of any that changed."""
     with Pool(workers) as pool:
         new = list(pool.imap_unordered(_one, seqs))
     _merge(new)
-    return sorted(new, key=lambda r: (r["status"] != "solved", r["seq"]))
+    rows = summary()
+    before = {r["seq"]: r["status"] for r in rows}
+    vouch(rows)
+    _merge(rows)
+    indexed = nights.sequences()
+    for r in rows:
+        if r["status"] != before[r["seq"]] or "vouched_by" in r:
+            (solves_dir() / f"solve_{r['seq']}.json").write_text(json.dumps(r, indent=1, default=float) + "\n")
+            if r["seq"] in indexed:
+                render(r["seq"], r)
+    done = {r["seq"]: r for r in rows}
+    return sorted((done[r["seq"]] for r in new), key=lambda r: (r["status"] != "solved", r["seq"]))
 
 
 def fit_intrinsics(dest: Path | None = None) -> list[dict]:
