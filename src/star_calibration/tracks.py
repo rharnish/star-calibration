@@ -33,13 +33,32 @@ from .sun import sun as sun_altaz
 MAX_POINTS_PER_FRAME = 2000
 
 
+def _sky_rows(H: int, sky_frac: float, sky_mask: np.ndarray | None) -> int:
+    """Rows to search: the top `sky_frac` of the frame, or down to the mask's lowest sky row."""
+    if sky_mask is None:
+        return int(H * sky_frac)
+    rows = np.flatnonzero(sky_mask.any(axis=1))
+    return int(rows[-1]) + 1 if len(rows) else 0
+
+
+def _in_mask(pts: list, sky_mask: np.ndarray | None) -> list:
+    if sky_mask is None:
+        return pts
+    h, w = sky_mask.shape
+    return [p for p in pts if sky_mask[min(int(p[1]), h - 1), min(int(p[0]), w - 1)]]
+
+
 def detect_points(img: np.ndarray, sky_frac: float = 0.35, thresh: int = 25,
-                    area_range: tuple[int, int] = (1, 16)) -> list[tuple[float, float, float]]:
+                  area_range: tuple[int, int] = (1, 16),
+                  sky_mask: np.ndarray | None = None) -> list[tuple[float, float, float]]:
     """Same point-source detector as star_pixels.py: median-blur-subtract, threshold, small
-    connected components in the sky region."""
+    connected components in the sky region. `sky_mask` (bool, frame-sized) replaces the
+    top-`sky_frac` band with an arbitrary sky region, e.g. everything above a DEM skyline."""
     g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     H, W = g.shape
-    sky = g[: int(H * sky_frac)]
+    sky = g[: _sky_rows(H, sky_frac, sky_mask)]
+    if not len(sky):
+        return []
     resid = cv2.subtract(sky, cv2.medianBlur(sky, 21))
     peaks = (resid > thresh).astype(np.uint8)
     n, lab, st, cen = cv2.connectedComponentsWithStats(peaks, 8)
@@ -48,7 +67,7 @@ def detect_points(img: np.ndarray, sky_frac: float = 0.35, thresh: int = 25,
         area = int(st[k, cv2.CC_STAT_AREA])
         if area_range[0] <= area <= area_range[1]:
             out.append((float(cen[k][0]), float(cen[k][1]), int(resid[lab == k].max())))
-    return out
+    return _in_mask(out, sky_mask)
 
 
 def link_tracks(frames_points: list[tuple[int, list]], max_step_px: float = 20.0,
@@ -88,7 +107,8 @@ def link_tracks(frames_points: list[tuple[int, list]], max_step_px: float = 20.0
 
 
 def detect_points_adaptive(img: np.ndarray, sky_frac: float = 0.35, k_sigma: float = 7.0,
-                           area_range: tuple[int, int] = (2, 40)) -> list[tuple[float, float, float]]:
+                           area_range: tuple[int, int] = (2, 40),
+                           sky_mask: np.ndarray | None = None) -> list[tuple[float, float, float]]:
     """Point sources for the monochrome (NIR) units, whose sky noise sigma is 1.7-3.1 gray
     levels against the color units' near-zero: a fixed `thresh=25` there is only 8-15 sigma
     of *grain*, and yielded 800-3700 "moving" tracks of noise per sequence
@@ -96,7 +116,9 @@ def detect_points_adaptive(img: np.ndarray, sky_frac: float = 0.35, k_sigma: flo
     subtract the same median-21 background, and threshold at k_sigma times a noise sigma
     taken from the 16th-84th percentile spread -- the MAD is 0 on integer-quantized sky."""
     g = img if img.ndim == 2 else cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    sky = g[: int(g.shape[0] * sky_frac)]
+    sky = g[: _sky_rows(g.shape[0], sky_frac, sky_mask)]
+    if not len(sky):
+        return []
     r = cv2.GaussianBlur(sky.astype(np.float32), (0, 0), 1.0) - cv2.medianBlur(sky, 21).astype(np.float32)
     sub = r[::4, ::4]
     sigma = max((np.percentile(sub, 84.13) - np.percentile(sub, 15.87)) / 2, 0.5)
@@ -105,7 +127,7 @@ def detect_points_adaptive(img: np.ndarray, sky_frac: float = 0.35, k_sigma: flo
     for i in range(1, n):
         if area_range[0] <= st[i, cv2.CC_STAT_AREA] <= area_range[1]:
             out.append((float(cen[i][0]), float(cen[i][1]), float(r[lab == i].max())))
-    return out
+    return _in_mask(out, sky_mask)
 
 
 def link_tracks_predictive(frames_points: list[tuple[int, list]], max_gap_s: float = 240.0) -> list[dict]:
@@ -352,14 +374,15 @@ def clean(tracks: list[dict], banner_px: int = 0, max_banner_rate_px_h: float = 
 def collect(frames: Iterable[tuple[int, int, bytes]], lat: float, lon: float,
             mono: bool = False, el_max: float = -8.0, max_step_px: float = 20.0,
             min_frames: int = 8, min_span_px: float = 50.0, keep_frames: bool = True,
-            max_gap_s: float | None = None, label: str = "frames"):
+            max_gap_s: float | None = None, label: str = "frames", detect: dict | None = None):
     """Moving tracks from one camera's frames, plus the decoded frames.
 
     `frames` is (epoch, offset_s, jpeg bytes) in time order; a track is a dict of
     offset_s -> (x, y, amp). Frames with the sun above `el_max` at (lat, lon) are skipped.
     `mono` switches to the detector and linker for the monochrome (NIR) units.
     keep_frames=False keeps only the first decoded frame (enough for the frame size): a whole
-    night is ~470 frames of 19 MB each. Returns (tracks, {offset: (epoch, image)}).
+    night is ~470 frames of 19 MB each. `detect` passes keyword arguments to the detector
+    (`sky_frac`, `area_range`, ...); None keeps its defaults. Returns (tracks, {offset: (epoch, image)}).
     """
     frames = list(frames)
     frames_points = []
@@ -371,7 +394,7 @@ def collect(frames: Iterable[tuple[int, int, bytes]], lat: float, lon: float,
         img = cv2.imdecode(np.frombuffer(blob, np.uint8), cv2.IMREAD_COLOR)
         if keep_frames or not decoded:
             decoded[offset] = (epoch, img)
-        pts = detect_points_adaptive(img) if mono else detect_points(img)
+        pts = detect_points_adaptive(img, **(detect or {})) if mono else detect_points(img, **(detect or {}))
         frames_points.append((offset, pts))
     print(f"{label}: {len(frames_points)}/{len(frames)} frames dark enough (sun el <= {el_max})")
     # A sky full of city glow or lit cloud texture yields thousands of "point sources" per

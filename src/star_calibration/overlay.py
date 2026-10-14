@@ -109,6 +109,8 @@ def draw(result: dict, night: Night, frame: np.ndarray, full: bool = False) -> n
     if solved:
         p = r["pose"]
         tag = "SOLVED" if r["status"] == "solved" else "BELOW CUTOFF, best fit"
+        if r.get("vouched_by"):
+            tag = f"SOLVED (vouched for by {r['vouched_by']['seq']})"
         line2 = (f"{tag}  {r['n_stars']} stars, median {r['median_px']:.2f}px  "
                  f"d_az {p['d_az']:+.2f}  d_pitch {p['d_pitch']:+.2f}  d_roll {p['d_roll']:+.2f}  "
                  f"k {p['k_ratio']:.3f}x  k1 {p['k1']:+.3f}   green=track, magenta=fitted, "

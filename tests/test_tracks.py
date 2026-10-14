@@ -100,3 +100,16 @@ def test_a_track_repeating_a_longer_one_is_dropped():
     assert T.duplicates([a, copy, other]) == {1}
     out, counts = T.clean([a, copy, other])
     assert counts["duplicate"] == 1 and len(out) == 2
+
+
+def test_a_sky_mask_limits_detection_to_the_sky():
+    import cv2
+    from star_calibration.tracks import detect_points
+    img = np.zeros((200, 300, 3), np.uint8)
+    for x, y in ((50, 20), (150, 120), (250, 180)):
+        cv2.circle(img, (x, y), 1, (255, 255, 255), -1)
+    assert len(detect_points(img, sky_frac=1.0)) == 3
+    assert len(detect_points(img)) == 1                          # top 35% only
+    mask = np.zeros((200, 300), bool)
+    mask[:150, 100:] = True
+    assert [round(p[0]) for p in detect_points(img, sky_mask=mask)] == [150]

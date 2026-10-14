@@ -20,18 +20,20 @@ same method applies to any fixed camera that sees a patch of night sky.
 
 ## What it found on HPWREN
 
-From 18 nights between 2026-07-14 and 2026-09-27, on frames from HPWREN's public CDN
-([`hpwren/pose_ledger.json`](src/star_calibration/hpwren/pose_ledger.json)):
+From 43 nights between 2026-07-03 and 2026-10-08, on frames from HPWREN's public CDN
+([`hpwren/pose_ledger.json`](src/star_calibration/hpwren/pose_ledger.json), v0.4.0):
 
-- **137 solves on 76 cameras**, at a median residual of 0.78 px and 27 stars per solve.
-- **Nights agree to hundredths of a degree.** Two nights of the same camera land on the same
-  pose, the acceptance test that matters more than any star count (`cross_night.py`).
-- **A lens model for every camera.** The 90° units are equidistant fisheyes at 0.881–0.894 of
+- **267 solves on 89 cameras**, from 316 night blocks tried, at a median residual of 0.75 px
+  and 25 stars per solve.
+- **Nights agree to hundredths of a degree.** Two nights of the same camera under 30 days
+  apart land on the same pose to 0.013° (median), and 97% of them within 0.05°: the
+  acceptance test that matters more than any star count (`cross_night.py`).
+- **A lens model for every camera.** The 90° units are equidistant fisheyes at 0.880–0.891 of
   the nameplate scale, spanning about ±55°. Big Black Mountain's cameras are a second lens
   group at 0.772–0.776. Near the frame edge, modelling the lens is worth up to 8° of bearing.
 - **Each camera's optical centre**, fitted from all its nights at once (`intrinsics.py`): a
-  median 32 px from the frame's middle on the 47 cameras where it is fitted, and steady from
-  night to night.
+  median 28 px from the frame's middle on the 86 cameras where it is fitted, and steady from
+  night to night. Centres and solves are iterated together until no centre moves.
 - **Dated poses.** Cameras get serviced and re-aimed, so a pose is a measurement on a date.
   The ledger says when one applies to another date, and refuses to bridge an apparent re-aim
   (`ledger.py`).
@@ -44,7 +46,10 @@ to a third of a pixel.
 ## How a solve works
 
 1. **Tracks** (`tracks.py`). Detect point sources in every dark frame and link them frame to
-   frame. Keep what persists and moves: hot pixels and lens artefacts stay put, stars drift at
+   frame. On HPWREN this runs twice: once with big blobs allowed, in the top third of the
+   frame, so the brightest stars find a first pose; then with the usual small blobs over all
+   the sky above the camera's skyline, which a terrain model (`terrain.py`) places through
+   that pose. The second pass's tracks are the ones solved. Keep what persists and moves: hot pixels and lens artefacts stay put, stars drift at
    the sidereal rate. The monochrome (NIR) units get a noise-scaled detector and a
    constant-velocity linker. Then `clean` takes out what isn't one star: it splits tracks
    the linker handed from one star to another, and drops cloud texture that wanders instead
@@ -60,7 +65,8 @@ to a third of a pixel.
 4. **Assign and refit.** Match catalog stars to whole tracks (Hungarian assignment on median
    track distance) and refit pose — then pose and lens — with a robust loss, tightening the
    match radius as it converges. A solve needs ≥ 8 stars under 3 px median, and the lens inside
-   a plausible band.
+   a plausible band. On HPWREN, a fit with 5–7 stars that passes the rest is accepted when
+   another night of the same camera, solved on its own, lands within 0.1° of it.
 
 Star positions carry proper motion, IAU 1976 precession and refraction. Skipping precession
 alone leaves about 0.3° of azimuth in every 2026 solve (`catalog.py` documents the chain). Every
@@ -118,6 +124,7 @@ python -m star_calibration.hpwren.calibrate agree
 | `animate` | a solve played back as video from its trace: pole, coarse search, refinement, verdict |
 | `explore` | the same trace as data for a browser replay, every star already projected |
 | `intrinsics` | each camera's optical centre, fitted jointly from all its nights |
+| `terrain` | a camera's skyline from the Copernicus DEM, and the part of a frame above it |
 | `ledger` | per-camera, per-date poses, and when one applies |
 | `sun`, `moon` | dark-frame selection; moonlit nights solve as well as dark ones |
 | `hpwren/` | HPWREN's camera table, CDN nights, a command-line calibrator, the solved ledger |
@@ -140,6 +147,9 @@ built and tested, including what failed; docstrings here cite it by date.
 
 - **HPWREN** — camera frames and the camera table (`hpwren/sites.js`, `hpwren/cams.json`).
   Use of HPWREN data requires a credit reference to <https://www.hpwren.ucsd.edu/>.
+- **Copernicus DEM GLO-30** — the skyline (`terrain.py`), read from its public bucket on AWS:
+  © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under
+  COPERNICUS by the European Union and ESA.
 - **HYG Database** — [astronexus/HYG-Database](https://github.com/astronexus/HYG-Database),
   CC BY-SA 4.0. `data/bright_stars.json` is a filtered derivative (mag ≤ 4) under the same
   license.

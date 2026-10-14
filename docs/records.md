@@ -15,6 +15,7 @@ it is committed to this repository.
 | Record | Where | Written by | Read by | Can it be rebuilt? |
 |---|---|---|---|---|
 | `cams.json` | package | derived from `sites.js` | everything | yes, from `sites.js` |
+| `dem/*.tif`, `dem/*.sea` | cache | `terrain.dem_tile`, on first use | the sky search (`calibrate solve`), the examples | yes, from the Copernicus bucket |
 | `sites.js` | package | copied verbatim from HPWREN | people deriving `cams.json` | from HPWREN |
 | `pose_ledger.json` | package | `calibrate ledger`, copied in on purpose | `ledger.lookup`, plume-triangulation | yes, from `summary.json` |
 | `intrinsics.json` | package | `calibrate intrinsics` | the solver, through `hpwren.camera` | yes, from solves and tracks |
@@ -29,6 +30,7 @@ it is committed to this repository.
 | `animations/star_solve_<block>.mp4`, `…_full.mp4` | cache | `calibrate animate`, on request | gallery | yes, from frames and tracks |
 | `explore/<block>.js` | cache | `calibrate explore`, on request | `gallery/explore.html` | yes, from frames and tracks |
 | `gallery/index.html`, `gallery/thumbs/`, `gallery/explore.html` | cache | `gallery`, `calibrate explore` | people | yes |
+| `ablation/refit_<block>.json`, `resolve_<block>.json`, `summary.json` | cache | `hpwren.ablate`, on request | people | yes, from solves and tracks |
 
 The cache is `$HPWREN_CACHE`, `~/.cache/hpwren` by default. plume-triangulation uses the same
 one, so both projects read one copy of the frames, and there is one gallery.
@@ -57,8 +59,9 @@ HPWREN CDN ──fetch──▶ nights/ ──index──▶ nights.json
 A change upstream makes everything downstream stale, and nothing records that it is:
 
 - **Changing the detector, linker or cleaning (`tracks.py`)** leaves the old `tracks/*.pkl`
-  in place unless it changes a recipe. Each pickle records the recipe `load_tracks` linked
-  and cleaned it with (`link`, `clean`), and a pickle made with another recipe is rebuilt.
+  in place unless it changes a recipe. Each pickle records the recipes `load_tracks` searched,
+  linked and cleaned it with (`search`, `link`, `clean`), and a pickle made with another
+  recipe is rebuilt.
   A code change that keeps the recipe goes unnoticed: delete `tracks/` to rebuild.
 - **Changing the solver** leaves `solves/` as it was until `calibrate solve` runs again.
 - **Changing the catalog or its corrections** changes `sky_model`, and `ledger.load` then
@@ -123,8 +126,8 @@ corrections relative to this table.
 
 ### `pose_ledger.json`
 
-The solved poses: one entry per solved CDN block, 137 solves of 76 cameras as of
-2026-09-29 (v0.3.0). `calibrate ledger` writes a fresh one to the cache; the package's copy changes
+The solved poses: one entry per solved CDN block, 267 solves of 89 cameras as of
+2026-10-13 (v0.4.0; v0.3.0 shipped 137 of 76). `calibrate ledger` writes a fresh one to the cache; the package's copy changes
 only when someone copies it in on purpose.
 
 | Field | Meaning |
@@ -176,10 +179,13 @@ segments, a new one starting where the centre jumps (two consecutive nights each
 | `median_px`, `median_px_centred` | the joint fit's median residual with the centre held at the middle, and fitted |
 | `nights` | the blocks it was fitted from |
 | `own` | each night's centre fitted alone, `[cx, cy]`: the scatter the segment hides |
+| `dropped` | nights left out because their pose in the joint fit came within 0.1° (`AGREE_DEG`) of no other night's (from v0.4.0) |
 
 `hpwren.camera(name, W, H, epoch)` gives the solver a camera's record with the centre of
 the segment that starts at or before the date (the first segment for earlier dates).
-`calibrate intrinsics` rewrites the file from the current solves. Re-solve afterwards.
+`calibrate intrinsics` rewrites the file from the current solves. Re-solve afterwards, or run
+`calibrate intrinsics --iterate`, which fits, re-solves and refits until no centre moves by more
+than 1 px.
 
 The first fit (2026-09-29, from 137 solved CDN blocks) gave 47 of 76 cameras a centre, a
 median 32 px from the middle (max 75, bm-e-mobo-c). A camera's single-night centres sit a
@@ -188,6 +194,14 @@ solves' median residual from 1.23 to 0.78 px, added bm-s 09-11 and (with the lev
 starts) bi-s 09-20, and moved poses a median 0.76° (max 3.1°, bm-e). Two solves of one
 camera within 30 days now agree to 0.015° median and 0.05° worst, against 0.026° and 0.75°
 before.
+
+The v0.4.0 fit (2026-10-13) came from 316 CDN blocks searched above the skyline, with centres
+and solves iterated: five rounds, the centres moving a median 2.7 px (max 73) in the first and
+0.0 px in the last. It gives 86 of 89 cameras a centre, a median 28 px from the middle (max
+73). One night was dropped by the agreement check (sm-e-mobo-c 10-04). Over the 308 blocks
+both releases solved from, v0.4.0 solved 261 against v0.3.0's 242 (one lost, starr-n-mobo-c
+08-21), the median residual went from 0.87 to 0.75 px, and two solves of one camera under 30
+days apart agree to 0.014° median (p90 0.035°), against 0.022° (p90 0.065°).
 
 ## Cache records
 
@@ -217,9 +231,17 @@ A pickle of one block's tracks, written by `calibrate.load_tracks`. Each track i
 offset (seconds) to `(x, y, amp)`: pixel position and peak amplitude of the point in that
 frame. The pickle is a cache, not an interface: it can change with `tracks.py`.
 
+The tracks come from two passes over the frames (from v0.4.0). The first detects big blobs as
+well as small ones in the top 35% of the frame and solves for a seed pose. The second keeps
+the usual blob sizes and searches every pixel more than a margin above the camera's DEM
+skyline (`terrain.skyline`), drawn through the seed pose, or through the published pose with a
+wider margin when the seed failed. Its tracks are the block's.
+
 | Field | Meaning |
 |---|---|
-| `linked` | the moving tracks `tracks.collect` linked across frames, before cleaning |
+| `search` | the search recipe: `seed_detect` (the first pass's detector options, e.g. `area_range` in px) and `margin_deg` (degrees above the skyline: `seed` through a solved seed pose, `published` through the published one) |
+| `sky` | what the first pass found, also copied into the solve result: see below |
+| `linked` | the moving tracks the second pass linked across frames, before cleaning |
 | `link` | the linking recipe: `linker` (`nearest` for colour cameras, `predictive` for monochrome) and `max_gap_s` (a track unseen that long closes) |
 | `tracks` | the tracks the solver uses: `linked` after `tracks.clean`. A solve's `matches` index this list |
 | `clean` | the cleaning recipe: `banner_px`, the rows of burned-in text at the top of the frame |
@@ -227,7 +249,18 @@ frame. The pickle is a cache, not an interface: it can change with `tracks.py`.
 | `WH` | frame width and height |
 
 Pickles written before 2026-09-28 hold only `tracks` (uncleaned, linked with no gap limit
-within a block) and `WH`. `load_tracks` rebuilds them.
+within a block) and `WH`, and those before v0.4.0 searched only the top 35% of the frame.
+`load_tracks` rebuilds both.
+
+The `sky` record:
+
+| Field | Meaning |
+|---|---|
+| `mask_from` | `seed` (the first pass solved) or `published` |
+| `pose` | the pose the mask was drawn through |
+| `cx`, `cy` | the optical centre the mask was drawn through |
+| `frac`, `bottom` | the share of the frame searched, and the lowest searched row as a fraction of `H` |
+| `seed_status`, `seed_stars`, `seed_tracks` | the first pass's verdict, matched stars and cleaned tracks |
 
 #### Track cleaning
 
@@ -315,6 +348,14 @@ solve got.
 | `found_by` | `grid` (around the published pose) or `pole` (global, from the pole) |
 | `lens_from_pole` | the lens scale the trails measure (`pole.lens_scale`), or `null` |
 
+**Added by `calibrate solve`**
+
+| Field | Meaning |
+|---|---|
+| `sky` | how the block's sky was searched, as in its tracks pickle (above) |
+| `vouched_by` | only on a vouched-for row (below): `seq`, the night that vouched for it; `sep_deg` and `roll_deg`, the angle between their boresights and their roll difference; `days_apart` |
+| `reason_alone` | only on a vouched-for row: the `reason` its own solve gave |
+
 **Added by `calibrate add`**, for results from frames the cache doesn't hold:
 
 | Field | Meaning |
@@ -329,6 +370,11 @@ is an interface: plume-triangulation's `stars.publish` writes to it.
 under 3.0 px, and a lens scale within 0.70–0.95 (pole search, or a given lens) or 0.85–0.92
 (grid). `solve_wide` runs up to three attempts (grid; pole under the shared lens; pole under
 the trails' lens) and keeps the best: solved first, then most stars, then lowest median.
+
+**Vouching** (`calibrate.vouch`, from v0.4.0). A fit turned down for its star count alone,
+with 5 to 7 stars, is `solved` in `summary.json` when its pose is within 0.1° of the nearest
+night of the same camera, at most 30 days away, that solved with 8 or more. It is decided
+again after every `calibrate solve`, from the rows as they stand.
 
 **Reasons and outcomes.** The gallery sorts failures by `gallery.outcome`:
 
@@ -422,6 +468,52 @@ from published to fitted at the reference frame) and, for a failure with no fit,
 `bright_arcs` (mag ≤ 3 stars at the published pose and shared lens). `sky` is
 `[name, mag, x, y]` for every catalog star in frame at the reference frame under the fitted
 pose, or the published one, for labels.
+
+### `ablation/`
+
+The ablation study (`ablation.py`, run by `python -m star_calibration.hpwren.ablate`), made
+only on request. It reads solves and tracks and writes nothing outside `ablation/`. Internal:
+its shape can change freely.
+
+**`refit_<block>.json`** holds `held` and `free`, one refit study each: the optical centre held
+at the camera's value, or free. Each has:
+
+| Field | Meaning |
+|---|---|
+| `seq`, `camera`, `W`, `H` | the block and its frame size |
+| `centre_free` | whether `cx`, `cy` were fitted |
+| `solved` | the stored solve's `pose` fields, `cx`, `cy` and `median_px` |
+| `stars` | per matched star: `name`, `mag`, `n_points`, `theta_deg` (median angle from the boresight at the solved pose), `r_px` (median distance of its track from the optical centre) |
+| `rows` | one per refit, below |
+
+Every row has the fitted `d_az`, `d_pitch`, `d_roll` (deg), `k_ratio`, `k1`, `cx`, `cy` (px;
+the camera's when held), `median_px`, and the `n_stars` and `n_points` it saw. It also has a
+`kind`, with what that kind kept:
+
+| `kind` | Extra fields |
+|---|---|
+| `baseline` | none: every matched star, which reproduces the solve |
+| `leave_one_out` | `drop`: the star left out |
+| `inner`, `outer` | `fraction` of the stars, nearest to or furthest from the boresight; `theta_min`, `theta_max` of those kept |
+| `subset` | `size` stars at random, `draw` (0..19), `theta_mean` of those kept |
+| `shorten` | `fraction`: the middle part of every track kept |
+
+**`resolve_<block>.json`**: `seq`, `camera`, `n_tracks`, `n_stars` (the stored solve's), and
+`min_stars`, `min_tracks` (the loosened acceptance the re-solves ran under). `rows` has one
+entry per variant (`ablation.variants`):
+- `variant`: `all`, `drop_inner_third`, `drop_middle_third`, `drop_outer_third` (by track
+  radius), or `keep_<pct>_s<seed>` (a random share of the tracks);
+- `n_tracks`, `status`, `reason`, `found_by`;
+- for a fit, `n_stars`, `median_px`, `pose`, `delta` (the pose minus the stored one),
+  `same_pose` (every angle within 0.2°) and `shared_stars` (matched stars in common with the
+  stored solve).
+
+**`summary.json`**: `ablate report`'s roll-up of the per-block files, as medians with the
+middle half (`[median, q25, q75]`). It has `held` and `free` (each with `n_blocks`,
+`params`, `baseline_vs_solved`, `baseline_median_px`, `loo`, `loo_by_theta`,
+`loo_rank_corr`, `theta_range`, `radial`, `subsets`, `shorten`), `centre` (free against
+held) and `resolve` (`variants`, `wrong`, `by_n_stars`). Leave-one-out entries are jackknife
+influence: (n − 1) times the change in each parameter.
 
 ## In memory only
 

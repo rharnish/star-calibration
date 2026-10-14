@@ -190,14 +190,18 @@ def _level_starts(psi, poses, scores, starts, coincidence, window_deg: float = 8
 
 def solve(night: Night, wide: bool = False, min_stars: int = 8,
           k_ratio: float | None = None, window: tuple[float, float] | None = None,
-          trace: list | None = None, level_starts: bool = True) -> dict:
+          trace: list | None = None, level_starts: bool = True, max_median_px: float = 3.0,
+          k_window: tuple[float, float] | None = None, min_tracks: int = 8) -> dict:
     """One night's pose.
 
     `wide` replaces the +-30/15/10 deg grid around the published pose with `pole.py`'s
     closed-form pole plus a 1-D scan of the one angle the pole cannot see, which makes the
     search global instead of local -- the only way to reach a camera whose published azimuth
     is wrong by more than the grid is wide. `min_stars` is the acceptance cutoff; lowering it
-    is only safe if something else vouches for the solve (see `cross_night.py`).
+    is only safe if something else vouches for the solve (see `cross_night.py`). The other
+    acceptance tests are parameters too, for studies that loosen them (`ablation.py`):
+    `max_median_px`, `k_window` (None: 0.70-0.95 for a wide or given-lens search, else
+    0.85-0.92) and `min_tracks`, below which a night isn't searched at all.
 
     `trace`, if given, gets one dict per step appended to it -- the attempt, the pole, the
     coarse scan, the starts, every rung of every start's refinement, and the verdict -- for
@@ -218,7 +222,7 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
     tracks = [raw[i] for i in keep]
     out.update(W=W, H=H, n_tracks_raw=len(raw), n_tracks=len(tracks))
     note(stage="attempt", wide=wide, k_ratio=k_ratio, tracks=list(keep))
-    if len(tracks) < 8:
+    if len(tracks) < min_tracks:
         out.update(status="failed", reason=f"only {len(tracks)} moving tracks")
         note(stage="verdict", status="failed", reason=out["reason"])
         return out
@@ -375,8 +379,8 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
     agree = sum(1 for r in runs if {names[i] for i, _ in r["pairs"]} == stars)
     p, e = best["pose"], best["e"]
     kr, med = p[3] / k0, float(np.median(e))
-    lo_k, hi_k = (0.70, 0.95) if (wide or k_ratio) else (0.85, 0.92)
-    ok = len(stars) >= min_stars and med < 3.0 and lo_k <= kr <= hi_k
+    lo_k, hi_k = k_window or ((0.70, 0.95) if (wide or k_ratio) else (0.85, 0.92))
+    ok = len(stars) >= min_stars and med < max_median_px and lo_k <= kr <= hi_k
     out["k_ratio_start"] = k_ratio or K_RATIO
     out.update(
         status="solved" if ok else "failed",
@@ -390,14 +394,15 @@ def solve(night: Night, wide: bool = False, min_stars: int = 8,
     note(stage="verdict", status=out["status"], reason=out["reason"],
          start=best["s"],
          tests=[(f"{len(stars)} stars >= {min_stars}", len(stars) >= min_stars),
-                (f"median {med:.2f}px < 3.0", med < 3.0),
+                (f"median {med:.2f}px < {max_median_px:.1f}", med < max_median_px),
                 (f"k {kr:.3f}x in {lo_k:.2f}-{hi_k:.2f}", lo_k <= kr <= hi_k)])
     return out
 
 
 def solve_wide(night: Night, min_stars: int = 8, window: tuple[float, float] | None = None,
                trace: list | None = None, level_starts: bool = True,
-               grid: str = "fallback", sure_stars: int = 12) -> dict:
+               grid: str = "fallback", sure_stars: int = 12, max_median_px: float = 3.0,
+               k_window: tuple[float, float] | None = None, min_tracks: int = 8) -> dict:
     """A global solve, tried under each lens the trails allow, best result kept.
 
     Two lens hypotheses go in: the shared 0.886x nameplate that `solve` assumes for every
@@ -413,12 +418,12 @@ def solve_wide(night: Night, min_stars: int = 8, window: tuple[float, float] | N
     scale is ill-conditioned against pole position, and the measurement comes out 3-4% low.
 
     `trace` collects every attempt's steps (see `solve`), then a "kept" event naming the
-    attempt whose result is returned.
+    attempt whose result is returned. The acceptance parameters pass through to `solve`.
     """
     raw, keep = windowed(night.tracks, window)
     tracks = [raw[i] for i in keep]
     cands = []
-    if len(tracks) >= 8:
+    if len(tracks) >= min_tracks:
         ls = POLE.lens_scale(tracks, night.W, night.H, initial_k(night.cam, night.W), K1,
                              cx=night.cam.get("cx", 0.0), cy=night.cam.get("cy", 0.0))
         if ls is not None and 0.6 <= ls["k_ratio"] <= 1.2 and abs(ls["k_ratio"] - K_RATIO) > 0.005:
@@ -440,7 +445,8 @@ def solve_wide(night: Night, min_stars: int = 8, window: tuple[float, float] | N
                 and best[1]["status"] == "solved" and best[1]["n_stars"] >= sure_stars):
             continue
         r = solve(night, wide=wide, min_stars=min_stars, k_ratio=kr, window=window, trace=trace,
-                  level_starts=level_starts)
+                  level_starts=level_starts, max_median_px=max_median_px, k_window=k_window,
+                  min_tracks=min_tracks)
         r["lens_from_pole"] = cands[1] if len(cands) > 1 else None
         r["found_by"] = "pole" if wide else "grid"
         key = (r["status"] == "solved", r.get("n_stars") or 0, -(r.get("median_px") or 1e9))

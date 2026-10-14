@@ -70,3 +70,20 @@ def test_a_jump_in_centre_starts_a_new_segment_and_lookup_follows_it():
 def test_one_thin_night_keeps_the_frame_middle():
     segs = I.series([night_obs(T0, (1.0, -0.5, 0.3), (-24.0, 17.0), n_stars=8)], CAM)
     assert (segs[0]["cx"], segs[0]["cy"]) == (0.0, 0.0)
+
+
+def test_a_night_no_other_agrees_with_is_dropped_from_the_fit():
+    good = [night_obs(T0 + 86400 * i, (1.0, -0.5, 0.3), (-24.0, 17.0), seed=i) for i in range(3)]
+    bumped = night_obs(T0 + 86400 * 3, (1.6, -0.5, 0.3), (-24.0, 17.0), seed=7)
+    seg, = I.series(good + [bumped], CAM)
+    assert seg["dropped"] == [bumped["seq"]]
+    assert seg["n_nights"] == 3 and bumped["seq"] not in seg["nights"]
+    assert abs(seg["cx"] + 24) < 2 and abs(seg["cy"] - 17) < 2
+
+
+def test_nights_that_agree_once_the_centre_is_fitted_are_kept():
+    """Solved through the frame's middle, two right nights of a camera whose centre is off
+    can disagree; the gate looks at their poses in the joint fit, where they agree."""
+    obs = [night_obs(T0 + 86400 * i, (1.0, -0.5, 0.3), (40.0, 50.0), seed=i) for i in range(2)]
+    seg, = I.series(obs, CAM)
+    assert seg["dropped"] == [] and seg["n_nights"] == 2

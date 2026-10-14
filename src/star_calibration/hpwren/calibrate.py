@@ -18,6 +18,7 @@ re-run only does what it hasn't done:
     python -m star_calibration.hpwren.calibrate explore block ...       # replay in the browser
     python -m star_calibration.hpwren.calibrate agree                  # night-to-night check
     python -m star_calibration.hpwren.calibrate intrinsics [dest.json] # solved -> optical centres
+    python -m star_calibration.hpwren.calibrate intrinsics --iterate   # centres and solves, to convergence
     python -m star_calibration.hpwren.calibrate ledger [dest.json]     # solved -> pose ledger
 
 `solve` runs `solve.solve_wide`: the pole-based global search under the shared lens and under
@@ -47,8 +48,9 @@ import cv2
 import numpy as np
 
 from .. import animate as anim
-from .. import cross_night, intrinsics, ledger, overlay
+from .. import cross_night, intrinsics, ledger, overlay, terrain
 from .. import explore as ex
+from ..fisheye import K1, K_RATIO
 from ..solve import Night, solve_wide
 from ..tracks import clean, collect
 from . import cache_dir, camera, cameras, intrinsics_path, nights
@@ -103,33 +105,88 @@ def clean_recipe() -> dict:
     return {"banner_px": BANNER_PX}
 
 
-def load_tracks(seq: str) -> tuple[list[dict], tuple[int, int]]:
-    """One block's tracks and frame size, extracted once and cached.
+# A block's tracks come from two passes over its frames. The first looks for big blobs as
+# well as small ones (the shipped sizes miss stars brighter than about magnitude 2.3, which
+# bloom), in the top 35% of the frame, and solves for a seed pose. The bright stars find the
+# pose, but their centroids are imprecise. So the second pass keeps the shipped blob sizes
+# and searches everything more than a margin above the camera's DEM skyline, drawn through
+# the seed pose (or the published pose, with a wider margin, when the seed didn't solve).
+# Its tracks are the block's tracks. Measured on 299 blocks in October 2026: 242 solved with
+# the top-35% search alone, 254 this way, and two nights of one camera agreed more closely.
+SEED_DETECT = {"nearest": {"area_range": (1, 80)}, "predictive": {"area_range": (2, 120)}}
+SKY_MARGIN_DEG = {"seed": 0.5, "published": 2.0}
 
-    The pickle keeps the linker's output (`linked`) and the cleaned tracks the solver uses
-    (`tracks.clean`), each with the recipe that made it. A pickle whose linking recipe differs
-    from `link_recipe` is rebuilt from the frames; one whose cleaning differs is re-cleaned
-    from `linked`. A change to the code that doesn't change a recipe goes unnoticed: delete
-    `tracks/` then."""
+
+def search_recipe(seq: str) -> dict:
+    """How a block's sky is found: the first pass's detector and the skyline margins."""
+    return {"seed_detect": SEED_DETECT[link_recipe(seq)["linker"]], "margin_deg": SKY_MARGIN_DEG}
+
+
+def dem_dir() -> Path:
+    return cache_dir() / "dem"
+
+
+def _search(seq: str, link: dict, search: dict) -> dict:
+    """Both passes over one block's frames; see SEED_DETECT. Returns the pickle's contents
+    but for the cleaned tracks."""
+    s = nights.sequences()[seq]
+    mono = link["linker"] == "predictive"
+    frames = nights.read_frames(seq)
+    linked, decoded = collect(frames, s["lat"], s["lon"], mono=mono, keep_frames=False,
+                              max_gap_s=link["max_gap_s"], label=f"{seq} seed",
+                              detect=search["seed_detect"])
+    W, H = 3072, 2048
+    if decoded:
+        H, W = next(iter(decoded.values()))[1].shape[:2]
+    cam = camera(s["camera"], W, H, s["t0"])
+    seed_tracks, _ = clean(linked, **clean_recipe())
+    r = solve_wide(Night(camera=s["camera"], cam=cam, t0=s["t0"], tracks=seed_tracks, W=W, H=H,
+                         label=f"{seq} seed"))
+    if r["status"] == "solved":
+        source, pose = "seed", r["pose"]
+    else:
+        source, pose = "published", {"d_az": 0.0, "d_pitch": 0.0, "d_roll": 0.0,
+                                     "k_ratio": K_RATIO, "k1": K1}
+    mask = terrain.sky_mask(cam, pose, W, H, terrain.skyline(cam, dem_dir()),
+                            search["margin_deg"][source])
+    rows = np.flatnonzero(mask.any(axis=1))
+    linked, _ = collect(frames, s["lat"], s["lon"], mono=mono, keep_frames=False,
+                        max_gap_s=link["max_gap_s"], label=seq, detect={"sky_mask": mask})
+    return {"linked": linked, "link": link, "search": search, "WH": (W, H),
+            "sky": {"mask_from": source, "pose": pose, "cx": cam["cx"], "cy": cam["cy"],
+                    "frac": round(float(mask.mean()), 4),
+                    "bottom": round(float((rows[-1] + 1) / H), 4) if len(rows) else 0.0,
+                    "seed_status": r["status"], "seed_stars": r.get("n_stars"),
+                    "seed_tracks": len(seed_tracks)}}
+
+
+def _pickle(seq: str) -> dict:
+    """One block's tracks, made once and cached in tracks/tracks_<block>.pkl.
+
+    The pickle keeps the second pass's linked tracks (`linked`), the cleaned tracks the
+    solver uses (`tracks.clean`), each with the recipe that made it, and what the first pass
+    found (`sky`). A pickle whose linking or search recipe differs is rebuilt from the frames;
+    one whose cleaning differs is re-cleaned from `linked`. A change to the code that doesn't
+    change a recipe goes unnoticed: delete `tracks/` then. The sky mask was drawn through a
+    pose solved under the optical centre of the day; a new centre needs a new solve, not new
+    tracks."""
     cache = tracks_dir() / f"tracks_{seq}.pkl"
-    link, cl = link_recipe(seq), clean_recipe()
+    link, search, cl = link_recipe(seq), search_recipe(seq), clean_recipe()
     d = pickle.load(open(cache, "rb")) if cache.exists() else {}
-    if d.get("link") != link:
-        s = nights.sequences()[seq]
-        whole = "_N_" in seq   # ~470 frames: keep only one decoded
-        linked, decoded = collect(nights.read_frames(seq), s["lat"], s["lon"],
-                                  mono=link["linker"] == "predictive", keep_frames=not whole,
-                                  max_gap_s=link["max_gap_s"], label=seq)
-        W, H = 3072, 2048
-        if decoded:
-            H, W = next(iter(decoded.values()))[1].shape[:2]
-        d = {"linked": linked, "link": link, "WH": (W, H)}
+    if d.get("link") != link or d.get("search") != search:
+        d = _search(seq, link, search)
     if d.get("clean") != cl:
         d["tracks"], d["cleaning"] = clean(d["linked"], **cl)
         d["clean"] = cl
         print(f"  {seq}: cleaned {d['cleaning']}")
         cache.parent.mkdir(parents=True, exist_ok=True)
         pickle.dump(d, open(cache, "wb"))
+    return d
+
+
+def load_tracks(seq: str) -> tuple[list[dict], tuple[int, int]]:
+    """One block's tracks and frame size (see `_pickle`)."""
+    d = _pickle(seq)
     return d["tracks"], tuple(d["WH"])
 
 
@@ -217,6 +274,7 @@ def _one(seq: str) -> dict:
                            f"frames are the CDN's placeholder"}
         else:
             r = solve_wide(night(seq))
+            r["sky"] = _pickle(seq)["sky"]
     except Exception as exc:   # one bad block shouldn't sink the batch
         r = {"seq": seq, "status": "failed", "reason": f"{type(exc).__name__}: {exc}"}
     solves_dir().mkdir(parents=True, exist_ok=True)
@@ -267,12 +325,108 @@ def add(result: dict, image: np.ndarray | None, source: str) -> None:
     _merge([r])
 
 
+# A night with too few stars to pass on its own (`solve`'s min_stars, 8) is accepted when
+# another night of the same camera vouches for it: the fit passes every other test, has at
+# least VOUCH_MIN_STARS stars, and its pose is within VOUCH_DEG of the nearest night (in time,
+# within VOUCH_DAYS) that solved with 8 or more. Two nights of one camera agree to 0.014 deg
+# median and 0.033 at the 90th percentile; a wrong fit lands tenths of a degree away or more
+# (the ablation study's loosened re-solves). See docs/records.md for the numbers.
+VOUCH_MIN_STARS = 5
+VOUCH_DEG = 0.1
+VOUCH_DAYS = 30.0
+
+
+def _passes_but_stars(r: dict) -> bool:
+    """A failed fit that `solve`'s acceptance test turned down for its star count alone."""
+    p = r.get("pose")
+    if not p or r.get("median_px") is None or not r.get("n_stars"):
+        return False
+    lo, hi = (0.70, 0.95) if r.get("found_by") == "pole" else (0.85, 0.92)
+    return (VOUCH_MIN_STARS <= r["n_stars"] < 8 and r["median_px"] < 3.0
+            and lo <= p["k_ratio"] <= hi)
+
+
+def vouch(rows: list[dict]) -> list[dict]:
+    """Re-decide every row that could be vouched for (see VOUCH_DEG), in place; returns the
+    rows whose status changed. A vouched row is `solved`, with `vouched_by` naming the night
+    and the angle between them, and `reason_alone` keeping what its own solve said."""
+    indexed = nights.sequences()
+    t0 = {r["seq"]: block(r, indexed).get("t0") for r in rows}
+    for r in rows:
+        if "vouched_by" in r:          # decide again from scratch
+            r.update(status="failed", reason=r.pop("reason_alone"))
+            del r["vouched_by"]
+    solid: dict[str, list[dict]] = {}
+    for r in rows:
+        if r["status"] == "solved" and r.get("pose") and t0.get(r["seq"]):
+            solid.setdefault(r.get("camera"), []).append(r)
+    changed = []
+    for r in rows:
+        if r["status"] == "solved" or not _passes_but_stars(r) or not t0.get(r["seq"]):
+            continue
+        near = [(abs(t0[s["seq"]] - t0[r["seq"]]) / 86400, s) for s in solid.get(r.get("camera"), [])]
+        near = [x for x in near if x[0] <= VOUCH_DAYS]
+        if not near:
+            continue
+        days, s = min(near, key=lambda x: x[0])
+        sep, roll = cross_night.disagreement(cameras()[r["camera"]], r["pose"], s["pose"])
+        if sep <= VOUCH_DEG:
+            r["reason_alone"] = r["reason"]
+            r.update(status="solved", reason=None,
+                     vouched_by={"seq": s["seq"], "sep_deg": round(sep, 4),
+                                 "roll_deg": round(roll, 4), "days_apart": round(days, 2)})
+            changed.append(r)
+    return changed
+
+
 def solve_blocks(seqs: list[str], workers: int = 4) -> list[dict]:
-    """Solve `seqs` and merge them into solves/summary.json."""
+    """Solve `seqs`, merge them into solves/summary.json, and settle which rows are vouched
+    for (`vouch`), redrawing the overlays of any that changed."""
     with Pool(workers) as pool:
         new = list(pool.imap_unordered(_one, seqs))
     _merge(new)
-    return sorted(new, key=lambda r: (r["status"] != "solved", r["seq"]))
+    rows = summary()
+    before = {r["seq"]: r["status"] for r in rows}
+    vouch(rows)
+    _merge(rows)
+    indexed = nights.sequences()
+    for r in rows:
+        if r["status"] != before[r["seq"]] or "vouched_by" in r:
+            (solves_dir() / f"solve_{r['seq']}.json").write_text(json.dumps(r, indent=1, default=float) + "\n")
+            if r["seq"] in indexed:
+                render(r["seq"], r)
+    done = {r["seq"]: r for r in rows}
+    return sorted((done[r["seq"]] for r in new), key=lambda r: (r["status"] != "solved", r["seq"]))
+
+
+def fit_intrinsics(dest: Path | None = None) -> list[dict]:
+    """Every camera's optical centre from the cache's own solves (`intrinsics.build`)."""
+    indexed = nights.sequences()
+    return intrinsics.build([r for r in summary() if "source" not in r and r["seq"] in indexed
+                             and "_N_" not in r["seq"]], night, cameras(), dest)
+
+
+def centres(max_rounds: int = 5, converged_px: float = 1.0) -> None:
+    """Optical centres and solves, iterated until they agree. A centre is fitted from solves
+    made through the centres before it, and a solve depends on its centre, so: fit, write
+    hpwren/intrinsics.json, re-solve every block, and repeat until no centre moves by more
+    than `converged_px`. The solves left in solves/ are the ones made through the file as it
+    stands. In October 2026 (299 blocks) this took three rounds; one-night segments went from
+    43 to 4, and two nights of one camera agreed to 0.0141 deg median, from 0.0173."""
+    seqs = sorted(s for s in nights.index() if "_N_" not in s)
+    for k in range(max_rounds):
+        p = intrinsics_path()
+        old = json.loads(p.read_text()) if p.exists() else []
+        rows = fit_intrinsics()
+        moves = [float(np.hypot(r["cx"] - c[0], r["cy"] - c[1])) for r in rows
+                 for c in [intrinsics.lookup(old, r["camera"], r["W"], r["H"], r["from"])]]
+        print(f"round {k}: {len(rows)} segments, {sum(r['n_nights'] >= 2 for r in rows)} with "
+              f"2+ nights; centres moved max {max(moves, default=0):.1f} px, "
+              f"median {np.median(moves) if moves else 0:.1f}", flush=True)
+        if max(moves, default=0) <= converged_px:
+            break
+        p.write_text(json.dumps(rows, indent=1) + "\n")
+        report(solve_blocks(seqs))
 
 
 def report(results: list[dict]) -> None:
@@ -293,7 +447,11 @@ def main(argv: list[str]) -> None:
     if cmd == "fetch":
         nights.main(args)
     elif cmd == "solve":
-        seqs = args or sorted(s for s in nights.index() if "_N_" not in s)
+        indexed = nights.index()
+        seqs = args or sorted(s for s in indexed if "_N_" not in s)
+        for s in [s for s in seqs if s not in indexed]:
+            print(f"{s}: no frames in the cache, skipped")
+        seqs = [s for s in seqs if s in indexed]
         print(f"{len(seqs)} blocks", flush=True)
         report(solve_blocks(seqs))
     elif cmd == "overlay":
@@ -315,10 +473,11 @@ def main(argv: list[str]) -> None:
         rows = summary()
         cross_night.report(rows, {r["seq"]: block(r, indexed)["t0"] for r in rows}, cameras())
     elif cmd == "intrinsics":
+        if "--iterate" in args:
+            centres()
+            return
         dest = Path(args[0]) if args else intrinsics_path()
-        indexed = nights.sequences()
-        rows = intrinsics.build([r for r in summary() if "source" not in r and r["seq"] in indexed
-                                 and "_N_" not in r["seq"]], night, cameras(), dest)
+        rows = fit_intrinsics(dest)
         moved = [r for r in rows if r["cx"] or r["cy"]]
         print(f"wrote {dest}: {len(rows)} segments on {len({r['camera'] for r in rows})} "
               f"cameras, {len(moved)} with a centre")
