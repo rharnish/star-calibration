@@ -6,3 +6,6 @@ dist/
 .venv/
 .pytest_cache/
 .ruff_cache/
+
+# Article figures drawn from FIgLib frames by plume (output only, in the notebook)
+examples/hpwren_article/static/*.jpg
