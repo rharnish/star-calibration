@@ -425,6 +425,41 @@
   "dropped": []
  },
  {
+  "camera": "buff-n-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1791963917,
+  "to": 1792136718,
+  "cx": 4.9,
+  "cy": -5.7,
+  "k_ratio": 0.8865,
+  "k1": -0.0797,
+  "n_nights": 3,
+  "n_stars": 78,
+  "median_px": 1.18,
+  "median_px_centred": 1.02,
+  "nights": [
+   "hpwren_20261014_Q1_buff-n-mobo-c",
+   "hpwren_20261015_Q1_buff-n-mobo-c",
+   "hpwren_20261016_Q1_buff-n-mobo-c"
+  ],
+  "own": [
+   [
+    6.9,
+    -5.4
+   ],
+   [
+    4.9,
+    -5.5
+   ],
+   [
+    3.2,
+    -6.2
+   ]
+  ],
+  "dropped": []
+ },
+ {
   "camera": "buff-s-mobo-c",
   "W": 3072,
   "H": 2048,
@@ -450,6 +485,41 @@
    [
     56.2,
     -44.1
+   ]
+  ],
+  "dropped": []
+ },
+ {
+  "camera": "buff-w-mobo-c",
+  "W": 3072,
+  "H": 2048,
+  "from": 1791963919,
+  "to": 1792136719,
+  "cx": 9.7,
+  "cy": 29.0,
+  "k_ratio": 0.8875,
+  "k1": -0.0773,
+  "n_nights": 3,
+  "n_stars": 104,
+  "median_px": 2.12,
+  "median_px_centred": 0.78,
+  "nights": [
+   "hpwren_20261014_Q1_buff-w-mobo-c",
+   "hpwren_20261015_Q1_buff-w-mobo-c",
+   "hpwren_20261016_Q1_buff-w-mobo-c"
+  ],
+  "own": [
+   [
+    9.8,
+    29.1
+   ],
+   [
+    11.5,
+    28.3
+   ],
+   [
+    13.9,
+    31.7
    ]
   ],
   "dropped": []

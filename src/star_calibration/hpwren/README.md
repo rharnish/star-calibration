@@ -120,7 +120,7 @@ gallery/explore.html                        the replay page, one block at a time
   - [`ledger.py`](../ledger.py) has the rules for when a pose applies to another date.
 - **`intrinsics.json`** — each camera's optical centre, fitted from all its solved nights at
   once ([`intrinsics.py`](../intrinsics.py)). The lens's centre sits a median 28 px from the
-  frame's middle on these units (86 of 89 cameras fitted), stable night to night. The solver reads it, and each solve
+  frame's middle on these units (88 of 91 cameras fitted), stable night to night. The solver reads it, and each solve
   and ledger entry records the centre it used.
 
 ## Data credit
