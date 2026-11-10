@@ -198,7 +198,9 @@ before.
 The v0.4.0 fit (2026-10-13) came from 316 CDN blocks searched above the skyline, with centres
 and solves iterated: five rounds, the centres moving a median 2.7 px (max 73) in the first and
 0.0 px in the last. It gives 86 of 89 cameras a centre, a median 28 px from the middle (max
-73). One night was dropped by the agreement check (sm-e-mobo-c 10-04). Over the 308 blocks
+73). One night was dropped by the agreement check (sm-e-mobo-c 10-04). After the release,
+buff-n-mobo-c and buff-w-mobo-c were fitted from their solves of 14-16 October (for the
+article's panorama) and added as two more segments: 88 of 91 cameras now have a centre. Over the 308 blocks
 both releases solved from, v0.4.0 solved 261 against v0.3.0's 242 (one lost, starr-n-mobo-c
 08-21), the median residual went from 0.87 to 0.75 px, and two solves of one camera under 30
 days apart agree to 0.014° median (p90 0.035°), against 0.022° (p90 0.065°).
