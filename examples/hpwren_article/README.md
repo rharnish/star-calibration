@@ -1,7 +1,8 @@
 # The HPWREN article
 
-[`article.ipynb`](article.ipynb) is the source of *Calibrating HPWREN Cameras Using the
-Position of the Stars*, written for HPWREN and reviewed by its team. The prose is in the
+[`article.ipynb`](article.ipynb) is the source of [*Calibrating HPWREN Cameras Using the
+Position of the Stars*](https://www.hpwren.ucsd.edu/news/20261114/index.html), written for HPWREN,
+reviewed by its team and published on its news page on 14 November 2026. The prose is in the
 markdown cells. Each code cell is a one-line call into [`article_figs.py`](article_figs.py),
 and the notebook is committed with its outputs, so GitHub shows the figures.
 
