@@ -102,8 +102,9 @@ against landmarks in a daytime frame.
 most of the linked tracks are lit cloud, and the solve only succeeds once `tracks.clean` takes
 them out.
 [`examples/hpwren_article/`](examples/hpwren_article/README.md) is the source of the article
-written for HPWREN, *Calibrating HPWREN Cameras Using the Position of the Stars*: a notebook
-that draws its figures and checks its numbers.
+[*Calibrating HPWREN Cameras Using the Position of the Stars*](https://www.hpwren.ucsd.edu/news/20261114/index.html),
+published by HPWREN on 14 November 2026: a notebook that draws its figures and checks its
+numbers.
 
 **On HPWREN,** see [`src/star_calibration/hpwren/`](src/star_calibration/hpwren/README.md):
 
