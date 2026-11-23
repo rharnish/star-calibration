@@ -126,8 +126,8 @@ corrections relative to this table.
 
 ### `pose_ledger.json`
 
-The solved poses: one entry per solved CDN block, 267 solves of 89 cameras as of
-2026-10-13 (v0.4.0; v0.3.0 shipped 137 of 76). `calibrate ledger` writes a fresh one to the cache; the package's copy changes
+The solved poses: one entry per solved CDN block, 279 solves of 91 cameras as of
+2026-11-22 (v0.4.1; v0.4.0 shipped 267 of 89, v0.3.0 137 of 76). `calibrate ledger` writes a fresh one to the cache; the package's copy changes
 only when someone copies it in on purpose.
 
 | Field | Meaning |
@@ -204,6 +204,17 @@ article's panorama) and added as two more segments: 88 of 91 cameras now have a 
 both releases solved from, v0.4.0 solved 261 against v0.3.0's 242 (one lost, starr-n-mobo-c
 08-21), the median residual went from 0.87 to 0.75 px, and two solves of one camera under 30
 days apart agree to 0.014° median (p90 0.035°), against 0.022° (p90 0.065°).
+
+v0.4.1 (2026-11-22) fits the last three cameras that kept the frame's middle. Each had one
+solved night, and two more nights each (marconi-n-mobo-c and lp-s-mobo-m 2026-11-20/21 Q1,
+smer-tcs9-e-mobo-c 2026-11-10/11 Q8, the only block it posts) give three-night fits,
+iterated with their re-solves: marconi-n (21.5, 26.2), lp-s-m (−57.6, 9.7), smer-tcs9-e
+(23.4, 12.0). lp-s-m does not settle below 1 px: its 11-21 night alternates between two
+match sets, and the centre between −56 and −58 px in x, inside its night-to-night spread.
+All 91 cameras now have a centre. Their solves' median residuals drop from 0.8–2.7 px to
+0.4–1.3 px, and on marconi-n and lp-s-m the DEM skyline through them lands within 1.6 px (median) of
+where HPWREN's own calibration puts it, from 4.1 and 3.2 px.
+The ledger gains those 6 nights and the 6 buff-n/buff-w solves of 14-16 October.
 
 ## Cache records
 

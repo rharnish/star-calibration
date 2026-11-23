@@ -1009,22 +1009,32 @@
   "W": 3072,
   "H": 2048,
   "from": 1789112736,
-  "to": 1789112736,
-  "cx": 0.0,
-  "cy": 0.0,
-  "k_ratio": 0.8834,
-  "k1": -0.0702,
-  "n_nights": 1,
-  "n_stars": 10,
-  "median_px": 0.77,
-  "median_px_centred": 0.31,
+  "to": 1795250737,
+  "cx": -57.6,
+  "cy": 9.7,
+  "k_ratio": 0.8855,
+  "k1": -0.0771,
+  "n_nights": 3,
+  "n_stars": 76,
+  "median_px": 2.4,
+  "median_px_centred": 0.64,
   "nights": [
-   "hpwren_20260911_Q1_lp-s-mobo-m"
+   "hpwren_20260911_Q1_lp-s-mobo-m",
+   "hpwren_20261120_Q1_lp-s-mobo-m",
+   "hpwren_20261121_Q1_lp-s-mobo-m"
   ],
   "own": [
    [
-    -46.0,
-    14.6
+    -56.2,
+    9.5
+   ],
+   [
+    -47.3,
+    10.2
+   ],
+   [
+    -61.4,
+    10.1
    ]
   ],
   "dropped": []
@@ -1104,22 +1114,32 @@
   "W": 3072,
   "H": 2048,
   "from": 1789112737,
-  "to": 1789112737,
-  "cx": 0.0,
-  "cy": 0.0,
-  "k_ratio": 0.8857,
-  "k1": -0.0812,
-  "n_nights": 1,
-  "n_stars": 13,
-  "median_px": 2.67,
-  "median_px_centred": 1.01,
+  "to": 1795250738,
+  "cx": 21.5,
+  "cy": 26.2,
+  "k_ratio": 0.885,
+  "k1": -0.0791,
+  "n_nights": 3,
+  "n_stars": 73,
+  "median_px": 2.36,
+  "median_px_centred": 1.15,
   "nights": [
-   "hpwren_20260911_Q1_marconi-n-mobo-c"
+   "hpwren_20260911_Q1_marconi-n-mobo-c",
+   "hpwren_20261120_Q1_marconi-n-mobo-c",
+   "hpwren_20261121_Q1_marconi-n-mobo-c"
   ],
   "own": [
    [
-    23.7,
-    28.4
+    15.6,
+    26.6
+   ],
+   [
+    22.7,
+    24.9
+   ],
+   [
+    22.7,
+    26.5
    ]
   ],
   "dropped": []
@@ -2566,22 +2586,32 @@
   "W": 3072,
   "H": 2048,
   "from": 1786854808,
-  "to": 1786854808,
-  "cx": 0.0,
-  "cy": 0.0,
-  "k_ratio": 0.8837,
-  "k1": -0.0757,
-  "n_nights": 1,
-  "n_stars": 17,
-  "median_px": 0.87,
-  "median_px_centred": 0.54,
+  "to": 1794460287,
+  "cx": 23.4,
+  "cy": 12.0,
+  "k_ratio": 0.8836,
+  "k1": -0.0758,
+  "n_nights": 3,
+  "n_stars": 65,
+  "median_px": 1.13,
+  "median_px_centred": 0.53,
   "nights": [
-   "hpwren_20260815_Q8_smer-tcs9-e-mobo-c"
+   "hpwren_20260815_Q8_smer-tcs9-e-mobo-c",
+   "hpwren_20261110_Q8_smer-tcs9-e-mobo-c",
+   "hpwren_20261111_Q8_smer-tcs9-e-mobo-c"
   ],
   "own": [
    [
-    15.2,
-    13.1
+    20.9,
+    11.1
+   ],
+   [
+    21.0,
+    14.2
+   ],
+   [
+    21.5,
+    13.9
    ]
   ],
   "dropped": []
