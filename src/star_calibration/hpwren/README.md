@@ -110,17 +110,19 @@ gallery/explore.html                        the replay page, one block at a time
   - That describes the view each camera gives, which is what the network was built for. It
     is the reference this package measures against, and the solved poses are corrections
     to it.
-- **`pose_ledger.json`** — 267 solves on 89 cameras, from 43 nights between 2026-07-03 and
-  2026-10-08.
+- **`pose_ledger.json`** — 279 solves on 91 cameras, from 50 nights between 2026-07-03 and
+  2026-11-21.
   - Each entry is one camera-night: the pose offsets, lens, optical centre, star count,
     residual, source block, sky model and solver.
-  - It is `calibrate ledger` over this package's own CDN solves, made with v0.4.0. Five of
+  - It is `calibrate ledger` over this package's own CDN solves, made with v0.4.0. v0.4.1 adds
+    12 solves and re-solves 3, on the five cameras whose centres were fitted after the
+    release (buff-n, buff-w, lp-s-m, marconi-n, smer-tcs9-e). Five of
     them have 5–7 stars and are vouched for by another night of the same camera (see
     [docs/records.md](../../../docs/records.md)). v0.3.0 shipped 137 solves on 76 cameras.
   - [`ledger.py`](../ledger.py) has the rules for when a pose applies to another date.
 - **`intrinsics.json`** — each camera's optical centre, fitted from all its solved nights at
   once ([`intrinsics.py`](../intrinsics.py)). The lens's centre sits a median 28 px from the
-  frame's middle on these units (88 of 91 cameras fitted), stable night to night. The solver reads it, and each solve
+  frame's middle on these units (all 91 cameras fitted), stable night to night. The solver reads it, and each solve
   and ledger entry records the centre it used.
 
 ## Data credit

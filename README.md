@@ -20,10 +20,10 @@ same method applies to any fixed camera that sees a patch of night sky.
 
 ## What it found on HPWREN
 
-From 43 nights between 2026-07-03 and 2026-10-08, on frames from HPWREN's public CDN
-([`hpwren/pose_ledger.json`](src/star_calibration/hpwren/pose_ledger.json), v0.4.0):
+From 50 nights between 2026-07-03 and 2026-11-21, on frames from HPWREN's public CDN
+([`hpwren/pose_ledger.json`](src/star_calibration/hpwren/pose_ledger.json), v0.4.1):
 
-- **267 solves on 89 cameras**, from 316 night blocks tried, at a median residual of 0.75 px
+- **279 solves on 91 cameras**, from 333 night blocks tried, at a median residual of 0.75 px
   and 25 stars per solve.
 - **Nights agree to hundredths of a degree.** Two nights of the same camera under 30 days
   apart land on the same pose to 0.013° (median), and 97% of them within 0.05°: the
@@ -32,7 +32,7 @@ From 43 nights between 2026-07-03 and 2026-10-08, on frames from HPWREN's public
   the nameplate scale, spanning about ±55°. Big Black Mountain's cameras are a second lens
   group at 0.772–0.776. Near the frame edge, modelling the lens is worth up to 8° of bearing.
 - **Each camera's optical centre**, fitted from all its nights at once (`intrinsics.py`): a
-  median 28 px from the frame's middle on the 86 cameras where it is fitted, and steady from
+  median 28 px from the frame's middle on all 91 cameras, and steady from
   night to night. Centres and solves are iterated together until no centre moves.
 - **Dated poses.** Cameras get serviced and re-aimed, so a pose is a measurement on a date.
   The ledger says when one applies to another date, and refuses to bridge an apparent re-aim
